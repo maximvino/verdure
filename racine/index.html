@@ -24,33 +24,24 @@
 html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--font-b);overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;position:relative}
 
-/* ── Root-vein signature graphic ── */
-.veins{width:100%;height:22px;display:block;flex-shrink:0}
-.veins path{fill:none;stroke:var(--root);stroke-width:1.1;opacity:.4}
-.veins circle{fill:var(--root);opacity:.5}
-
-/* ── Top bar ── */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:2px 12px 6px;flex-shrink:0}
-.brand{font-family:var(--font-h);font-weight:500;font-size:.92rem;color:var(--ink2);letter-spacing:.02em}
-.controls{display:flex;gap:6px}
-.icon-btn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border2);background:rgba(0,0,0,.2);
-  color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;
-  transition:all .15s;padding:0}
-.icon-btn:hover{background:rgba(255,255,255,.06);color:var(--ink);border-color:rgba(224,198,150,.35)}
+/* ── Top bar: icons only, no heading, as thin as possible ── */
+.topbar{display:flex;align-items:center;justify-content:flex-end;padding:2px 5px;flex-shrink:0}
+.controls{display:flex;gap:4px}
+.icon-btn{width:16px;height:16px;border-radius:50%;border:none;background:none;
+  color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;
+  transition:color .15s;padding:0;opacity:.55}
+.icon-btn:hover{color:var(--ink);opacity:1}
 .icon-btn.spinning{animation:spin .6s linear}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Week grid ── */
-.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.day{background:var(--surface);display:flex;flex-direction:column;min-width:0;min-height:0}
-.day.is-today{background:var(--surface2)}
-.day-hdr{padding:6px 8px 5px;text-align:center;flex-shrink:0;border-bottom:1px solid var(--border)}
-.day-dow{font-family:var(--font-b);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
-.day.is-today .day-dow{color:var(--today)}
-.day-num{font-family:var(--font-h);font-size:1.15rem;font-weight:500;color:var(--ink2);line-height:1.25}
-.day.is-today .day-num{color:var(--today)}
-.day-events{flex:1;min-height:0;overflow-y:auto;padding:5px 4px 8px;display:flex;flex-direction:column;gap:4px}
+/* ── Week grid: one continuous surface, no lines/shading between days ── */
+.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface)}
+.day{display:flex;flex-direction:column;min-width:0;min-height:0}
+.day-hdr{padding:1px 3px;text-align:center;flex-shrink:0;white-space:nowrap}
+.day-dow,.day-num{font-family:var(--font-b);font-size:.68rem;color:var(--ink2)}
+.day-dow{margin-right:3px}
+.day.is-today .day-dow,.day.is-today .day-num{color:var(--today);font-weight:600}
+.day-events{flex:1;min-height:0;overflow-y:auto;padding:2px 3px 4px;display:flex;flex-direction:column;gap:3px}
 .day-events::-webkit-scrollbar{width:4px}
 .day-events::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
 
@@ -87,6 +78,10 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
 .cal-row-status.err{color:#d99}
 .cal-del{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:.9rem;flex-shrink:0;padding:2px 4px}
 .cal-del:hover{color:#d99}
+.backup-row{display:flex;gap:14px;margin-top:10px}
+.link-btn{background:none;border:none;color:var(--ink3);font-family:var(--font-b);font-size:.72rem;
+  text-decoration:underline;cursor:pointer;padding:0}
+.link-btn:hover{color:var(--ink2)}
 .add-cal{margin-top:14px;padding-top:14px;border-top:1px solid var(--border2)}
 .add-cal h3{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;font-weight:600}
 .add-cal-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
@@ -117,12 +112,7 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 <body>
 
 <div id="app">
-  <svg class="veins" viewBox="0 0 1000 22" preserveAspectRatio="none" aria-hidden="true">
-    <path id="veins-path" d="M0,11 L1000,11"/>
-  </svg>
-
   <div class="topbar">
-    <div class="brand">Racine</div>
     <div class="controls">
       <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
       <button class="icon-btn" id="settings-btn" title="Manage calendars">⚙</button>
@@ -141,6 +131,12 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
     <h2>Calendars</h2>
     <div class="modal-sub">Subscribed .ics feeds shown in your 7-day view</div>
     <div id="cal-list"></div>
+
+    <div class="backup-row">
+      <button class="link-btn" id="export-btn">Export backup</button>
+      <button class="link-btn" id="import-btn">Import backup</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none">
+    </div>
 
     <div class="add-cal">
       <h3>Add a calendar</h3>
@@ -170,9 +166,17 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 
 <script>
 // ── Storage ──────────────────────────────────────────────────────
+// IMPORTANT: CAL_KEY, PROXY_KEY, and CACHE_KEY below must NEVER be
+// renamed or changed in any future version of this file. Renaming one
+// silently orphans whatever the user already has saved under the old
+// name -- which looks exactly like "all my calendars disappeared" the
+// next time this file gets updated, even though the browser's storage
+// was never actually touched. If a real schema change is ever needed,
+// write a one-time migration that reads the old key and copies it
+// into the new one before removing the old one -- never a bare rename.
 const CAL_KEY='racine_calendars';
 const PROXY_KEY='racine_proxy_endpoint';
-const DEFAULT_PROXY='https://fleurplanner.netlify.app/api/ics-proxy';
+const DEFAULT_PROXY='https://oldfleurplanner.netlify.app/api/ics-proxy';
 const DEFAULT_PALETTE=['#c1704a','#7f9767','#5f83a3','#c9a227','#8f5f82','#a3502e','#4a8a80'];
 
 function loadCals(){try{return JSON.parse(localStorage.getItem(CAL_KEY))||[];}catch(e){return [];}}
@@ -454,18 +458,19 @@ function render(){
     });
   });
 
+  const FR_DOW=['dim','lun','mar','mer','jeu','ven','sam'];
   weekEl.innerHTML=days.map(d=>{
     const key=localDateKey(d);
     const isToday=key===todayKey;
     const items=buckets[key].sort((a,b)=>(a.allDay===b.allDay?a.startMs-b.startMs:(a.allDay?-1:1)));
-    const dow=d.toLocaleDateString(undefined,{weekday:'short'});
+    const dow=FR_DOW[d.getDay()];
     const chips=items.length?items.map(it=>{
       const tc=textColorFor(it.color);
       const timeHtml=it.allDay?'':`<span class="chip-time">${formatTime(it.startMs)}</span>`;
       return `<div class="chip${it.allDay?' allday':''}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
     }).join(''):'<div class="no-events">—</div>';
     return `<div class="day${isToday?' is-today':''}">
-      <div class="day-hdr"><div class="day-dow">${dow}</div><div class="day-num">${d.getDate()}</div></div>
+      <div class="day-hdr"><span class="day-dow">${dow}</span><span class="day-num">${d.getDate()}</span></div>
       <div class="day-events">${chips}</div>
     </div>`;
   }).join('');
@@ -539,36 +544,37 @@ document.getElementById('add-cal-btn').addEventListener('click',()=>{
 
 document.getElementById('refresh-btn').addEventListener('click',()=>refreshAll(true));
 
-// ── Root-vein signature: draw small branches up toward each day column ──
-function drawVeins(){
-  const svg=document.getElementById('veins-path');
-  const n=7;let d='M0,11';
-  const pts=[];
-  for(let i=0;i<n;i++){
-    const x=(i+0.5)/n*1000;
-    pts.push(x);
+// ── Backup / restore (safety net independent of localStorage) ────
+document.getElementById('export-btn').addEventListener('click',()=>{
+  const data=JSON.stringify({calendars,proxy:loadProxy()},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='racine-calendars-backup.json';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-btn').addEventListener('click',()=>{
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change',async(e)=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(!Array.isArray(data.calendars))throw new Error('bad format');
+    calendars=data.calendars;
+    saveCals(calendars);
+    if(data.proxy)saveProxy(data.proxy);
+    renderCalList();
+    refreshAll(false);
+  }catch(err){
+    alert("Couldn't read that backup file.");
   }
-  let path='M0,15 ';
-  pts.forEach((x,i)=>{
-    const prevX=i===0?0:pts[i-1];
-    path+=`C ${(prevX+x)/2},15 ${(prevX+x)/2},15 ${x},15 `;
-  });
-  path+=`L 1000,15`;
-  svg.setAttribute('d',path);
-  const svgEl=document.querySelector('.veins');
-  pts.forEach(x=>{
-    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx',x);c.setAttribute('cy',15);c.setAttribute('r',1.6);
-    svgEl.appendChild(c);
-    const branch=document.createElementNS('http://www.w3.org/2000/svg','path');
-    branch.setAttribute('d',`M${x},15 L${x},4`);
-    branch.setAttribute('stroke','var(--root)');branch.setAttribute('stroke-width','1');branch.setAttribute('opacity','.3');
-    svgEl.appendChild(branch);
-  });
-}
+  e.target.value='';
+});
 
 // ── Init ─────────────────────────────────────────────────────────
-drawVeins();
 render();
 renderCalList();
 if(calendars.length)refreshAll(false);
