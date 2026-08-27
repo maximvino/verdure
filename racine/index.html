@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build IV -->
+<!-- Racine — build V -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Shared dark-green background with Fleur, as of Racine build IV / Fleur "Marigold Petal" */
+  /* Shared dark-green background with Fleur, as of Racine build V / Fleur "Marigold Petal" */
   --page:#0e1c12;
   --surface:#17281a;
   --ink:#f3ead6;
@@ -131,6 +131,7 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
   <div class="modal-card">
     <h2>Calendars</h2>
     <div class="modal-sub">Subscribed .ics feeds shown in your 7-day view</div>
+    <div class="modal-sub" id="sync-status" style="margin-top:-10px"></div>
     <div id="cal-list"></div>
 
     <div class="backup-row">
@@ -156,6 +157,8 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
       <div class="advanced-body">
         <label>Proxy endpoint (fetches feeds server-side to avoid CORS)</label>
         <input type="text" id="proxy-endpoint" placeholder="https://your-site.netlify.app/api/ics-proxy">
+        <label style="margin-top:10px">Sync endpoint (cross-device calendar sync)</label>
+        <input type="text" id="sync-endpoint" placeholder="https://your-site.netlify.app/api/sync">
       </div>
     </details>
 
@@ -185,9 +188,60 @@ function loadCals(){try{return JSON.parse(localStorage.getItem(CAL_KEY))||[];}ca
 function saveCals(cals){localStorage.setItem(CAL_KEY,JSON.stringify(cals));}
 function loadProxy(){return localStorage.getItem(PROXY_KEY)||DEFAULT_PROXY;}
 function saveProxy(v){localStorage.setItem(PROXY_KEY,v||DEFAULT_PROXY);}
+const SYNC_KEY='racine_sync_endpoint';
+const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
+const SYNC_ROW_ID=2; // Fleur owns row 1 in the shared planner_state table; Racine is row 2
+function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
+function saveSyncEndpoint(v){localStorage.setItem(SYNC_KEY,v||DEFAULT_SYNC);}
 function nextColor(cals){const used=cals.map(c=>c.color);return DEFAULT_PALETTE.find(c=>!used.includes(c))||DEFAULT_PALETTE[cals.length%DEFAULT_PALETTE.length];}
 
 let calendars=loadCals();
+
+// ── Cross-device sync (Supabase, via the same Netlify function Fleur uses) ──
+// Racine uses row id 2 in the shared planner_state table (Fleur owns id 1).
+// localStorage stays as a fast local cache / offline fallback; the cloud
+// copy is the source of truth across devices whenever it's reachable.
+let cloudSyncFailed=false;
+async function loadFromCloud(){
+  try{
+    const res=await fetch(loadSyncEndpoint(),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'load',id:SYNC_ROW_ID})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data&&data.state&&Array.isArray(data.state.calendars)){
+      calendars=data.state.calendars;
+      saveCals(calendars);
+      if(data.state.proxy)saveProxy(data.state.proxy);
+      return true;
+    }
+    if(data&&data.state===null&&calendars.length){
+      // Nothing in the cloud yet, but this device already has calendars --
+      // seed the cloud so other devices can pick them up.
+      saveToCloud();
+    }
+    return false;
+  }catch(err){
+    cloudSyncFailed=true;
+    return false;
+  }
+}
+async function saveToCloud(){
+  try{
+    const res=await fetch(loadSyncEndpoint(),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{calendars,proxy:loadProxy()}})
+    });
+    cloudSyncFailed=!res.ok;
+  }catch(err){
+    cloudSyncFailed=true;
+  }
+}
+function persistCalendars(){
+  saveCals(calendars);
+  saveToCloud();
+}
 
 // ── ICS core (recurrence/timezone-safe expansion) ───────────────────
 function tzOffsetMinutesAt(tzid,utcMillis){
@@ -520,6 +574,10 @@ function renderCalList(){
 
 function openSettings(){
   document.getElementById('proxy-endpoint').value=loadProxy();
+  document.getElementById('sync-endpoint').value=loadSyncEndpoint();
+  document.getElementById('sync-status').textContent=cloudSyncFailed
+    ?'⚠ Cloud sync unreachable — using this device\'s local calendars only'
+    :'☁ Synced across devices';
   renderCalList();
   document.getElementById('settings-modal').classList.remove('hidden');
 }
@@ -531,19 +589,20 @@ document.getElementById('close-settings').addEventListener('click',closeSettings
 document.getElementById('settings-modal').addEventListener('click',e=>{if(e.target.id==='settings-modal')closeSettings();});
 
 document.getElementById('proxy-endpoint').addEventListener('change',e=>{saveProxy(e.target.value.trim());});
+document.getElementById('sync-endpoint').addEventListener('change',e=>{saveSyncEndpoint(e.target.value.trim());loadFromCloud().then(()=>{renderCalList();render();});});
 
 document.getElementById('cal-list').addEventListener('change',e=>{
   const id=e.target.getAttribute('data-id');const action=e.target.getAttribute('data-action');
   if(!id)return;
   const cal=calendars.find(c=>c.id===id);if(!cal)return;
-  if(action==='color'){cal.color=e.target.value;saveCals(calendars);render();e.target.style.background=cal.color;}
-  if(action==='rename'){cal.name=e.target.value.trim()||cal.name;saveCals(calendars);}
+  if(action==='color'){cal.color=e.target.value;persistCalendars();render();e.target.style.background=cal.color;}
+  if(action==='rename'){cal.name=e.target.value.trim()||cal.name;persistCalendars();}
 });
 document.getElementById('cal-list').addEventListener('click',e=>{
   const action=e.target.getAttribute('data-action');const id=e.target.getAttribute('data-id');
   if(action==='delete'&&id){
     calendars=calendars.filter(c=>c.id!==id);
-    saveCals(calendars);
+    persistCalendars();
     const cache=loadCache();delete cache[id];saveCache(cache);
     renderCalList();render();
   }
@@ -559,7 +618,7 @@ document.getElementById('add-cal-btn').addEventListener('click',()=>{
   url=url.replace(/^webcal:\/\//i,'https://');
   const cal={id:'cal_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name,url,color:colorEl.value};
   calendars.push(cal);
-  saveCals(calendars);
+  persistCalendars();
   nameEl.value='';urlEl.value='';
   colorEl.value=nextColor(calendars);
   renderCalList();
@@ -588,7 +647,7 @@ document.getElementById('import-file').addEventListener('change',async(e)=>{
     const data=JSON.parse(text);
     if(!Array.isArray(data.calendars))throw new Error('bad format');
     calendars=data.calendars;
-    saveCals(calendars);
+    persistCalendars();
     if(data.proxy)saveProxy(data.proxy);
     renderCalList();
     refreshAll(false);
@@ -604,7 +663,7 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // IMPORTANT: keep this in sync with reality every time this file changes,
 // the same discipline Fleur already follows for its own context doc.
 // Version bumps to the next Roman numeral on every version of this file sent.
-const RACINE_VERSION='IV';
+const RACINE_VERSION='V';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -618,14 +677,14 @@ A short, horizontal strip in Verdure's stack (above Fleur) showing the next 7 da
 
 Versioning convention: Racine uses Roman numerals (I, II, III...), bumped on every version sent, tracked in this comment in the source and in this generated doc -- NOT in the \`<title>\` tag, which stays plain "Racine" on purpose. This is Racine's own convention (Fleur keeps its separate flower-name convention; Verdure uses its own Roman-numeral comment, not shared with Racine's numbering).
 
-## Visual language (as of build IV)
+## Visual language (as of build V)
 
 - **Shared dark-green background with Fleur**: \`--page:#0e1c12\`, \`--surface:#17281a\`, \`--ink:#f3ead6\` — identical hex values hardcoded in both Racine's and Fleur's \`:root\`. If either app's background is ever changed, update both files together or they'll drift apart again.
 - **Font matches Fleur**: \`--font-h:'Lora'\` (day headers/dates), \`--font-b:'DM Sans'\` (everything else) — same font stack as Fleur, imported from the same Google Fonts family.
 - No heading/logo text anywhere in the app. Top bar is just two small low-opacity icons (⟳ refresh, ⚙ settings).
 - Today is marked only by its date/weekday text turning gold (\`--today:#c9a227\`) — no background shading, no borders between day columns.
 
-## Dynamic height (build IV)
+## Dynamic height (build V)
 
 Racine no longer has a fixed pixel height in Verdure. After every render, it measures how tall its content actually wants to be (topbar + the tallest day column's *unclipped* event list) and posts \`{type:'app-resize', id:'racine', height}\` to its parent window via \`postMessage\` (same-origin, since Racine is served from the same domain as Verdure, just a different path). Verdure listens for this and resizes Racine's flex-basis to match, so a normal number of events doesn't require scrolling inside a day column.
 
@@ -641,9 +700,11 @@ In-app Settings (gear icon) — no code editing required: add (name + \`.ics\`/\
 
 Settings → **Export backup** downloads a JSON file with the calendar list + proxy endpoint. **Import backup** restores from one. This exists as a safety net independent of \`localStorage\` itself (browser data can be cleared, or the user might move to a fresh browser/device).
 
-## No cross-device sync (known limitation, not a bug)
+## Cross-device sync (build V)
 
-Calendars and cache are \`localStorage\` only — per-browser, per-device. Nothing here talks to Supabase. If calendars added on desktop don't show up on mobile, that's expected given this design, not something broken — each browser/device needs calendars added separately, or exported/imported via the backup feature above. Fleur's own task data *does* sync across devices via its Supabase-backed \`/api/sync\` function; giving Racine the same treatment (a new Supabase table, or reusing Fleur's with a different key) is a real, not-yet-built option worth considering if this becomes annoying in practice.
+Calendars sync across devices via the same Netlify function Fleur already uses (\`/api/sync\`, Supabase-backed), sharing the \`planner_state\` table but using **row id 2** (Fleur owns row id 1). \`localStorage\` remains a fast local cache and offline fallback — the cloud copy is treated as the source of truth whenever reachable. On load, Racine tries a cloud fetch first; if the cloud has nothing yet but this device does, it seeds the cloud from local data. Every add/rename/recolor/delete/import pushes to the cloud immediately. A background refresh every 5 minutes picks up calendars added on another device without needing a manual reload. Settings shows a plain-language sync status line (connected vs. "unreachable, using local only") so a network hiccup is visible rather than silent.
+
+Sync endpoint defaults to \`https://oldfleurplanner.netlify.app/api/sync\`, editable in Settings → Advanced, same pattern as the ICS proxy endpoint.
 
 ## Backend proxy
 
@@ -670,9 +731,15 @@ Recurring events (\`RRULE\`) and timed events are expanded and converted from th
 // ── Init ─────────────────────────────────────────────────────────
 render();
 renderCalList();
-if(calendars.length)refreshAll(false);
+loadFromCloud().then(changed=>{
+  if(changed){renderCalList();}
+  render();
+  if(calendars.length)refreshAll(false);
+});
+if(calendars.length)refreshAll(false); // immediate local-cache render while cloud load is in flight
 setInterval(()=>refreshAll(false),15*60000);
 setInterval(render,60000); // keep "today" highlight correct across midnight
+setInterval(loadFromCloud,5*60000); // pick up calendars added on another device
 </script>
 </body>
 </html>
