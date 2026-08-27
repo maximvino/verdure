@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#000}
 #stack{height:100%;display:flex;flex-direction:column}
-.app{flex:1;min-height:0;position:relative}
+.app{min-height:0;position:relative}
 .app iframe{width:100%;height:100%;border:none;display:block}
 /* Only ever shown if a real app's path 404s — everything else stays invisible */
 .load-error{
@@ -25,22 +25,35 @@ html,body{height:100%;overflow:hidden;background:#000}
 <script>
 // ── App registry ──────────────────────────────────────────────────
 // Only real, deployed apps go here — nothing for apps that don't exist yet.
-// Each entry stacks full-width, sharing height equally with however many
-// other entries are listed, top to bottom, with zero visual separation
+// Each entry stacks full-width, top to bottom, with zero visual separation
 // between them (no border, no gap, no header) so it reads as one surface.
-//   id    — internal key, used for DOM ids
-//   label — used only in the (normally invisible) load-error message
-//   path  — relative path to the app's own index.html
+//   id     — internal key, used for DOM ids
+//   label  — used only in the (normally invisible) load-error message
+//   path   — relative path to the app's own index.html
+//   height — CSS flex-basis for this app's share of the stack.
+//            A fixed value (e.g. '300px') gives it exactly that much
+//            room; omit it (or use 'auto') to have the app fill whatever
+//            space is left over after fixed-height apps are accounted for.
+//            Equal-height splitting was the original default with only
+//            one app in the stack — now that Racine (a short horizontal
+//            strip) sits above Fleur (a full task board), splitting
+//            evenly would waste more than half the screen on Racine and
+//            cramp Fleur, so each app now states its own height need
+//            instead of an unexamined 50/50 default.
 const APPS=[
-  {id:'fleur', label:'Fleur', path:'fleur/'},
+  {id:'racine', label:'Racine', path:'racine/', height:'300px'},
+  {id:'fleur',  label:'Fleur',  path:'fleur/'},
 ];
 
 const stack=document.getElementById('stack');
-stack.innerHTML=APPS.map(app=>`
-  <div class="app" id="app-${app.id}">
+stack.innerHTML=APPS.map(app=>{
+  const flex=app.height?`0 0 ${app.height}`:'1';
+  return `
+  <div class="app" id="app-${app.id}" style="flex:${flex}">
     <iframe src="${app.path}" title="${app.label}" onerror="showLoadError('${app.id}')"></iframe>
     <div class="load-error" id="err-${app.id}">Couldn't load ${app.label} — expected it at /${app.path}</div>
-  </div>`).join('');
+  </div>`;
+}).join('');
 
 function showLoadError(id){
   document.getElementById('err-'+id)?.classList.add('show');
