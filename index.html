@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build III -->
+<!-- Verdure — build IV -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -44,6 +44,15 @@ html,body{
 //   id     — internal key, used for DOM ids
 //   label  — used only in the (normally invisible) load-error message
 //   path   — relative path to the app's own index.html
+//   version — appended as a ?v= query string on the iframe src. Bump this
+//            every time that app's file changes. This exists because
+//            browsers and GitHub Pages' CDN can keep serving a cached
+//            copy of an iframe's content for a while after you've pushed
+//            a real update -- a different URL (via the version bump)
+//            forces a genuinely fresh fetch instead of a stale cached one.
+//            This was the actual cause of a deployed update appearing
+//            identical to the previous version despite the file being
+//            correctly replaced.
 //   height — CSS flex-basis for this app's share of the stack, used only
 //            as an initial/fallback value. Apps that know their own
 //            correct height (like Racine, as of its build IV) report it
@@ -51,16 +60,17 @@ html,body{
 //            see the message listener below. Omit height (or use 'auto')
 //            for an app that should just fill whatever's left over (Fleur).
 const APPS=[
-  {id:'racine', label:'Racine', path:'racine/', height:'170px'},
-  {id:'fleur',  label:'Fleur',  path:'fleur/'},
+  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'V'},
+  {id:'fleur',  label:'Fleur',  path:'fleur/', version:'marigold-petal'},
 ];
 
 const stack=document.getElementById('stack');
 stack.innerHTML=APPS.map(app=>{
   const flex=app.height?`0 0 ${app.height}`:'1';
+  const src=app.path+(app.version?`?v=${encodeURIComponent(app.version)}`:'');
   return `
   <div class="app" id="app-${app.id}" style="flex:${flex}">
-    <iframe src="${app.path}" title="${app.label}" onerror="showLoadError('${app.id}')"></iframe>
+    <iframe src="${src}" title="${app.label}" onerror="showLoadError('${app.id}')"></iframe>
     <div class="load-error" id="err-${app.id}">Couldn't load ${app.label} — expected it at /${app.path}</div>
   </div>`;
 }).join('');
@@ -89,7 +99,7 @@ window.addEventListener('message', (e)=>{
 // Version bumps to the next Roman numeral on every version sent -- tracked
 // here and in the <!-- Verdure — build N --> comment above, deliberately
 // NOT in the <title> tag, which stays plain "Verdure".
-const VERDURE_VERSION='III';
+const VERDURE_VERSION='IV';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
