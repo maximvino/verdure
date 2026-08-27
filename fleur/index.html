@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · Marigold Stem</title>
+<title>Fleur · Marigold Petal</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --page:#130e1c;
-  --surface:#1c1528;
-  --ink:#f0e8f5;
+  --page:#0e1c12;
+  --surface:#17281a;
+  --ink:#f3ead6;
   --ink2:#c0b4d0;
   --ink3:#7a6e8a;
   --border:rgba(220,190,255,.1);
@@ -363,10 +363,21 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dclbl{display:flex;align-items:center;gap:2px;font-size:11px;color:var(--ink2);cursor:pointer;padding:3px 7px;border-radius:99px;border:1px solid rgba(220,190,255,.13);transition:all .12s}
 .dclbl:has(input:checked){background:rgba(220,190,255,.13);border-color:rgba(220,190,255,.35);color:var(--ink)}
 .dclbl input{display:none}
+/* Marigold Petal: the floral week-strip header is retired now that Racine
+   shows the real 7-day schedule above Fleur in Verdure's stack. Hidden via
+   display:none rather than deleted, so the existing flower-coloring JS
+   (ra()) keeps running harmlessly against hidden elements with zero risk
+   of breaking anything. A small plain calendar-access control replaces it
+   below, preserving openCalendar() without any of the flower graphics. */
+.hdr{display:none}
+.hdr-min{text-align:center;padding:5px 0 3px;font-family:var(--font-h);font-size:.72rem;
+  color:var(--ink3);cursor:pointer;opacity:.55;transition:opacity .15s;letter-spacing:.02em}
+.hdr-min:hover{opacity:.9}
 </style>
 </head>
 <body>
 <div class="page">
+  <div class="hdr-min" onclick="openCalendar()" title="Open calendar">Calendar</div>
   <div class="hdr">
     <svg class="hdr-svg" width="100%" height="80" viewBox="0 0 640 88" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block">
       <g id="hdr-f0" transform="translate(40,44)"><g opacity=".32"><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(45) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(135) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(225) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(315) translate(0,-19)" opacity=".55"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(0) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(90) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(180) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(270) translate(0,-19)" opacity="1"/><circle r="8.8" fill="#f5e8c8"/></g></g>
@@ -696,7 +707,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_marigold_stem_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_marigold_petal_v1',KDAY='fleur_marigold_day';
 
 const TBOX={
   today:   {label:'Today',    bg:'#1e3d2a',txt:'#c8e6d0',shape:'sticky'},
@@ -825,7 +836,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -2309,7 +2320,7 @@ Paste this at the start of a new Claude conversation, then upload the current HT
 Every update is named after a flower/plant name. Names loosely follow alphabetical order but the priority is **never reusing a name**, not strict letter sequence.
 
 **Known-used log** (append-only — the single source of truth for what NOT to pick again):
-Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem
+Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal
 
 **This log is known to be incomplete.** The project went through a full alphabet cycle or more before Kalmia — Bellflower was confirmed used early on (and would've been reused a second time under the old fixed A→Z→A plan, which is exactly the bug this section now fixes), but the exact names between Bellflower and Kalmia were never logged and can't be reliably reconstructed. Do not assume any name is "safe" just because it isn't in this log — if there's any doubt whether a name was used in that untracked stretch, skip it and use a name from the suggested-unused list below instead, since those are confirmed never to have appeared in any part of this project.
 
@@ -2326,15 +2337,15 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 
 ## Design language
 
-**Theme**: deep purple floral dark (\`--page: #130e1c\`), dusty rose accent (\`#c98fd4\`)
+**Theme**: shared dark-green background with Racine (same hex values hardcoded in both apps), dusty rose accent retained (\`#c98fd4\`) — as of Marigold Petal, only \`--page\`/\`--surface\`/\`--ink\` changed to match Racine; \`--ink2\`/\`--ink3\`/\`--accent\` are unchanged and still purple-toned. If a full re-theme to green accents is ever wanted, those three are the remaining holdouts, plus the many hardcoded \`rgba(220,190,255,...)\` accent borders scattered through component styles rather than centralized in a variable.
 
 **CSS variables**:
 \`\`\`css
---page: #130e1c       /* page background */
---surface: #1c1528    /* card/modal surface */
---ink: #f0e8f5        /* primary text */
---ink2: #c0b4d0       /* secondary text */
---ink3: #7a6e8a       /* muted text */
+--page: #0e1c12       /* page background — shared with Racine */
+--surface: #17281a    /* card/modal surface — shared with Racine */
+--ink: #f3ead6        /* primary text — shared with Racine */
+--ink2: #c0b4d0       /* secondary text — still purple-toned, not yet unified */
+--ink3: #7a6e8a       /* muted text — still purple-toned, not yet unified */
 --accent: #c98fd4     /* dusty rose */
 --font-h: 'Lora'      /* headings */
 --font-b: 'DM Sans'   /* UI/body */
@@ -2648,7 +2659,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'marigold_stem',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'marigold_petal',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
