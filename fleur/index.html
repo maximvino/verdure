@@ -11,10 +11,10 @@
   --page:#0e1c12;
   --surface:#17281a;
   --ink:#f3ead6;
-  --ink2:#c0b4d0;
-  --ink3:#7a6e8a;
-  --border:rgba(220,190,255,.1);
-  --accent:#c98fd4;
+  --ink2:#b8c4ac;
+  --ink3:#6e7a62;
+  --border:rgba(190,220,170,.1);
+  --accent:#9bbf7e;
   --sage:#9dc4a0;
   --amber:#d4a574;
   --font-h:'Lora',Georgia,serif;
@@ -107,7 +107,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cork-add input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none}
 .cork-add input::placeholder{color:var(--ink3);font-size:13px}
 /* Drag-over */
-.cork.drag-over>.cork-body{box-shadow:inset 0 0 0 2px rgba(220,190,255,.4)}
+.cork.drag-over>.cork-body{box-shadow:inset 0 0 0 2px rgba(190,220,170,.4)}
 
 /* ── Sticky note ── */
 @keyframes sn-done{0%{transform:scale(1) rotate(0);opacity:1}40%{transform:scale(.85) rotate(-4deg);opacity:.7}100%{transform:scale(.5) rotate(8deg);opacity:0}}
@@ -122,8 +122,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn-curl{position:absolute;bottom:0;right:0;width:26px;height:26px;cursor:pointer;z-index:6}
 .sn-note-btn{position:absolute;bottom:0;left:0;width:26px;height:26px;cursor:pointer;z-index:6}
 .sn-note-btn.has-note::before{content:'';position:absolute;bottom:5px;left:5px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.4}
-.sn-popover{position:fixed;z-index:700;background:#1c1528;border:1px solid rgba(220,190,255,.2);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.5);width:220px}
-.sn-popover textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(220,190,255,.15);border-radius:6px;padding:6px 8px;font-size:14px;font-family:var(--font-note);color:var(--ink);resize:none;outline:none;min-height:80px;line-height:1.5}
+.sn-popover{position:fixed;z-index:700;background:#1c1528;border:1px solid rgba(190,220,170,.2);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.5);width:220px}
+.sn-popover textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.15);border-radius:6px;padding:6px 8px;font-size:14px;font-family:var(--font-note);color:var(--ink);resize:none;outline:none;min-height:80px;line-height:1.5}
 .sn-popover textarea::placeholder{color:var(--ink3)}
 .sn.sn-faded{opacity:.4;filter:saturate(.4)}
 /* divider line between active and blocked stickies */
@@ -212,35 +212,38 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cbox-add.open{display:block}
 .cbox-add input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none}
 .cbox-add input::placeholder{color:var(--ink3);font-size:13px}
-.cbox.drag-over>.cbox-body{box-shadow:inset 0 0 0 2px rgba(220,190,255,.4)}
+.cbox.drag-over>.cbox-body{box-shadow:inset 0 0 0 2px rgba(190,220,170,.4)}
 
 /* ── Control dock (Add/Cat/AI consolidated) ── */
 .dock{width:100%;margin-bottom:12px}
-.dock-icons{display:flex;justify-content:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(220,190,255,.08)}
-.dock-icon{width:44px;height:44px;border-radius:50%;border:1px solid rgba(220,190,255,.15);background:rgba(255,255,255,.04);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
+.dock-icons{display:flex;justify-content:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(190,220,170,.08);flex-wrap:wrap}
+@media (max-width:480px){
+  .dock-icons{max-width:216px;margin:0 auto}
+}
+.dock-icon{width:44px;height:44px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.04);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08)}
-.dock-icon.active{transform:scale(1.1);box-shadow:0 0 12px rgba(200,170,255,.3)}
-.dock-panel{background:rgba(20,15,30,.96);border:1px solid rgba(220,190,255,.13);border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
+.dock-icon.active{transform:scale(1.1);box-shadow:0 0 12px rgba(170,210,140,.3)}
+.dock-panel{background:rgba(20,15,30,.96);border:1px solid rgba(190,220,170,.13);border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
 .dock-panel.open{max-height:500px}
 .dock-pane{display:none;padding:20px;flex-direction:column;gap:12px}
 .dock-pane.active{display:flex}
 /* Preset row */
-.preset-row{display:grid;gap:8px;padding:8px 0 4px;justify-content:center;border-bottom:1px solid rgba(220,190,255,.06)}
-.preset-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(220,190,255,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;flex-shrink:0}
-.preset-btn:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(0,0,0,.35);border-color:rgba(220,190,255,.45)}
+.preset-row{display:grid;gap:8px;padding:8px 0 4px;justify-content:center;border-bottom:1px solid rgba(190,220,170,.06)}
+.preset-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;flex-shrink:0}
+.preset-btn:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(0,0,0,.35);border-color:rgba(190,220,170,.45)}
 .preset-btn:active{transform:scale(.94)}
 /* Preset task row in editor */
 .pre-task-row{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px}
 .pre-task-row input,.pre-task-row select{font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.25);color:var(--ink)}
 
 /* Add task pane */
-.add-name{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(220,190,255,.18);border-radius:10px;padding:12px 16px;font-size:18px;font-family:var(--font-b);color:var(--ink);outline:none;transition:border-color .15s}
-.add-name:focus{border-color:rgba(220,190,255,.4)}
+.add-name{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(190,220,170,.18);border-radius:10px;padding:12px 16px;font-size:18px;font-family:var(--font-b);color:var(--ink);outline:none;transition:border-color .15s}
+.add-name:focus{border-color:rgba(190,220,170,.4)}
 .add-name::placeholder{color:var(--ink3)}
 .add-pills{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.pill{padding:6px 10px;border-radius:99px;border:1px solid rgba(220,190,255,.15);background:rgba(220,190,255,.04);color:var(--ink2);font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap}
-.pill:hover{border-color:rgba(220,190,255,.3);background:rgba(220,190,255,.09)}
-.pill.on{border-color:rgba(220,190,255,.5);background:rgba(220,190,255,.14);color:var(--ink)}
+.pill{padding:6px 10px;border-radius:99px;border:1px solid rgba(190,220,170,.15);background:rgba(190,220,170,.04);color:var(--ink2);font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.pill:hover{border-color:rgba(190,220,170,.3);background:rgba(190,220,170,.09)}
+.pill.on{border-color:rgba(190,220,170,.5);background:rgba(190,220,170,.14);color:var(--ink)}
 .pill .pill-val{font-size:11px;color:var(--ink2);max-width:0;overflow:hidden;transition:max-width .2s;white-space:nowrap}
 .pill.on .pill-val{max-width:140px}
 .pill select{background:transparent;border:none;color:var(--ink);font-size:12px;outline:none;cursor:pointer}
@@ -260,12 +263,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* ── Task edit modal redesign ── */
 .em-grid{display:grid;grid-template-columns:repeat(3,52px);gap:10px;padding:4px 0 8px;justify-content:center}
 .ap-pill{width:40px!important;height:40px!important;font-size:1.1rem!important}
-.em-pill{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;border:1px solid rgba(220,190,255,.15);background:rgba(255,255,255,.05);font-size:1.4rem;cursor:pointer;transition:background .15s,border-color .15s;position:relative;flex-shrink:0}
-.em-pill:hover{background:rgba(255,255,255,.09);border-color:rgba(220,190,255,.28)}
-.em-pill.active{border-color:rgba(220,190,255,.7);background:rgba(220,190,255,.22);box-shadow:0 0 8px rgba(220,190,255,.2)}
+.em-pill{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.05);font-size:1.4rem;cursor:pointer;transition:background .15s,border-color .15s;position:relative;flex-shrink:0}
+.em-pill:hover{background:rgba(255,255,255,.09);border-color:rgba(190,220,170,.28)}
+.em-pill.active{border-color:rgba(190,220,170,.7);background:rgba(190,220,170,.22);box-shadow:0 0 8px rgba(190,220,170,.2)}
 .em-pill.lit{border-color:rgba(255,68,68,.8);background:rgba(255,68,68,.28);box-shadow:0 0 8px rgba(255,68,68,.2)}
-.em-pill.has-val{border-color:rgba(220,190,255,.55);background:rgba(220,190,255,.16);box-shadow:0 0 6px rgba(220,190,255,.15)}
-.em-sub{display:none;flex-direction:column;gap:8px;padding:10px;background:rgba(0,0,0,.25);border-radius:12px;border:1px solid rgba(220,190,255,.1);margin-bottom:4px}
+.em-pill.has-val{border-color:rgba(190,220,170,.55);background:rgba(190,220,170,.16);box-shadow:0 0 6px rgba(190,220,170,.15)}
+.em-sub{display:none;flex-direction:column;gap:8px;padding:10px;background:rgba(0,0,0,.25);border-radius:12px;border:1px solid rgba(190,220,170,.1);margin-bottom:4px}
 .em-sub.open{display:flex}
 .em-sub-title{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);font-family:var(--font-b)}
 .em-col-opts{display:flex;flex-wrap:wrap;gap:6px}
@@ -275,10 +278,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .em-cat-opt{padding:5px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-family:var(--font-b);transition:border-color .12s}
 .em-cat-opt.sel{border-color:rgba(255,255,255,.6)}
 .em-rep-opts{display:flex;flex-wrap:wrap;gap:6px}
-.em-rep-opt{padding:5px 10px;border-radius:8px;border:1px solid rgba(220,190,255,.15);background:rgba(255,255,255,.05);cursor:pointer;font-size:11px;font-family:var(--font-b);color:var(--ink2);transition:background .12s}
-.em-rep-opt.sel{background:rgba(220,190,255,.18);border-color:rgba(220,190,255,.4);color:var(--ink)}
-.fi{background:rgba(255,255,255,.06);border:1px solid rgba(220,190,255,.14);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none;width:100%;transition:border-color .13s}
-.fi:focus{border-color:rgba(220,190,255,.3)}
+.em-rep-opt{padding:5px 10px;border-radius:8px;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.05);cursor:pointer;font-size:11px;font-family:var(--font-b);color:var(--ink2);transition:background .12s}
+.em-rep-opt.sel{background:rgba(190,220,170,.18);border-color:rgba(190,220,170,.4);color:var(--ink)}
+.fi{background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.14);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none;width:100%;transition:border-color .13s}
+.fi:focus{border-color:rgba(190,220,170,.3)}
 .fi option{background:#1c1528}
 .fg{display:flex;flex-direction:column;gap:3px;flex:1;min-width:90px}
 .fl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3)}
@@ -286,41 +289,41 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* AI pane */
 .cl{display:flex;flex-direction:column;gap:7px;max-height:160px;overflow-y:auto;margin-bottom:8px}
 .cl::-webkit-scrollbar{width:3px}
-.cl::-webkit-scrollbar-thumb{background:rgba(220,190,255,.1);border-radius:99px}
+.cl::-webkit-scrollbar-thumb{background:rgba(190,220,170,.1);border-radius:99px}
 .bl{max-width:90%;padding:7px 11px;border-radius:10px;font-size:13px;line-height:1.5}
-.bl.ai{background:rgba(220,190,255,.07);color:var(--ink);align-self:flex-start;font-family:var(--font-h);border:1px solid rgba(220,190,255,.1)}
-.bl.user{background:rgba(220,190,255,.1);color:var(--ink);align-self:flex-end}
-.bl.thinking{background:rgba(255,255,255,.03);color:var(--ink3);align-self:flex-start;font-family:var(--font-h);border:1px solid rgba(220,190,255,.08)}
+.bl.ai{background:rgba(190,220,170,.07);color:var(--ink);align-self:flex-start;font-family:var(--font-h);border:1px solid rgba(190,220,170,.1)}
+.bl.user{background:rgba(190,220,170,.1);color:var(--ink);align-self:flex-end}
+.bl.thinking{background:rgba(255,255,255,.03);color:var(--ink3);align-self:flex-start;font-family:var(--font-h);border:1px solid rgba(190,220,170,.08)}
 .bl.err{background:rgba(140,20,20,.2);color:#f5c8c8;align-self:flex-start;border:1px solid rgba(140,20,20,.3);font-family:var(--font-h);}
 .ai-row{display:flex;gap:6px;align-items:flex-end}
-.ai-row textarea{flex:1;font-size:16px;font-family:var(--font-b);padding:9px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(220,190,255,.15);border-radius:10px;color:var(--ink);outline:none;resize:none;line-height:1.5;min-height:40px;max-height:90px}
+.ai-row textarea{flex:1;font-size:16px;font-family:var(--font-b);padding:9px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.15);border-radius:10px;color:var(--ink);outline:none;resize:none;line-height:1.5;min-height:40px;max-height:90px}
 .ai-row textarea::placeholder{color:var(--ink3)}
 .ai-btns{display:flex;flex-direction:column;gap:4px}
 .sb{padding:7px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,#6b3d7a,#4a2d5e);color:#f0e8f5;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
-.code-block{position:relative;background:rgba(0,0,0,.35);border:1px solid rgba(220,190,255,.12);border-radius:10px;padding:10px 12px;margin:4px 0;font-size:11px;font-family:monospace;color:var(--ink2);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;line-height:1.5}
+.code-block{position:relative;background:rgba(0,0,0,.35);border:1px solid rgba(190,220,170,.12);border-radius:10px;padding:10px 12px;margin:4px 0;font-size:11px;font-family:monospace;color:var(--ink2);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;line-height:1.5}
 .copy-btn{position:sticky;top:0;float:right;background:rgba(107,61,122,.7);border:none;border-radius:6px;padding:3px 8px;color:#f0e8f5;font-size:10px;cursor:pointer;font-family:var(--font-b);backdrop-filter:blur(4px)}
 .copy-btn:active{background:rgba(107,61,122,1)}
 .sb:disabled{opacity:.3;cursor:default}
 .sb.sonnet{background:linear-gradient(135deg,#2d4d3a,#1e3528);font-size:11px}
 
 /* Per-action review */
-.ar{background:rgba(220,190,255,.04);border:1px solid rgba(220,190,255,.1);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
-.ai-item{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;padding:4px 0;border-bottom:1px solid rgba(220,190,255,.06)}
+.ar{background:rgba(190,220,170,.04);border:1px solid rgba(190,220,170,.1);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
+.ai-item{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;padding:4px 0;border-bottom:1px solid rgba(190,220,170,.06)}
 .ai-item:last-of-type{border-bottom:none}
 .ai-desc{font-size:12px;font-family:var(--font-h);color:var(--ink2);flex:1;line-height:1.35}
 .ai-desc.fg2{color:#f5c8c8;text-decoration:line-through}
 .ai-bts{display:flex;gap:4px;flex-shrink:0}
-.ayes{font-size:10px;padding:2px 8px;border-radius:5px;border:1px solid rgba(220,190,255,.18);background:rgba(220,190,255,.07);color:var(--ink);cursor:pointer}
+.ayes{font-size:10px;padding:2px 8px;border-radius:5px;border:1px solid rgba(190,220,170,.18);background:rgba(190,220,170,.07);color:var(--ink);cursor:pointer}
 .ayes.ok{background:rgba(60,160,60,.2);border-color:rgba(60,160,60,.35);color:#b0ffb0}
 .aflag{font-size:10px;padding:2px 8px;border-radius:5px;border:1px solid rgba(255,80,80,.2);background:rgba(130,20,20,.15);color:#f5c8c8;cursor:pointer}
-.clin{width:100%;font-size:14px;font-family:var(--font-b);background:rgba(255,255,255,.06);border:1px solid rgba(220,190,255,.14);border-radius:6px;padding:5px 9px;color:var(--ink);outline:none;margin-top:3px}
+.clin{width:100%;font-size:14px;font-family:var(--font-b);background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.14);border-radius:6px;padding:5px 9px;color:var(--ink);outline:none;margin-top:3px}
 .ar-foot{display:flex;gap:6px;justify-content:flex-end;padding-top:3px}
-.aab{font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(220,190,255,.14);background:rgba(220,190,255,.06);color:var(--ink);cursor:pointer}
+.aab{font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(190,220,170,.14);background:rgba(190,220,170,.06);color:var(--ink);cursor:pointer}
 .aab.go{background:rgba(60,160,60,.15);border-color:rgba(60,160,60,.3)}
 
 /* ── Completed pile drawer ── */
-.pile-trigger{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;background:rgba(220,190,255,.05);border:1px solid rgba(220,190,255,.12);cursor:pointer;font-size:14px;color:var(--ink2);transition:all .15s;margin-bottom:12px;font-family:var(--font-b)}
-.pile-trigger:hover{background:rgba(220,190,255,.1);color:var(--ink)}
+.pile-trigger{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;background:rgba(190,220,170,.05);border:1px solid rgba(190,220,170,.12);cursor:pointer;font-size:14px;color:var(--ink2);transition:all .15s;margin-bottom:12px;font-family:var(--font-b)}
+.pile-trigger:hover{background:rgba(190,220,170,.1);color:var(--ink)}
 .pile-trigger .pile-count{display:none}
 /* Pile drawer */
 
@@ -337,19 +340,19 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* ── Modals ── */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:18px}
 .mo.hidden{display:none}
-.md{background:#1c1528;border:1px solid rgba(220,190,255,.15);border-radius:16px;padding:20px;width:100%;max-width:390px;display:flex;flex-direction:column;gap:10px;max-height:88vh;overflow-y:auto}
+.md{background:#1c1528;border:1px solid rgba(190,220,170,.15);border-radius:16px;padding:20px;width:100%;max-width:390px;display:flex;flex-direction:column;gap:10px;max-height:88vh;overflow-y:auto}
 .md h2{font-family:var(--font-h);font-weight:400;font-size:.95rem;color:var(--ink)}
 .pr{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end}
 .mf{display:flex;gap:7px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap}
 .msave{padding:7px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#6b3d7a,#4a2d5e);color:#f0e8f5;font-size:13px;font-weight:500;cursor:pointer}
-.mcan{padding:7px 12px;border-radius:8px;border:1px solid rgba(220,190,255,.12);background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
+.mcan{padding:7px 12px;border-radius:8px;border:1px solid rgba(190,220,170,.12);background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
 .mdel{padding:7px 12px;border-radius:8px;border:1px solid rgba(255,80,80,.2);background:rgba(130,20,20,.15);color:#f5c8c8;font-size:13px;cursor:pointer;margin-right:auto}
 .dp-btns{display:flex;flex-direction:column;gap:5px}
-.dp-btn{padding:8px 12px;border-radius:8px;border:1px solid rgba(220,190,255,.1);background:rgba(220,190,255,.04);color:var(--ink);font-size:13px;cursor:pointer;text-align:left}
-.dp-btn:hover{background:rgba(220,190,255,.1)}
+.dp-btn{padding:8px 12px;border-radius:8px;border:1px solid rgba(190,220,170,.1);background:rgba(190,220,170,.04);color:var(--ink);font-size:13px;cursor:pointer;text-align:left}
+.dp-btn:hover{background:rgba(190,220,170,.1)}
 
 /* ── Undo ── */
-.ub{position:fixed;bottom:70px;left:18px;background:rgba(18,13,26,.96);border:1px solid rgba(220,190,255,.12);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:9px;font-size:11px;color:var(--ink2);z-index:300;transition:opacity .3s;backdrop-filter:blur(8px)}
+.ub{position:fixed;bottom:70px;left:18px;background:rgba(18,13,26,.96);border:1px solid rgba(190,220,170,.12);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:9px;font-size:11px;color:var(--ink2);z-index:300;transition:opacity .3s;backdrop-filter:blur(8px)}
 .ub.hidden{opacity:0;pointer-events:none}
 .ubtn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;font-weight:500;padding:0}
 
@@ -360,24 +363,20 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cdot.cx{background:rgba(255,255,255,.07);border-style:dashed;border-color:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink3)}
 /* day checks */
 .day-checks{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
-.dclbl{display:flex;align-items:center;gap:2px;font-size:11px;color:var(--ink2);cursor:pointer;padding:3px 7px;border-radius:99px;border:1px solid rgba(220,190,255,.13);transition:all .12s}
-.dclbl:has(input:checked){background:rgba(220,190,255,.13);border-color:rgba(220,190,255,.35);color:var(--ink)}
+.dclbl{display:flex;align-items:center;gap:2px;font-size:11px;color:var(--ink2);cursor:pointer;padding:3px 7px;border-radius:99px;border:1px solid rgba(190,220,170,.13);transition:all .12s}
+.dclbl:has(input:checked){background:rgba(190,220,170,.13);border-color:rgba(190,220,170,.35);color:var(--ink)}
 .dclbl input{display:none}
 /* Marigold Petal: the floral week-strip header is retired now that Racine
    shows the real 7-day schedule above Fleur in Verdure's stack. Hidden via
    display:none rather than deleted, so the existing flower-coloring JS
    (ra()) keeps running harmlessly against hidden elements with zero risk
-   of breaking anything. A small plain calendar-access control replaces it
-   below, preserving openCalendar() without any of the flower graphics. */
+   of breaking anything. Calendar access moved into the dock as an 8th
+   plant-emoji icon instead of a separate text label. */
 .hdr{display:none}
-.hdr-min{text-align:center;padding:5px 0 3px;font-family:var(--font-h);font-size:.72rem;
-  color:var(--ink3);cursor:pointer;opacity:.55;transition:opacity .15s;letter-spacing:.02em}
-.hdr-min:hover{opacity:.9}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="hdr-min" onclick="openCalendar()" title="Open calendar">Calendar</div>
   <div class="hdr">
     <svg class="hdr-svg" width="100%" height="80" viewBox="0 0 640 88" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block">
       <g id="hdr-f0" transform="translate(40,44)"><g opacity=".32"><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(45) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(135) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(225) translate(0,-19)" opacity=".55"/><ellipse rx="6.2" ry="15.8" class="fp0" transform="rotate(315) translate(0,-19)" opacity=".55"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(0) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(90) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(180) translate(0,-19)" opacity="1"/><ellipse rx="7" ry="18" class="fp0" transform="rotate(270) translate(0,-19)" opacity="1"/><circle r="8.8" fill="#f5e8c8"/></g></g>
@@ -397,13 +396,14 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   <!-- Control dock (between time boxes and categories) -->
   <div class="dock" id="dock-static">
     <div class="dock-icons" id="dock-icons">
-      <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task" style="background:rgba(201,143,212,.15);border-color:rgba(201,143,212,.35)">🌸</div>
+      <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task" style="background:rgba(140,190,120,.15);border-color:rgba(140,190,120,.35)">🌸</div>
       <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories" style="background:rgba(157,196,160,.15);border-color:rgba(157,196,160,.35)">🌿</div>
       <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="AI" style="background:rgba(212,165,116,.15);border-color:rgba(212,165,116,.35)">🌼</div>
-      <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today" style="background:rgba(180,180,220,.15);border-color:rgba(180,180,220,.35)">🍃</div>
+      <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today" style="background:rgba(165,195,175,.15);border-color:rgba(165,195,175,.35)">🍃</div>
       <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks" style="background:rgba(200,185,140,.15);border-color:rgba(200,185,140,.35)">🌾</div>
       <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets" style="background:rgba(160,200,190,.15);border-color:rgba(160,200,190,.35)">🪴</div>
-      <label class="dock-icon" title="Import / Export" style="background:rgba(220,180,180,.15);border-color:rgba(220,180,180,.35);cursor:pointer" onclick="showTransferMenu()">🌱</label>
+      <label class="dock-icon" title="Import / Export" style="background:rgba(195,205,150,.15);border-color:rgba(195,205,150,.35);cursor:pointer" onclick="showTransferMenu()">🌱</label>
+      <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar" style="background:rgba(150,180,140,.15);border-color:rgba(150,180,140,.35)">🍂</div>
     </div>
     <div class="preset-row" id="preset-row"></div>
     <div class="dock-panel" id="dock-panel">
@@ -467,7 +467,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div class="cat-chip-row" id="cat-chips"></div>
         <div class="new-cat-row" style="gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fi" id="nca" type="text" style="flex:1;min-width:120px">
-          <input class="fi" id="ncc" type="color" value="#c98fd4" title="🎨" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
+          <input class="fi" id="ncc" type="color" value="#9bbf7e" title="🎨" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
           <div class="pill" title="Default date" onclick="document.getElementById('ncdate').showPicker?document.getElementById('ncdate').showPicker():document.getElementById('ncdate').click()">
             📅<span class="pill-val" id="ncdate-val"></span>
             <input type="date" id="ncdate" onchange="document.getElementById('ncdate-val').textContent=fmtDate(this.value);this.closest('.pill').classList.toggle('on',!!this.value)" style="position:absolute;opacity:0;width:0">
@@ -968,7 +968,7 @@ document.addEventListener('keydown',e=>{
 // ── Theme ─────────────────────────────────────────────────────────
 function applyTheme(){
   const r=document.documentElement;
-  const d={'font-h':"'Lora',Georgia,serif",'font-b':"'DM Sans',sans-serif",'font-t':"'DM Sans',sans-serif",'ts':'15px','page':'#130e1c','ink':'#f0e8f5','ink2':'#c0b4d0','ink3':'#7a6e8a','border':'rgba(220,190,255,.1)','accent':'#c98fd4'};
+  const d={'font-h':"'Lora',Georgia,serif",'font-b':"'DM Sans',sans-serif",'font-t':"'DM Sans',sans-serif",'ts':'15px','page':'#0e1c12','surface':'#17281a','ink':'#f3ead6','ink2':'#b8c4ac','ink3':'#6e7a62','border':'rgba(190,220,170,.1)','accent':'#9bbf7e'};
   for(const[k,v]of Object.entries(d))r.style.setProperty('--'+k,v);
   for(const[k,v]of Object.entries(gTheme))r.style.setProperty('--'+k,v);
   document.body.style.background=gTheme['bg-style']||'';
@@ -2023,7 +2023,7 @@ function emSetRep(val){
   buildEmRep();
   // Update pill indicator
   const pill=document.getElementById('ep-rep');
-  if(val){pill.style.background='rgba(220,190,255,.15)';pill.style.borderColor='rgba(220,190,255,.35)';}
+  if(val){pill.style.background='rgba(190,220,170,.15)';pill.style.borderColor='rgba(190,220,170,.35)';}
   else{pill.style.background='';pill.style.borderColor='';}
 }
 
@@ -2337,16 +2337,16 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 
 ## Design language
 
-**Theme**: shared dark-green background with Racine (same hex values hardcoded in both apps), dusty rose accent retained (\`#c98fd4\`) — as of Marigold Petal, only \`--page\`/\`--surface\`/\`--ink\` changed to match Racine; \`--ink2\`/\`--ink3\`/\`--accent\` are unchanged and still purple-toned. If a full re-theme to green accents is ever wanted, those three are the remaining holdouts, plus the many hardcoded \`rgba(220,190,255,...)\` accent borders scattered through component styles rather than centralized in a variable.
+**Theme**: fully unified dark-green with Racine, as of Marigold Petal. Every former purple/dusty-rose value — the \`--page\`/\`--surface\`/\`--ink\` background trio, \`--ink2\`/\`--ink3\`/\`--accent\`, and every hardcoded \`rgba(220,190,255,...)\`-family accent border scattered through component styles — was converted to a green equivalent. There is also a runtime \`applyTheme()\` function that sets several of these as inline CSS custom properties from a hardcoded defaults object \`d\`, separate from the \`:root\` stylesheet block — **both places must be updated together**, which was the actual cause of an earlier color edit not visibly sticking. If a future color change doesn't appear to take effect, check \`applyTheme()\`'s \`d\` object first, not just \`:root\`.
 
 **CSS variables**:
 \`\`\`css
 --page: #0e1c12       /* page background — shared with Racine */
 --surface: #17281a    /* card/modal surface — shared with Racine */
 --ink: #f3ead6        /* primary text — shared with Racine */
---ink2: #c0b4d0       /* secondary text — still purple-toned, not yet unified */
---ink3: #7a6e8a       /* muted text — still purple-toned, not yet unified */
---accent: #c98fd4     /* dusty rose */
+--ink2: #b8c4ac       /* secondary text — green, matches Racine's family */
+--ink3: #6e7a62       /* muted text — green, matches Racine's family */
+--accent: #9bbf7e     /* sage green (was dusty rose #c98fd4) */
 --font-h: 'Lora'      /* headings */
 --font-b: 'DM Sans'   /* UI/body */
 --font-note: 'Spectral' /* sticky note text */
@@ -2647,7 +2647,7 @@ function openCalendar(){
     const dateStr=_calMo;
     if(dateStr!==lastDate){
       if(lastDate)html+=`</div>`;
-      html+=`<div style="display:flex;align-items:baseline;gap:.4em;padding:${lastDate?'10px':'2px'} 0 6px;${lastDate?'border-top:1px solid rgba(220,190,255,.1);margin-top:6px;':''}line-height:1"><span style="font-size:1.2rem;font-family:var(--font-h);font-weight:500;color:${_calClr}">${dateStr}</span><span style="font-size:.72rem;font-family:var(--font-h);color:${_calClr};opacity:.7">${_calWd}</span></div>`;
+      html+=`<div style="display:flex;align-items:baseline;gap:.4em;padding:${lastDate?'10px':'2px'} 0 6px;${lastDate?'border-top:1px solid rgba(190,220,170,.1);margin-top:6px;':''}line-height:1"><span style="font-size:1.2rem;font-family:var(--font-h);font-weight:500;color:${_calClr}">${dateStr}</span><span style="font-size:.72rem;font-family:var(--font-h);color:${_calClr};opacity:.7">${_calWd}</span></div>`;
       html+=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start">`;
       lastDate=dateStr;
     }
