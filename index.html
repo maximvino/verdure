@@ -3,12 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Verdure — build III -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:#000}
-#stack{height:100%;display:flex;flex-direction:column}
-.app{min-height:0;position:relative}
+html,body{
+  height:100%;height:100dvh; /* 100dvh handles mobile browser chrome resizing; 100% is the fallback */
+  overflow:hidden;overscroll-behavior:none;background:#000;
+  position:fixed;inset:0;width:100%; /* locks the page in place -- fixes the "floats while scrolling"
+    bug on mobile, caused by iOS rubber-banding a page that's technically still scrollable even
+    with overflow:hidden once the browser chrome collapses/expands */
+}
+#stack{height:100%;height:100dvh;display:flex;flex-direction:column}
+.app{min-height:0;position:relative;transition:flex-basis .15s ease}
 .app iframe{width:100%;height:100%;border:none;display:block}
 /* Only ever shown if a real app's path 404s — everything else stays invisible */
 .load-error{
@@ -16,11 +23,18 @@ html,body{height:100%;overflow:hidden;background:#000}
   background:#111;color:#888;font:13px sans-serif;text-align:center;padding:20px;
 }
 .load-error.show{display:flex}
+/* A single, deliberate, near-invisible exception to "zero chrome" -- lets the
+   context doc be downloaded from the live page itself rather than hand-sent.
+   Fully transparent until hovered; tucked in a corner nothing else uses. */
+#doc-btn{position:fixed;top:0;left:0;width:14px;height:14px;border:none;background:transparent;
+  cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
+#doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
 </style>
 </head>
 <body>
 
 <div id="stack"></div>
+<button id="doc-btn" title="Download Verdure context doc"></button>
 
 <script>
 // ── App registry ──────────────────────────────────────────────────
@@ -30,16 +44,12 @@ html,body{height:100%;overflow:hidden;background:#000}
 //   id     — internal key, used for DOM ids
 //   label  — used only in the (normally invisible) load-error message
 //   path   — relative path to the app's own index.html
-//   height — CSS flex-basis for this app's share of the stack.
-//            A fixed value (e.g. '300px') gives it exactly that much
-//            room; omit it (or use 'auto') to have the app fill whatever
-//            space is left over after fixed-height apps are accounted for.
-//            Equal-height splitting was the original default with only
-//            one app in the stack — now that Racine (a short horizontal
-//            strip) sits above Fleur (a full task board), splitting
-//            evenly would waste more than half the screen on Racine and
-//            cramp Fleur, so each app now states its own height need
-//            instead of an unexamined 50/50 default.
+//   height — CSS flex-basis for this app's share of the stack, used only
+//            as an initial/fallback value. Apps that know their own
+//            correct height (like Racine, as of its build IV) report it
+//            live via postMessage and override this after they load —
+//            see the message listener below. Omit height (or use 'auto')
+//            for an app that should just fill whatever's left over (Fleur).
 const APPS=[
   {id:'racine', label:'Racine', path:'racine/', height:'170px'},
   {id:'fleur',  label:'Fleur',  path:'fleur/'},
@@ -58,6 +68,81 @@ stack.innerHTML=APPS.map(app=>{
 function showLoadError(id){
   document.getElementById('err-'+id)?.classList.add('show');
 }
+
+// ── Dynamic per-app height ─────────────────────────────────────────
+// A child app (same-origin, so this is safe) can post
+// {type:'app-resize', id:'<app id>', height:<px>} to ask for a specific
+// height instead of the registry's fixed/initial value. Racine uses this
+// as of its build IV so day columns with a normal number of events don't
+// need their own internal scrollbar.
+window.addEventListener('message', (e)=>{
+  if(e.origin!==window.location.origin)return;
+  const d=e.data;
+  if(d&&d.type==='app-resize'&&d.id){
+    const el=document.getElementById('app-'+d.id);
+    if(el)el.style.flex=`0 0 ${d.height}px`;
+  }
+});
+
+// ── Context doc (downloadable from the app itself) ────────────────
+// IMPORTANT: keep this in sync with reality every time this file changes.
+// Version bumps to the next Roman numeral on every version sent -- tracked
+// here and in the <!-- Verdure — build N --> comment above, deliberately
+// NOT in the <title> tag, which stays plain "Verdure".
+const VERDURE_VERSION='III';
+document.getElementById('doc-btn').addEventListener('click',()=>{
+  const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
+
+Paste this at the start of a new Claude conversation, then upload the current \`index.html\` (Verdure itself) if you're iterating on it, or the specific app's own context doc if you're iterating on one of the embedded apps instead. Generated live from the running page itself (the tiny invisible button in the top-left corner), so it reflects the build you're actually running.
+
+## What this is
+
+A personal browser-homepage made of independently-built apps, stacked full-bleed on one invisible page. Verdure itself has almost no visible UI — no header, no chrome, no visible boundary between apps under normal use.
+
+## Current apps in the stack (top to bottom)
+
+${APPS.map(a=>`- **${a.label}** — \`${a.path}\`${a.height?` (initial height ${a.height}, may be overridden live via postMessage)`:' (fills remaining space)'}`).join('\\n')}
+
+## Versioning
+
+Verdure uses Roman numerals (I, II, III...), bumped on every version sent, tracked in a source comment and in this generated doc — never in \`<title>\`, which stays plain "Verdure" on purpose (kept out of the tab title deliberately, per an explicit request, even though it's useful for telling builds apart). This is Verdure's own convention, separate from Racine's Roman numerals and separate from Fleur's flower-name convention — each app keeps whatever versioning scheme suits it.
+
+## Dynamic per-app height (build III)
+
+Child apps can request their own height instead of using the registry's fixed value, by posting \`{type:'app-resize', id, height}\` to \`window.parent\` (safe same-origin call, since every app is served from the same domain as Verdure, just a different path). Verdure listens on \`window.addEventListener('message', ...)\`, checks \`e.origin\` matches its own origin, and updates that app's flex-basis live. The \`height\` field in the \`APPS\` registry is now just the *initial* value shown before any such message arrives — treat it as a fallback, not a hard limit, for any app that implements this.
+
+## Mobile scroll/rubber-band fix (build III)
+
+Earlier versions used \`height:100%\` on \`html,body\`, which on mobile browsers can be taller than the actually-visible viewport once the browser's own address-bar chrome collapses/expands — this let the whole page rubber-band-scroll slightly, making Racine appear to "float" relative to Fleur instead of staying static. Fixed with \`height:100dvh\` (dynamic viewport height, tracks the real visible area) plus \`position:fixed;inset:0\` and \`overscroll-behavior:none\` on \`html,body\`, which locks the page in place entirely.
+
+## Why this architecture
+
+- **Isolation**: a bug in one app can't break another. Verdure itself has almost no logic.
+- **Independent versioning**: each app is released and rolled back on its own schedule, with its own convention (Fleur's flower names, Racine's Roman numerals, Verdure's Roman numerals — three separate counters, not shared).
+- **No speculative UI** — the \`APPS\` registry only ever lists apps that are actually built and deployed.
+- **Invisible by design** — no headers, borders, gaps, or labels. The one deliberate exception is this tiny context-doc button (fully transparent except on hover, tucked in the top-left corner) — added on explicit request, not a default. Any other visible Verdure-level chrome should still be treated as a real design decision to flag and discuss, not something to default into.
+
+## Repo layout
+
+\`\`\`
+/                  ← Verdure's index.html lives at repo root
+/racine/index.html ← Racine
+/fleur/index.html  ← Fleur
+\`\`\`
+
+## Working method for future sessions
+
+- Bump \`VERDURE_VERSION\` (Roman numeral) on every version sent, and re-sync this generated doc against whatever actually changed.
+- Keep Verdure invisible. Any real feature, any visible UI, any placeholder for something not yet built belongs inside an app's own folder, not Verdure's file — the doc-download button is the one deliberate, minimal exception.
+- Each app keeps (or gets) its own separate context doc — don't consolidate them into this one.
+`;
+  const blob=new Blob([doc],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='verdure-context.md';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+});
 </script>
 </body>
 </html>
