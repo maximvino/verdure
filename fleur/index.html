@@ -31,8 +31,15 @@
   --casu:#1e1040;     --casu-t:#d4c8f5;
   /* day abbrevs */
 }
-body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weight:300;min-height:100vh}
-.page{max-width:1160px;margin:0 auto;padding:1.8rem 0 8rem}
+html{height:100%;height:100dvh;overflow:hidden}
+body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:var(--page);color:var(--ink);font-family:var(--font-b);font-weight:300}
+/* Marigold Petal: all of Fleur's scrolling is now contained to .page itself
+   (overscroll-behavior:contain) rather than the page/body scrolling freely.
+   This was the actual root cause of Racine appearing to scroll/float along
+   with Fleur -- scrolling to the end of an unconstrained body lets the
+   leftover scroll gesture "chain" up into Verdure's parent frame, which
+   contained scrolling stops at Fleur's own boundary instead. */
+.page{max-width:1160px;margin:0 auto;padding:1.8rem 0 8rem;height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* ── Header ── */
 .hdr{margin-bottom:.8rem;padding:0;min-height:80px}
@@ -192,13 +199,24 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cat-row{display:flex;gap:4px;margin-bottom:4px;align-items:start;flex-wrap:wrap}
 .cat-row .cbox{flex:1;min-width:0}
 
-/* ── Category box ── */
+/* ── Category box — "rolled wallpaper" aesthetic (Marigold Petal) ──
+   A subtle repeating petal-texture overlay sits over each category's
+   own color (set inline per-box), replacing the old flat-color
+   "plastic brick" look. Minimized state reads as a rolled-up tube of
+   that same wallpaper via cylindrical inset shading + fully rounded
+   ends, rather than just a shrunk flat bar. */
+:root{ --petal-pattern: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2244%22%20height%3D%2244%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cg%20fill%3D%22white%22%20fill-opacity%3D%220.055%22%3E%3Cpath%20d%3D%22M22%209c3.5%200%206%203.3%206%207s-2.5%207-6%207-6-3.3-6-7%202.5-7%206-7z%22/%3E%3Cpath%20d%3D%22M9%2022c0-3.5%203.3-6%207-6s7%202.5%207%206-3.3%206-7%206-7-2.5-7-6z%22/%3E%3Cpath%20d%3D%22M22%2035c-3.5%200-6-3.3-6-7s2.5-7%206-7%206%203.3%206%207-2.5%207-6%207z%22/%3E%3Cpath%20d%3D%22M35%2022c0%203.5-3.3%206-7%206s-7-2.5-7-6%203.3-6%207-6%207%202.5%207%206z%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%223%22/%3E%3C/g%3E%3C/svg%3E"); }
 .cbox{border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
   min-height:120px;cursor:default;position:relative;
-  box-shadow:inset 0 1px 0 rgba(255,235,180,.08),inset 0 -2px 0 rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.4),0 2px 4px rgba(0,0,0,.25);
-  border:2px solid rgba(0,0,0,.35)}
+  background-image:var(--petal-pattern);background-repeat:repeat;
+  box-shadow:0 8px 20px rgba(0,0,0,.35),0 2px 5px rgba(0,0,0,.2);
+  border:1px solid rgba(0,0,0,.25);transition:border-radius .2s,box-shadow .2s}
+.cbox.minimized{
+  min-height:34px!important;border-radius:17px;
+  border:1px solid rgba(0,0,0,.22);
+  box-shadow:inset 0 3px 5px rgba(255,255,255,.16),inset 0 -3px 6px rgba(0,0,0,.32),0 3px 9px rgba(0,0,0,.28);
+}
 .cbox.minimized>.cbox-body{display:none}
-.cbox.minimized{min-height:36px!important}
 .cbox.cbox-dragging{opacity:.45;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .cbox.drop-before{outline:2px solid var(--accent);outline-offset:-2px}
 .cbox-hdr{display:none}
@@ -216,7 +234,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 
 /* ── Control dock (Add/Cat/AI consolidated) ── */
 .dock{width:100%;margin-bottom:12px}
-.dock-icons{display:flex;justify-content:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(190,220,170,.08);flex-wrap:wrap}
+.dock-top{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid rgba(190,220,170,.08)}
+.dock-icons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 @media (max-width:480px){
   .dock-icons{max-width:216px;margin:0 auto}
 }
@@ -227,8 +246,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dock-panel.open{max-height:500px}
 .dock-pane{display:none;padding:20px;flex-direction:column;gap:12px}
 .dock-pane.active{display:flex}
-/* Preset row */
-.preset-row{display:grid;gap:8px;padding:8px 0 4px;justify-content:center;border-bottom:1px solid rgba(190,220,170,.06)}
+/* Preset row — shares a line with dock-icons on desktop via .dock-top's
+   flex-wrap; falls back to stacking below on narrow/mobile widths purely
+   because it no longer fits, no separate media query needed. */
+.preset-row{display:grid;gap:8px;justify-content:center}
 .preset-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;flex-shrink:0}
 .preset-btn:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(0,0,0,.35);border-color:rgba(190,220,170,.45)}
 .preset-btn:active{transform:scale(.94)}
@@ -395,17 +416,19 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   <div class="full-row" id="wait-row"></div>
   <!-- Control dock (between time boxes and categories) -->
   <div class="dock" id="dock-static">
-    <div class="dock-icons" id="dock-icons">
-      <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task" style="background:rgba(140,190,120,.15);border-color:rgba(140,190,120,.35)">🌸</div>
-      <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories" style="background:rgba(157,196,160,.15);border-color:rgba(157,196,160,.35)">🌿</div>
-      <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="AI" style="background:rgba(212,165,116,.15);border-color:rgba(212,165,116,.35)">🌼</div>
-      <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today" style="background:rgba(165,195,175,.15);border-color:rgba(165,195,175,.35)">🍃</div>
-      <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks" style="background:rgba(200,185,140,.15);border-color:rgba(200,185,140,.35)">🌾</div>
-      <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets" style="background:rgba(160,200,190,.15);border-color:rgba(160,200,190,.35)">🪴</div>
-      <label class="dock-icon" title="Import / Export" style="background:rgba(195,205,150,.15);border-color:rgba(195,205,150,.35);cursor:pointer" onclick="showTransferMenu()">🌱</label>
-      <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar" style="background:rgba(150,180,140,.15);border-color:rgba(150,180,140,.35)">🍂</div>
+    <div class="dock-top">
+      <div class="dock-icons" id="dock-icons">
+        <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task" style="background:rgba(140,190,120,.15);border-color:rgba(140,190,120,.35)">🌸</div>
+        <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories" style="background:rgba(157,196,160,.15);border-color:rgba(157,196,160,.35)">🌿</div>
+        <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="AI" style="background:rgba(212,165,116,.15);border-color:rgba(212,165,116,.35)">🌼</div>
+        <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today" style="background:rgba(165,195,175,.15);border-color:rgba(165,195,175,.35)">🍃</div>
+        <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks" style="background:rgba(200,185,140,.15);border-color:rgba(200,185,140,.35)">🌾</div>
+        <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets" style="background:rgba(160,200,190,.15);border-color:rgba(160,200,190,.35)">🪴</div>
+        <label class="dock-icon" title="Import / Export" style="background:rgba(195,205,150,.15);border-color:rgba(195,205,150,.35);cursor:pointer" onclick="showTransferMenu()">🌱</label>
+        <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar" style="background:rgba(150,180,140,.15);border-color:rgba(150,180,140,.35)">🍂</div>
+      </div>
+      <div class="preset-row" id="preset-row"></div>
     </div>
-    <div class="preset-row" id="preset-row"></div>
     <div class="dock-panel" id="dock-panel">
       <div class="dock-pane" id="pane-add">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
@@ -1520,7 +1543,7 @@ function renderCatSection(){
       const items=[...activeT,catDiv,...blockedT];
       const content=items.length&&(activeT.length||blockedT.length)?items.join(''):`<div class="empty" style="color:${tx}">—</div>`;
       const addId=`cba-${cat.id}`;
-      html+=`<div class="cbox${isMin?' minimized':''}" id="cbox-${cat.id}" data-catid="${cat.id}" style="background:color-mix(in srgb,${cat.color} 45%,#0d0a14 55%)"
+      html+=`<div class="cbox${isMin?' minimized':''}" id="cbox-${cat.id}" data-catid="${cat.id}" style="background-color:color-mix(in srgb,${cat.color} 45%,#0d0a14 55%)"
         draggable="true" ondragstart="catDs(event,${cat.id})" ondragend="catDe(event)"
         ondragover="cboxOver(event,${cat.id})" ondrop="cboxDrop(event,${cat.id})" ondragleave="catDl(event)">
         <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}"></button></div>
