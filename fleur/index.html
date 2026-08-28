@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · Marigold Vine</title>
+<title>Fleur · Marigold Bud</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -243,19 +243,19 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 @media (max-width:480px){
   .dock-icons{max-width:216px;margin:0 auto}
 }
-.dock-icon{width:44px;height:44px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.04);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
-.dock-icon:hover{filter:brightness(1.2);transform:scale(1.08)}
-.dock-icon.active{transform:scale(1.1);box-shadow:0 0 12px rgba(170,210,140,.3)}
-.dock-panel{background:rgba(20,15,30,.96);border:1px solid rgba(190,220,170,.13);border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
-.dock-panel.open{max-height:500px}
+.dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
+.dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
+.dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
+.dock-panel{background:rgba(20,15,30,.96);border:1px solid rgba(190,220,170,.13);border-top:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
+.dock-panel.open{max-height:500px;border-top:1px solid rgba(190,220,170,.13)}
 .dock-pane{display:none;padding:20px;flex-direction:column;gap:12px}
 .dock-pane.active{display:flex}
 /* Preset row — shares a line with dock-icons on desktop via .dock-top's
    flex-wrap; falls back to stacking below on narrow/mobile widths purely
    because it no longer fits, no separate media query needed. */
 .preset-row{display:grid;gap:8px;justify-content:center}
-.preset-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(190,220,170,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;flex-shrink:0}
-.preset-btn:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(0,0,0,.35);border-color:rgba(190,220,170,.45)}
+.preset-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,background .12s;flex-shrink:0}
+.preset-btn:hover{transform:scale(1.1);background:rgba(255,255,255,.05)}
 .preset-btn:active{transform:scale(.94)}
 /* Preset task row in editor */
 .pre-task-row{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px}
@@ -735,7 +735,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_marigold_vine_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_marigold_bud_v1',KDAY='fleur_marigold_day';
 
 const TBOX={
   today:   {label:'Today',    bg:'#1e3d2a',txt:'#c8e6d0',shape:'sticky'},
@@ -864,7 +864,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -2348,7 +2348,7 @@ Paste this at the start of a new Claude conversation, then upload the current HT
 Every update is named after a flower/plant name. Names loosely follow alphabetical order but the priority is **never reusing a name**, not strict letter sequence.
 
 **Known-used log** (append-only — the single source of truth for what NOT to pick again):
-Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine
+Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud
 
 **This log is known to be incomplete.** The project went through a full alphabet cycle or more before Kalmia — Bellflower was confirmed used early on (and would've been reused a second time under the old fixed A→Z→A plan, which is exactly the bug this section now fixes), but the exact names between Bellflower and Kalmia were never logged and can't be reliably reconstructed. Do not assume any name is "safe" just because it isn't in this log — if there's any doubt whether a name was used in that untracked stretch, skip it and use a name from the suggested-unused list below instead, since those are confirmed never to have appeared in any part of this project.
 
@@ -2687,7 +2687,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'marigold_vine',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'marigold_bud',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
