@@ -23,7 +23,12 @@
   --font-b:'DM Sans',sans-serif;
 }
 html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--font-b);overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column;position:relative}
+#app{height:100%;display:flex;flex-direction:column;position:relative;background:var(--page)}
+/* Matches Fleur's .page max-width/centering exactly, so on desktop both
+   apps share the same side cushioning instead of Racine running edge-to-
+   edge while Fleur sits centered below it. Mobile is unaffected since
+   viewport widths there never reach 1160px anyway. */
+.racine-inner{max-width:1160px;margin:0 auto;height:100%;display:flex;flex-direction:column;width:100%}
 
 /* ── Top bar: icons only, no heading, as thin as possible ── */
 .topbar{display:flex;align-items:center;justify-content:flex-end;padding:2px 5px;flex-shrink:0}
@@ -36,7 +41,7 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Week grid: one continuous surface, no lines/shading between days ── */
-.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface)}
+.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);background:var(--page)}
 .day{display:flex;flex-direction:column;min-width:0;min-height:0}
 .day-hdr{padding:1px 3px;text-align:center;flex-shrink:0;white-space:nowrap}
 .day-dow,.day-num{font-family:var(--font-h);font-size:.68rem;color:var(--ink2)}
@@ -49,8 +54,8 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
 /* ── Event chip ── */
 .chip{border-radius:5px;padding:3px 6px;font-size:.68rem;line-height:1.28;cursor:default;
   overflow:hidden;flex-shrink:0}
-.chip-time{font-family:var(--font-b);font-weight:500;font-size:.6rem;opacity:.85;display:block}
-.chip-title{font-family:var(--font-b);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.chip-time{font-family:var(--font-h);font-weight:500;font-size:.6rem;opacity:.85;display:block}
+.chip-title{font-family:var(--font-h);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .chip.allday{font-style:normal}
 .chip.err{background:transparent!important;border:1px dashed rgba(200,90,90,.4);color:#d99!important}
 .no-events{color:var(--ink3);font-size:.62rem;text-align:center;padding-top:10px;opacity:.5}
@@ -113,17 +118,19 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 <body>
 
 <div id="app">
-  <div class="topbar">
-    <div class="controls">
-      <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
-      <button class="icon-btn" id="settings-btn" title="Manage calendars">⚙</button>
+  <div class="racine-inner">
+    <div class="topbar">
+      <div class="controls">
+        <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
+        <button class="icon-btn" id="settings-btn" title="Manage calendars">⚙</button>
+      </div>
     </div>
-  </div>
 
-  <div class="week" id="week"></div>
-  <div class="empty-state hidden" id="empty-state">
-    <p>No calendars yet. Add one to see your week.</p>
-    <button class="empty-cta" id="empty-add-btn">Add a calendar</button>
+    <div class="week" id="week"></div>
+    <div class="empty-state hidden" id="empty-state">
+      <p>No calendars yet. Add one to see your week.</p>
+      <button class="empty-cta" id="empty-add-btn">Add a calendar</button>
+    </div>
   </div>
 </div>
 
@@ -466,6 +473,16 @@ function buildWeekDays(){
   return days;
 }
 
+// Cheap alternative to a full render(): only re-checks which column is
+// "today" (matters right after midnight) without re-measuring/reporting
+// height, so the periodic 60s tick can never cause a resize jitter.
+function updateTodayMarker(){
+  const todayKey=localDateKey(new Date());
+  document.querySelectorAll('.day').forEach(dayEl=>{
+    dayEl.classList.toggle('is-today',dayEl.getAttribute('data-datekey')===todayKey);
+  });
+}
+
 function render(){
   const weekEl=document.getElementById('week');
   const emptyEl=document.getElementById('empty-state');
@@ -525,8 +542,8 @@ function render(){
       const tc=textColorFor(it.color);
       const timeHtml=it.allDay?'':`<span class="chip-time">${formatTime(it.startMs)}</span>`;
       return `<div class="chip${it.allDay?' allday':''}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
-    }).join(''):'<div class="no-events">—</div>';
-    return `<div class="day${isToday?' is-today':''}">
+    }).join(''):'';
+    return `<div class="day${isToday?' is-today':''}" data-datekey="${key}">
       <div class="day-hdr"><span class="day-dow">${dow}</span><span class="day-num">${d.getDate()}</span></div>
       <div class="day-events">${chips}</div>
     </div>`;
@@ -548,9 +565,15 @@ function render(){
 // so day columns with a few events don't require internal scrolling.
 // Clamped so one very busy day can't push Racine over most of the screen --
 // beyond MAX_H, that one day's own internal scrollbar takes over instead.
+// Ignores tiny (<4px) changes so sub-pixel font-rendering differences
+// between renders can't cause a repeated, visible "jitter" of the whole
+// stack -- this was a likely contributor to Racine appearing to float.
 const MIN_H=90, MAX_H=420;
+let lastReportedHeight=0;
 function reportHeight(px){
   const clamped=Math.max(MIN_H,Math.min(MAX_H,Math.round(px)));
+  if(Math.abs(clamped-lastReportedHeight)<4)return;
+  lastReportedHeight=clamped;
   try{window.parent.postMessage({type:'app-resize',id:'racine',height:clamped},window.location.origin);}catch(e){}
 }
 function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -738,7 +761,7 @@ loadFromCloud().then(changed=>{
 });
 if(calendars.length)refreshAll(false); // immediate local-cache render while cloud load is in flight
 setInterval(()=>refreshAll(false),15*60000);
-setInterval(render,60000); // keep "today" highlight correct across midnight
+setInterval(updateTodayMarker,60000); // keep "today" highlight correct across midnight, without re-measuring height
 setInterval(loadFromCloud,5*60000); // pick up calendars added on another device
 </script>
 </body>
