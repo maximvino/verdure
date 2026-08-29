@@ -3,23 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build VII -->
+<!-- Verdure — build VIII -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#000}
-/* Verdure build VII: position:sticky (used in builds V-VI) has known,
-   long-standing iOS Safari bugs -- especially combined with an iframe
-   child and a flex-parent context, which is exactly this setup -- where
-   the sticky element can visually detach and overlap content it should
-   sit above instead of correctly pinning. Rather than keep chasing sticky
-   edge cases, Racine is now genuinely position:fixed (rock-solid across
-   every browser, no known quirks), and Fleur gets a JS-computed
-   margin-top equal to Racine's current live height instead, recalculated
-   any time that height changes -- see applyStackOffsets() below. */
-#stack{position:relative}
-.app{position:relative;width:100%}
-.app.app-fixed{position:fixed;top:0;left:0;right:0;z-index:10;background:#000}
+/* Verdure build VIII: every prior build (locked-viewport iframes, then
+   position:sticky, then position:fixed+margin-top) was solving a problem
+   that was never actually the request. What was actually wanted is the
+   simplest possible thing: Racine and Fleur are just two normal blocks,
+   stacked one after another, on one normal page that scrolls as a single
+   unit -- nothing pinned to the viewport, nothing fixed, nothing sticky.
+   That's it. That's the whole fix. */
+#stack{display:flex;flex-direction:column}
+.app{width:100%}
 .app iframe{width:100%;height:100%;border:none;display:block}
 /* Only ever shown if a real app's path 404s — everything else stays invisible */
 .load-error{
@@ -55,22 +52,16 @@ html,body{background:#000}
 //            forces a genuinely fresh fetch instead.
 //   height  — initial/fallback pixel height, used before the app's own
 //            reported height (via postMessage) arrives.
-//   sticky  — true pins this app to the top of the page via
-//            position:fixed while the rest of the page scrolls past it
-//            underneath (apps below get an automatic top offset so they
-//            aren't hidden behind it). Only Racine uses this currently;
-//            Fleur is normal document flow.
 const APPS=[
-  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'VI', sticky:true},
+  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'VI'},
   {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'marigold-bud'},
 ];
 
 const stack=document.getElementById('stack');
 stack.innerHTML=APPS.map(app=>{
-  const cls=app.sticky?'app app-fixed':'app';
   const src=app.path+(app.version?`?v=${encodeURIComponent(app.version)}`:'');
   return `
-  <div class="${cls}" id="app-${app.id}" style="height:${app.height||'400px'}">
+  <div class="app" id="app-${app.id}" style="height:${app.height||'400px'}">
     <iframe src="${src}" title="${app.label}" onerror="showLoadError('${app.id}')"></iframe>
     <div class="load-error" id="err-${app.id}">Couldn't load ${app.label} — expected it at /${app.path}</div>
   </div>`;
@@ -83,44 +74,25 @@ function showLoadError(id){
 // ── Dynamic per-app height ─────────────────────────────────────────
 // A child app (same-origin, so this is safe) can post
 // {type:'app-resize', id:'<app id>', height:<px>} to ask for a specific
-// height instead of the registry's initial value. Both Racine and Fleur
-// use this -- Racine to fit its day columns without internal scrolling,
-// Fleur so it never scrolls internally at all, since the outer page is
-// the only thing meant to actually scroll.
+// height instead of the registry's initial value -- this is ONLY about
+// sizing each app's iframe to match its real content (so neither app
+// ever has its own internal scrollbar); it has nothing to do with
+// pinning anything to the viewport anymore.
 window.addEventListener('message', (e)=>{
   if(e.origin!==window.location.origin)return;
   const d=e.data;
   if(d&&d.type==='app-resize'&&d.id){
     const el=document.getElementById('app-'+d.id);
-    if(el){el.style.height=d.height+'px';applyStackOffsets();}
+    if(el)el.style.height=d.height+'px';
   }
 });
-
-// Gives every non-sticky app a top offset equal to the total height of
-// whatever sticky (position:fixed) apps sit above it in the registry, so
-// fixed apps never visually cover the apps below them. Recalculated any
-// time a sticky app's height changes.
-function applyStackOffsets(){
-  let offset=0;
-  APPS.forEach(app=>{
-    const el=document.getElementById('app-'+app.id);
-    if(!el)return;
-    if(app.sticky){
-      el.style.top=offset+'px';
-      offset+=el.getBoundingClientRect().height;
-    }else{
-      el.style.marginTop=offset+'px';
-    }
-  });
-}
-applyStackOffsets();
 
 // ── Context doc (downloadable from the app itself) ────────────────
 // IMPORTANT: keep this in sync with reality every time this file changes.
 // Version bumps to the next Roman numeral on every version sent -- tracked
 // here and in the <!-- Verdure — build N --> comment above, deliberately
 // NOT in the <title> tag, which stays plain "Verdure".
-const VERDURE_VERSION='VII';
+const VERDURE_VERSION='VIII';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
@@ -132,21 +104,20 @@ A personal browser-homepage made of independently-built apps, stacked full-bleed
 
 ## Current apps in the stack (top to bottom)
 
-${APPS.map(a=>`- **${a.label}** — \`${a.path}\`${a.sticky?' (pinned to the top via position:fixed, with apps below it automatically offset)':''} (initial height ${a.height}, overridden live via postMessage once it reports its real content height)`).join('\\n')}
+${APPS.map(a=>`- **${a.label}** — \`${a.path}\` (initial height ${a.height}, overridden live via postMessage once it reports its real content height)`).join('\\n')}
 
-## Scroll architecture (build VII — read this before touching height/scroll again)
+## Scroll architecture (build VIII — read this before touching height/scroll again)
 
-Earlier builds tried two different approaches, both eventually broke:
+Three builds got this wrong before landing on the actually-correct, much simpler model:
 1. Two independently-scrolling locked-viewport iframes (builds ≤IV) — scroll gestures could "chain" between them in browser-dependent ways.
-2. \`position:sticky\` for Racine (builds V-VI) — worked on desktop, but iOS Safari has long-standing, well-documented bugs with \`position:sticky\` on an element containing an iframe inside a flex context (exactly this setup), where the sticky element can visually detach and overlap content instead of correctly pinning. This showed up as Racine covering Fleur while scrolling on Safari mobile specifically.
+2. \`position:sticky\` for Racine (builds V-VI) — iOS Safari has long-standing bugs with sticky on an element containing an iframe inside a flex context; it visually detached and covered Fleur while scrolling on Safari mobile.
+3. \`position:fixed\` for Racine with a JS-computed \`margin-top\` offset on Fleur (build VII) — more robust than sticky, but still solving a problem that was never actually the request: it kept Racine pinned to the viewport, which is not what "static" meant. It also had its own edge cases (a visible gap during viewport resize/scroll on mobile, from the fixed element and the offset briefly disagreeing).
 
-Build VII stops relying on sticky at all:
-- The outer Verdure page is normal document flow — no \`overflow:hidden\`, no \`position:fixed\` on \`html\`/\`body\`, no flexbox for \`#stack\`.
-- **Racine** is genuinely \`position:fixed\` (top/left/right, no known cross-browser quirks, unlike sticky) via the \`.app-fixed\` class, driven by \`sticky:true\` in the \`APPS\` registry (the property name stayed \`sticky\` for continuity even though the CSS mechanism changed to \`fixed\`).
-- **Every app below a fixed app gets a JS-computed \`margin-top\`** equal to that fixed app's current live height, via \`applyStackOffsets()\` — recalculated every time any app's reported height changes, so Fleur's content never ends up hidden behind Racine regardless of how tall Racine currently is.
-- **Fleur** still has no internal scrolling — its iframe is sized via \`postMessage\` to match its true content height (a \`ResizeObserver\` inside Fleur's own file reports this continuously).
+**Build VIII removes the pinning idea entirely.** Racine and Fleur are both completely normal, non-positioned blocks (\`position\` is not set at all — default \`static\`) stacked in a plain \`display:flex;flex-direction:column\` column, on a page with no \`overflow\`, no \`position:fixed\`, nothing pinned to the viewport anywhere. The whole page scrolls as one ordinary unit, the same way any two divs on any webpage would. Racine simply appears above Fleur and scrolls away with it when you scroll past it — there is no mechanism keeping it on screen, because none was ever actually wanted.
 
-If a future "floating"/overlap bug shows up again, check whether \`applyStackOffsets()\` is actually being called after every height change before assuming it's the same old bug — that function is the entire mechanism keeping fixed and flowing apps from colliding now.
+The \`postMessage\` height-reporting from Racine and Fleur is unchanged and still needed — that part was never the bug. It exists purely so each iframe's height matches its real content (so neither has its own internal scrollbar), which is a completely separate concern from viewport-pinning.
+
+If a future "floating"/overlap bug shows up again: **do not reach for position:fixed or position:sticky on either app's wrapper.** Both were tried and both caused real problems. The correct model is exactly what's in this build — plain flow, no positioning.
 
 ## Versioning
 
