@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build V -->
+<!-- Racine — build VI -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -76,6 +76,29 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
   width:100%;max-width:440px;max-height:84vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.15rem;margin-bottom:4px}
 .modal-sub{color:var(--ink3);font-size:.72rem;margin-bottom:14px}
+
+/* ── Full calendar (month view) ── */
+.fullcal-card{max-width:400px}
+.fullcal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.fullcal-title{font-family:var(--font-h);font-size:1rem;color:var(--ink);text-transform:capitalize}
+.fullcal-hdr .icon-btn{width:26px;height:26px;font-size:16px;opacity:.7}
+.fullcal-hdr .icon-btn:hover{opacity:1}
+.fullcal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:2px}
+.fullcal-dow span{font-size:.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}
+.fullcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.fullcal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;cursor:pointer;font-size:.75rem;color:var(--ink2);position:relative;
+  background:rgba(255,255,255,.02);transition:background .12s}
+.fullcal-cell:hover{background:rgba(255,255,255,.07)}
+.fullcal-cell.outside{color:var(--ink3);opacity:.35}
+.fullcal-cell.is-today{color:var(--today);font-weight:600}
+.fullcal-cell.selected{background:rgba(190,220,170,.16)}
+.fullcal-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;max-width:28px}
+.fullcal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.fullcal-day-panel{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);min-height:40px;
+  max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.fullcal-day-panel .chip{font-size:.72rem}
+.fullcal-day-panel .no-events{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0;opacity:.6}
 .cal-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
 .cal-swatch{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:none;cursor:pointer;padding:0}
 .cal-row-name{flex:1;min-width:0;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -121,6 +144,7 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
   <div class="racine-inner">
     <div class="topbar">
       <div class="controls">
+        <button class="icon-btn" id="fullcal-btn" title="Full calendar">🗓</button>
         <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
         <button class="icon-btn" id="settings-btn" title="Manage calendars">⚙</button>
       </div>
@@ -172,6 +196,23 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
     <div class="modal-actions">
       <button class="link-btn" id="download-doc-btn">Download context doc</button>
       <button class="btn-done" id="close-settings">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="fullcal-modal">
+  <div class="modal-card fullcal-card">
+    <div class="fullcal-hdr">
+      <button class="icon-btn" id="fullcal-prev" title="Previous month">‹</button>
+      <div class="fullcal-title" id="fullcal-title"></div>
+      <button class="icon-btn" id="fullcal-next" title="Next month">›</button>
+    </div>
+    <button class="link-btn" id="fullcal-today-btn" style="margin-bottom:8px">Today</button>
+    <div class="fullcal-dow" id="fullcal-dow"></div>
+    <div class="fullcal-grid" id="fullcal-grid"></div>
+    <div class="fullcal-day-panel" id="fullcal-day-panel"></div>
+    <div class="modal-actions">
+      <button class="btn-done" id="close-fullcal">Done</button>
     </div>
   </div>
 </div>
@@ -483,27 +524,16 @@ function updateTodayMarker(){
   });
 }
 
-function render(){
-  const weekEl=document.getElementById('week');
-  const emptyEl=document.getElementById('empty-state');
-  if(!calendars.length){
-    weekEl.classList.add('hidden');weekEl.innerHTML='';
-    emptyEl.classList.remove('hidden');
-    reportHeight(150);
-    return;
-  }
-  weekEl.classList.remove('hidden');
-  emptyEl.classList.add('hidden');
-
-  const days=buildWeekDays();
+// Computes {dateKey: [{startMs,endMs,allDay,title,color}, ...]} for every
+// day in `days` (array of local-midnight Date objects), pulling from the
+// already-cached .ics data (no network call). Shared by the 7-day strip
+// and the full-calendar month view so recurrence/all-day bucketing logic
+// only lives in one place.
+function computeBuckets(days){
   const rangeStart=days[0].getTime();
-  const rangeEnd=days[6].getTime()+86400000;
-  const todayKey=localDateKey(new Date());
-
-  // bucket: dateKey -> array of {startMs,endMs,allDay,title,color}
+  const rangeEnd=days[days.length-1].getTime()+86400000;
   const buckets={};
   days.forEach(d=>{buckets[localDateKey(d)]=[];});
-
   const cache=loadCache();
   calendars.forEach(cal=>{
     const entry=cache[cal.id];
@@ -517,7 +547,6 @@ function render(){
       const title=summaryProp?unescapeText(summaryProp.value):'(untitled)';
       occs.forEach(occ=>{
         if(occ.allDay){
-          // may span multiple days; walk each UTC calendar day it covers
           let dn0=Math.floor(occ.startMs/86400000), dn1=Math.floor((occ.endMs-1)/86400000);
           for(let dn=dn0;dn<=dn1;dn++){
             const dt=new Date(dn*86400000);
@@ -531,6 +560,24 @@ function render(){
       });
     });
   });
+  return buckets;
+}
+
+function render(){
+  const weekEl=document.getElementById('week');
+  const emptyEl=document.getElementById('empty-state');
+  if(!calendars.length){
+    weekEl.classList.add('hidden');weekEl.innerHTML='';
+    emptyEl.classList.remove('hidden');
+    reportHeight(150);
+    return;
+  }
+  weekEl.classList.remove('hidden');
+  emptyEl.classList.add('hidden');
+
+  const days=buildWeekDays();
+  const todayKey=localDateKey(new Date());
+  const buckets=computeBuckets(days);
 
   const FR_DOW=['dim','lun','mar','mer','jeu','ven','sam'];
   weekEl.innerHTML=days.map(d=>{
@@ -605,6 +652,93 @@ function openSettings(){
   document.getElementById('settings-modal').classList.remove('hidden');
 }
 function closeSettings(){document.getElementById('settings-modal').classList.add('hidden');}
+
+// ── Full calendar (month view) ──────────────────────────────────
+const FR_DOW_FULL=['dim','lun','mar','mer','jeu','ven','sam'];
+const FR_MONTHS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+let fullCalMonth=null; // Date set to the 1st of the displayed month
+let fullCalSelected=null; // Date, the currently selected day
+
+function openFullCal(){
+  const now=new Date();
+  fullCalMonth=new Date(now.getFullYear(),now.getMonth(),1);
+  fullCalSelected=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  renderFullCal();
+  document.getElementById('fullcal-modal').classList.remove('hidden');
+}
+function closeFullCal(){document.getElementById('fullcal-modal').classList.add('hidden');}
+
+function renderFullCal(){
+  const y=fullCalMonth.getFullYear(), m=fullCalMonth.getMonth();
+  document.getElementById('fullcal-title').textContent=FR_MONTHS[m]+' '+y;
+
+  const dowEl=document.getElementById('fullcal-dow');
+  dowEl.innerHTML=FR_DOW_FULL.map(d=>`<span>${d}</span>`).join('');
+
+  // Grid always shows full weeks (Sun-Sat) covering the month, including
+  // the trailing/leading days of adjacent months, like a normal calendar.
+  const firstOfMonth=new Date(y,m,1);
+  const gridStart=new Date(y,m,1-firstOfMonth.getDay());
+  const days=[];
+  for(let i=0;i<42;i++)days.push(new Date(gridStart.getFullYear(),gridStart.getMonth(),gridStart.getDate()+i));
+
+  const buckets=computeBuckets(days);
+  const todayKey=localDateKey(new Date());
+  const selectedKey=fullCalSelected?localDateKey(fullCalSelected):null;
+
+  const gridEl=document.getElementById('fullcal-grid');
+  gridEl.innerHTML=days.map(d=>{
+    const key=localDateKey(d);
+    const outside=d.getMonth()!==m;
+    const isToday=key===todayKey;
+    const isSelected=key===selectedKey;
+    const items=buckets[key]||[];
+    const uniqueColors=[...new Set(items.map(it=>it.color))].slice(0,5);
+    const dots=uniqueColors.map(c=>`<span class="fullcal-dot" style="background:${c}"></span>`).join('');
+    const cls=['fullcal-cell',outside?'outside':'',isToday?'is-today':'',isSelected?'selected':''].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-datekey="${key}">${d.getDate()}<div class="fullcal-dots">${dots}</div></div>`;
+  }).join('');
+
+  renderFullCalDayPanel();
+}
+
+function renderFullCalDayPanel(){
+  const panel=document.getElementById('fullcal-day-panel');
+  if(!fullCalSelected){panel.innerHTML='';return;}
+  const key=localDateKey(fullCalSelected);
+  const buckets=computeBuckets([fullCalSelected]);
+  const items=(buckets[key]||[]).sort((a,b)=>(a.allDay===b.allDay?a.startMs-b.startMs:(a.allDay?-1:1)));
+  if(!items.length){panel.innerHTML='<div class="no-events">Rien de prévu ce jour-là</div>';return;}
+  panel.innerHTML=items.map(it=>{
+    const tc=textColorFor(it.color);
+    const timeHtml=it.allDay?'':`<span class="chip-time">${formatTime(it.startMs)}</span>`;
+    return `<div class="chip${it.allDay?' allday':''}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
+  }).join('');
+}
+
+document.getElementById('fullcal-btn').addEventListener('click',openFullCal);
+document.getElementById('close-fullcal').addEventListener('click',closeFullCal);
+document.getElementById('fullcal-modal').addEventListener('click',e=>{if(e.target.id==='fullcal-modal')closeFullCal();});
+document.getElementById('fullcal-prev').addEventListener('click',()=>{
+  fullCalMonth=new Date(fullCalMonth.getFullYear(),fullCalMonth.getMonth()-1,1);
+  renderFullCal();
+});
+document.getElementById('fullcal-next').addEventListener('click',()=>{
+  fullCalMonth=new Date(fullCalMonth.getFullYear(),fullCalMonth.getMonth()+1,1);
+  renderFullCal();
+});
+document.getElementById('fullcal-today-btn').addEventListener('click',openFullCal);
+document.getElementById('fullcal-grid').addEventListener('click',e=>{
+  const cell=e.target.closest('.fullcal-cell');
+  if(!cell)return;
+  const [y,m,d]=cell.getAttribute('data-datekey').split('-').map(Number);
+  fullCalSelected=new Date(y,m-1,d);
+  // Selecting a day in an adjacent month navigates the grid to that month too.
+  if(m-1!==fullCalMonth.getMonth()||y!==fullCalMonth.getFullYear()){
+    fullCalMonth=new Date(y,m-1,1);
+  }
+  renderFullCal();
+});
 
 document.getElementById('settings-btn').addEventListener('click',openSettings);
 document.getElementById('empty-add-btn').addEventListener('click',openSettings);
@@ -686,7 +820,7 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // IMPORTANT: keep this in sync with reality every time this file changes,
 // the same discipline Fleur already follows for its own context doc.
 // Version bumps to the next Roman numeral on every version of this file sent.
-const RACINE_VERSION='V';
+const RACINE_VERSION='VI';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -722,6 +856,12 @@ In-app Settings (gear icon) — no code editing required: add (name + \`.ics\`/\
 ## Backup / restore
 
 Settings → **Export backup** downloads a JSON file with the calendar list + proxy endpoint. **Import backup** restores from one. This exists as a safety net independent of \`localStorage\` itself (browser data can be cleared, or the user might move to a fresh browser/device).
+
+## Full calendar (build VI)
+
+The 🗓 icon (top left of the topbar, next to refresh/settings) opens a month-view popup — prev/next navigation, a "Today" shortcut, a standard 7-column grid including the trailing/leading days of adjacent months, and up to 5 small colored dots per day (one per calendar with an event that day, deduplicated by color) rather than full event text, since a month grid cell is too small for that. Clicking a day selects it and shows that day's actual events (same chip style as the 7-day strip) in a panel below the grid. Selecting a day in an adjacent month's greyed-out row navigates the grid to that month.
+
+This reuses the same \`extractVEvents\`/\`expandEvent\` recurrence engine and already-cached \`.ics\` data as the 7-day strip — no extra network calls — via a shared \`computeBuckets(days)\` helper both views call with their own date range. If recurrence/timezone bugs ever show up in the month view specifically, they'll show up in the 7-day view too, and vice versa, since it's the same code path.
 
 ## Cross-device sync (build V)
 
