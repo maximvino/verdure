@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build I -->
+<!-- Branche — build II -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -18,58 +18,85 @@
   --border:rgba(224,198,150,.1);
   --border2:rgba(224,198,150,.18);
   --root:#7f9767;
+  --bark:#5a4632;
   --danger:#c9705a;
   --font-h:'Lora',Georgia,serif;
   --font-b:'DM Sans',sans-serif;
 }
 html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);overflow-x:hidden}
-#app{padding:22px 16px;min-height:60px}
+#app{padding:18px 16px 32px;min-height:60px}
 
-.topbar{display:flex;justify-content:flex-end;padding:0 0 6px;max-width:900px;margin:0 auto}
+.topbar{display:flex;justify-content:flex-end;max-width:900px;margin:0 auto;padding-bottom:4px}
 .icon-btn{width:22px;height:22px;border-radius:50%;border:none;background:transparent;
   color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;
   transition:all .15s;padding:0;opacity:.55}
 .icon-btn:hover,.icon-btn.on{opacity:1;color:var(--ink);background:rgba(255,255,255,.05)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:20px;
-  max-width:900px;margin:0 auto;padding:4px 4px 10px}
-.tile{aspect-ratio:1;border-radius:14px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;position:relative;background:transparent;transition:background .15s,transform .1s;
-  touch-action:none;user-select:none;-webkit-user-select:none}
-.tile:hover{background:rgba(255,255,255,.05)}
-.tile img{width:60%;height:60%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
-.tile.dragging{opacity:.35;z-index:5}
-.tile.drag-over{background:rgba(190,220,170,.18)}
-.tile .del-badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;
-  background:var(--danger);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;
-  cursor:pointer;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-body.edit-mode .tile .del-badge{display:flex}
-body.edit-mode .tile{animation:jiggle .25s ease-in-out infinite alternate}
-body.edit-mode .tile:nth-child(even){animation-delay:.08s}
-@keyframes jiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
-.tile.add-tile{color:var(--ink3);font-size:26px;opacity:.5}
-.tile.add-tile:hover{opacity:.9}
+/* ── Tree ── */
+#tree{position:relative;max-width:900px;margin:0 auto;padding:8px 0}
+.trunk{position:absolute;left:50%;top:0;bottom:0;width:9px;transform:translateX(-50%);
+  background:linear-gradient(90deg,var(--bark),#6e5940 45%,var(--bark));border-radius:5px;opacity:.85}
+.branch-row{display:grid;grid-template-columns:1fr 30px 1fr;align-items:center;margin:20px 0;position:relative;min-height:56px}
+.branch-connector{grid-column:2;width:30px;height:56px;overflow:visible;position:relative;z-index:1}
+.branch-connector path{fill:none;stroke:var(--root);stroke-width:2.5;opacity:.6}
+.leaf-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:relative;z-index:2}
+.branch-row.left .leaf-row{grid-column:1;justify-self:end}
+.branch-row.right .leaf-row{grid-column:3;justify-self:start}
+.branch-del{grid-column:2;justify-self:center;width:18px;height:18px;border-radius:50%;background:var(--danger);
+  color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;
+  position:relative;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+body.edit-mode .branch-del{display:flex}
+.branch-move{display:none;flex-direction:column;gap:1px;position:absolute;left:50%;transform:translateX(-50%);top:-14px}
+body.edit-mode .branch-move{display:flex}
+.branch-move button{width:16px;height:12px;border:none;background:rgba(255,255,255,.08);color:var(--ink3);
+  font-size:9px;cursor:pointer;border-radius:3px;line-height:1;padding:0}
+.branch-move button:hover{background:rgba(255,255,255,.16);color:var(--ink)}
 
-.empty-state{max-width:900px;margin:40px auto;text-align:center;color:var(--ink3);font-size:.85rem}
+.leaf{width:46px;height:58px;position:relative;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0}
+.leaf-outline{position:absolute;inset:0;width:100%;height:100%;transition:filter .12s}
+.leaf-outline path{fill:rgba(127,151,103,.14);stroke:var(--root);stroke-width:1.4}
+.leaf-outline line{stroke:var(--root);stroke-width:1;opacity:.4}
+.leaf:hover .leaf-outline path{fill:rgba(127,151,103,.24)}
+.leaf-icon{position:relative;z-index:1;width:24px;height:24px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.leaf.dragging{opacity:.35;z-index:10}
+.leaf.drag-over .leaf-outline path{fill:rgba(190,220,170,.4)}
+.leaf .del-badge{position:absolute;top:-2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--danger);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;
+  cursor:pointer;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+body.edit-mode .leaf .del-badge{display:flex}
+body.edit-mode .leaf{animation:jiggle .25s ease-in-out infinite alternate}
+body.edit-mode .leaf:nth-child(even){animation-delay:.08s}
+@keyframes jiggle{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+.leaf.add-leaf .leaf-outline path{stroke-dasharray:3 3;opacity:.5}
+.leaf.add-leaf{color:var(--ink3);font-size:18px;opacity:.7}
+.leaf.add-leaf:hover{opacity:1}
 
-/* ── Modal (shared shell for add-link + icon search) ── */
+.add-branch-row{display:flex;justify-content:center;margin-top:8px}
+.add-branch-btn{width:34px;height:34px;border-radius:50%;border:1.5px dashed var(--root);background:transparent;
+  color:var(--root);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.6}
+.add-branch-btn:hover{opacity:1;background:rgba(127,151,103,.1)}
+
+.empty-state{max-width:900px;margin:20px auto 0;text-align:center;color:var(--ink3);font-size:.85rem}
+
+/* ── Modal ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
   z-index:1000;padding:20px}
 .modal.hidden{display:none}
 .modal-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px;
-  width:100%;max-width:420px;max-height:84vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
   display:flex;flex-direction:column;gap:12px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
 .modal-card input[type=text],.modal-card input[type=url]{width:100%;background:rgba(255,255,255,.05);
   border:1px solid var(--border2);border-radius:8px;padding:9px 11px;font-size:.85rem;color:var(--ink);
   font-family:var(--font-b);outline:none}
 .modal-card input::placeholder{color:var(--ink3)}
-.icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;
-  max-height:260px;overflow-y:auto;padding:4px}
+.icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;
+  max-height:48vh;overflow-y:auto;padding:4px}
 .icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;background:rgba(255,255,255,.03);transition:background .12s}
+  cursor:pointer;background:rgba(255,255,255,.05);transition:background .12s}
 .icon-search-results .res:hover,.icon-search-results .res.picked{background:rgba(190,220,170,.22)}
-.icon-search-results .res img{width:60%;height:60%;object-fit:contain}
+.icon-search-results .res img{width:65%;height:65%;object-fit:contain}
 .icon-search-status{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0}
 .picked-preview{display:flex;align-items:center;gap:10px;padding:6px 0}
 .picked-preview img{width:32px;height:32px;object-fit:contain}
@@ -78,6 +105,7 @@ body.edit-mode .tile:nth-child(even){animation-delay:.08s}
 .link-btn{background:none;border:none;color:var(--ink3);font-family:var(--font-b);font-size:.72rem;
   text-decoration:underline;cursor:pointer;padding:0}
 .link-btn:hover{color:var(--ink2)}
+.link-btn.danger{color:var(--danger)}
 .btn-primary{background:var(--root);color:var(--page);border:none;border-radius:8px;
   padding:9px 16px;font-family:var(--font-b);font-weight:600;font-size:.8rem;cursor:pointer}
 .btn-primary:disabled{opacity:.4;cursor:default}
@@ -85,10 +113,6 @@ body.edit-mode .tile:nth-child(even){animation-delay:.08s}
 .btn-done{background:none;border:1px solid var(--border2);color:var(--ink2);border-radius:20px;
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
-.sync-status{color:var(--ink3);font-size:.68rem;text-align:center;margin-top:6px}
-/* Matches Verdure's own tiny invisible-until-hover corner control — fits
-   Branche's "no visible chrome, just icons" aesthetic better than a
-   labeled button would. */
 #doc-btn{position:fixed;bottom:0;right:0;width:14px;height:14px;border:none;background:transparent;
   cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
 #doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
@@ -100,14 +124,18 @@ body.edit-mode .tile:nth-child(even){animation-delay:.08s}
   <div class="topbar">
     <button class="icon-btn" id="edit-btn" title="Rearrange / remove">✎</button>
   </div>
-  <div class="grid" id="grid"></div>
-  <div class="empty-state hidden" id="empty-state">No links yet — tap + to add one.</div>
+  <div id="tree">
+    <div class="trunk" id="trunk"></div>
+    <div id="branches"></div>
+    <div class="add-branch-row"><button class="add-branch-btn" id="add-branch-btn" title="Add a branch">+</button></div>
+  </div>
+  <div class="empty-state hidden" id="empty-state">No branches yet — tap + to grow one.</div>
 </div>
 <button id="doc-btn" title="Download Branche context doc"></button>
 
 <div class="modal hidden" id="add-modal">
   <div class="modal-card">
-    <h2>Add a link</h2>
+    <h2 id="modal-title">Add a link</h2>
     <input type="url" id="link-url" placeholder="https://example.com">
     <input type="text" id="icon-query" placeholder="Search for an icon (e.g. youtube)">
     <div class="icon-search-status" id="icon-search-status"></div>
@@ -117,34 +145,37 @@ body.edit-mode .tile:nth-child(even){animation-delay:.08s}
       <span id="picked-preview-label"></span>
     </div>
     <div class="modal-actions">
+      <button class="link-btn danger hidden" id="delete-link-btn">Delete</button>
       <button class="link-btn" id="cancel-add">Cancel</button>
-      <button class="btn-primary" id="save-link-btn" disabled>Add</button>
+      <button class="btn-primary" id="save-link-btn" disabled>Save</button>
     </div>
   </div>
 </div>
 
 <script>
 // ── Storage ──────────────────────────────────────────────────────
-// IMPORTANT: LINKS_KEY below must NEVER be renamed in any future version
-// of this file -- renaming it silently orphans whatever links the user
-// already has saved, which looks exactly like data loss even though
-// nothing was actually deleted. See Racine's own file for the same rule
-// applied to its storage keys -- same discipline here.
+// IMPORTANT: BRANCHES_KEY/LINKS_KEY below must NEVER be renamed in any
+// future version of this file -- renaming silently orphans whatever the
+// user already has saved. Same rule as Racine's storage keys.
+const BRANCHES_KEY='branche_branches';
 const LINKS_KEY='branche_links';
 const SYNC_KEY='branche_sync_endpoint';
 const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
 const SYNC_ROW_ID=3; // Fleur=1, Racine=2, Branche=3 in the shared planner_state table
 
+function loadBranchesLocal(){try{return JSON.parse(localStorage.getItem(BRANCHES_KEY))||[];}catch(e){return [];}}
+function saveBranchesLocal(v){localStorage.setItem(BRANCHES_KEY,JSON.stringify(v));}
 function loadLinksLocal(){try{return JSON.parse(localStorage.getItem(LINKS_KEY))||[];}catch(e){return [];}}
 function saveLinksLocal(v){localStorage.setItem(LINKS_KEY,JSON.stringify(v));}
 function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
 function saveSyncEndpoint(v){localStorage.setItem(SYNC_KEY,v||DEFAULT_SYNC);}
 
-let links=loadLinksLocal(); // [{id, url, icon:'prefix:name'}]
+let branches=loadBranchesLocal(); // [{id}]
+let links=loadLinksLocal();       // [{id, branchId, url, icon}]
 let editMode=false;
-let cloudSyncFailed=false;
 
-// ── Cross-device sync (same Netlify function + table Fleur/Racine use) ──
+// ── Cross-device sync ────────────────────────────────────────────
+let cloudSyncFailed=false;
 async function loadFromCloud(){
   try{
     const res=await fetch(loadSyncEndpoint(),{
@@ -155,138 +186,205 @@ async function loadFromCloud(){
     const data=await res.json();
     if(data&&data.state&&Array.isArray(data.state.links)){
       links=data.state.links;
-      saveLinksLocal(links);
-      renderGrid();
+      branches=Array.isArray(data.state.branches)?data.state.branches:branches;
+      saveLinksLocal(links);saveBranchesLocal(branches);
+      renderTree();
       return true;
     }
-    if(data&&data.state===null&&links.length){
-      saveToCloud(); // seed the cloud from this device's existing links
+    if(data&&data.state===null&&(links.length||branches.length)){
+      saveToCloud();
     }
     return false;
-  }catch(err){
-    cloudSyncFailed=true;
-    return false;
-  }
+  }catch(err){cloudSyncFailed=true;return false;}
 }
 async function saveToCloud(){
   try{
     const res=await fetch(loadSyncEndpoint(),{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{links}})
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links}})
     });
     cloudSyncFailed=!res.ok;
-  }catch(err){
-    cloudSyncFailed=true;
-  }
+  }catch(err){cloudSyncFailed=true;}
 }
-function persistLinks(){
+function persist(){
+  saveBranchesLocal(branches);
   saveLinksLocal(links);
   saveToCloud();
 }
 
-// ── Rendering ────────────────────────────────────────────────────
+// ── Icon rendering ───────────────────────────────────────────────
+// &color= recolors only monotone icons (currentColor-based); icons with
+// their own hardcoded palette (most simple-icons brand logos) are
+// unaffected. Without this, generic/UI icon sets render pure black and
+// vanish against the dark background -- this was the actual bug.
+const ICON_COLOR='%23f3ead6'; // var(--ink), URL-encoded (# -> %23)
 function iconUrl(icon,size){
   const [prefix,name]=icon.split(':');
-  return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}`;
+  return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}&color=${ICON_COLOR}`;
 }
 
-function renderGrid(){
-  const gridEl=document.getElementById('grid');
+const LEAF_SVG=`<svg class="leaf-outline" viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 2 C34 10 36 30 20 54 C4 30 6 10 20 2 Z"/>
+  <line x1="20" y1="10" x2="20" y2="46"/>
+</svg>`;
+
+// ── Rendering ────────────────────────────────────────────────────
+function branchConnectorSvg(side){
+  const d=side==='left' ? 'M28,28 C16,12 12,12 0,20' : 'M0,28 C12,12 16,12 28,20';
+  return `<svg class="branch-connector" viewBox="0 0 28 56" preserveAspectRatio="none"><path d="${d}"/></svg>`;
+}
+
+function renderTree(){
+  const wrap=document.getElementById('branches');
   const emptyEl=document.getElementById('empty-state');
-  emptyEl.classList.toggle('hidden',links.length>0||editMode);
+  emptyEl.classList.toggle('hidden',branches.length>0);
 
-  const tiles=links.map((link,i)=>`
-    <div class="tile" data-idx="${i}" data-id="${link.id}">
-      <img src="${iconUrl(link.icon,64)}" alt="" loading="lazy">
-      <div class="del-badge" data-action="delete" data-id="${link.id}">×</div>
-    </div>`).join('');
-  const addTile=`<div class="tile add-tile" id="add-tile">+</div>`;
-  gridEl.innerHTML=tiles+addTile;
+  wrap.innerHTML=branches.map((branch,bi)=>{
+    const side=bi%2===0?'left':'right';
+    const branchLinks=links.filter(l=>l.branchId===branch.id);
+    const leaves=branchLinks.map(link=>`
+      <div class="leaf" data-id="${link.id}" data-branch="${branch.id}">
+        ${LEAF_SVG}
+        <img class="leaf-icon" src="${iconUrl(link.icon,32)}" alt="" loading="lazy">
+        <div class="del-badge" data-action="delete-leaf" data-id="${link.id}">×</div>
+      </div>`).join('');
+    const addLeaf=`<div class="leaf add-leaf" data-action="add-leaf" data-branch="${branch.id}">+</div>`;
+    return `<div class="branch-row ${side}" data-branch-id="${branch.id}">
+      ${side==='right'?`<div class="leaf-row">${leaves}${addLeaf}</div>`:'<div></div>'}
+      <div style="position:relative">
+        ${branchConnectorSvg(side)}
+        <div class="branch-move">
+          <button data-action="branch-up" data-idx="${bi}" title="Move up">▲</button>
+          <button data-action="branch-down" data-idx="${bi}" title="Move down">▼</button>
+        </div>
+        <div class="branch-del" data-action="delete-branch" data-id="${branch.id}">×</div>
+      </div>
+      ${side==='left'?`<div class="leaf-row">${leaves}${addLeaf}</div>`:'<div></div>'}
+    </div>`;
+  }).join('');
 
-  document.getElementById('add-tile').addEventListener('click',openAddModal);
-  gridEl.querySelectorAll('.tile[data-id]').forEach(tile=>{
-    tile.addEventListener('click',e=>{
-      if(editMode)return; // clicks in edit mode are for dragging/deleting, not navigating
-      const link=links.find(l=>l.id===tile.getAttribute('data-id'));
-      if(link)window.open(link.url,'_blank','noopener');
+  wrap.querySelectorAll('.leaf[data-id]').forEach(leaf=>{
+    leaf.addEventListener('click',()=>{
+      if(editMode){
+        openEditModal(leaf.getAttribute('data-id'));
+      }else{
+        const link=links.find(l=>l.id===leaf.getAttribute('data-id'));
+        if(link)window.open(link.url,'_blank','noopener');
+      }
     });
-    tile.addEventListener('pointerdown',onTilePointerDown);
+    leaf.addEventListener('pointerdown',onLeafPointerDown);
   });
-  gridEl.querySelectorAll('.del-badge').forEach(badge=>{
-    badge.addEventListener('click',e=>{
+  wrap.querySelectorAll('[data-action="add-leaf"]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();openAddModal(el.getAttribute('data-branch'));});
+  });
+  wrap.querySelectorAll('[data-action="delete-leaf"]').forEach(el=>{
+    el.addEventListener('click',e=>{
       e.stopPropagation();
-      const id=badge.getAttribute('data-id');
-      links=links.filter(l=>l.id!==id);
-      persistLinks();
-      renderGrid();
-      reportHeight();
+      links=links.filter(l=>l.id!==el.getAttribute('data-id'));
+      persist();renderTree();reportHeight();
     });
   });
+  wrap.querySelectorAll('[data-action="delete-branch"]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=el.getAttribute('data-id');
+      branches=branches.filter(b=>b.id!==id);
+      links=links.filter(l=>l.branchId!==id);
+      persist();renderTree();reportHeight();
+    });
+  });
+  wrap.querySelectorAll('[data-action="branch-up"],[data-action="branch-down"]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      const idx=+el.getAttribute('data-idx');
+      const dir=el.getAttribute('data-action')==='branch-up'?-1:1;
+      const target=idx+dir;
+      if(target<0||target>=branches.length)return;
+      [branches[idx],branches[target]]=[branches[target],branches[idx]];
+      persist();renderTree();
+    });
+  });
+
   reportHeight();
 }
 
-// ── Drag to reorder (pointer events -- works for mouse and touch alike) ──
+// ── Drag to reorder leaves (works across branches too) ──────────
 let dragState=null;
-function onTilePointerDown(e){
+function onLeafPointerDown(e){
   if(!editMode)return;
   if(e.target.closest('.del-badge'))return;
-  const tile=e.currentTarget;
-  tile.setPointerCapture(e.pointerId);
-  dragState={
-    pointerId:e.pointerId,tile,
-    startX:e.clientX,startY:e.clientY,
-    fromIdx:+tile.getAttribute('data-idx'),
-    overIdx:+tile.getAttribute('data-idx')
-  };
-  tile.classList.add('dragging');
-  tile.addEventListener('pointermove',onTilePointerMove);
-  tile.addEventListener('pointerup',onTilePointerUp);
-  tile.addEventListener('pointercancel',onTilePointerUp);
+  const leaf=e.currentTarget;
+  leaf.setPointerCapture(e.pointerId);
+  dragState={pointerId:e.pointerId,leaf,startX:e.clientX,startY:e.clientY,id:leaf.getAttribute('data-id')};
+  leaf.classList.add('dragging');
+  leaf.addEventListener('pointermove',onLeafPointerMove);
+  leaf.addEventListener('pointerup',onLeafPointerUp);
+  leaf.addEventListener('pointercancel',onLeafPointerUp);
 }
-function onTilePointerMove(e){
+function onLeafPointerMove(e){
   if(!dragState||e.pointerId!==dragState.pointerId)return;
   const dx=e.clientX-dragState.startX, dy=e.clientY-dragState.startY;
-  dragState.tile.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`;
-  dragState.tile.style.pointerEvents='none';
+  dragState.leaf.style.transform=`translate(${dx}px,${dy}px) scale(1.1)`;
+  dragState.leaf.style.pointerEvents='none';
   const under=document.elementFromPoint(e.clientX,e.clientY);
-  dragState.tile.style.pointerEvents='';
-  document.querySelectorAll('.tile.drag-over').forEach(t=>t.classList.remove('drag-over'));
-  const overTile=under&&under.closest('.tile[data-idx]');
-  if(overTile){
-    overTile.classList.add('drag-over');
-    dragState.overIdx=+overTile.getAttribute('data-idx');
+  dragState.leaf.style.pointerEvents='';
+  document.querySelectorAll('.leaf.drag-over').forEach(t=>t.classList.remove('drag-over'));
+  const overLeaf=under&&under.closest('.leaf[data-id]');
+  if(overLeaf&&overLeaf!==dragState.leaf){
+    overLeaf.classList.add('drag-over');
+    dragState.overId=overLeaf.getAttribute('data-id');
+    dragState.overBranch=overLeaf.getAttribute('data-branch');
+  }else if(under&&under.closest('[data-action="add-leaf"]')){
+    dragState.overId=null;
+    dragState.overBranch=under.closest('[data-action="add-leaf"]').getAttribute('data-branch');
   }
 }
-function onTilePointerUp(e){
+function onLeafPointerUp(e){
   if(!dragState||e.pointerId!==dragState.pointerId)return;
-  const {tile,fromIdx,overIdx}=dragState;
-  tile.style.transform='';
-  tile.classList.remove('dragging');
-  document.querySelectorAll('.tile.drag-over').forEach(t=>t.classList.remove('drag-over'));
-  tile.removeEventListener('pointermove',onTilePointerMove);
-  tile.removeEventListener('pointerup',onTilePointerUp);
-  tile.removeEventListener('pointercancel',onTilePointerUp);
+  const {leaf,id,overId,overBranch}=dragState;
+  leaf.style.transform='';leaf.classList.remove('dragging');
+  document.querySelectorAll('.leaf.drag-over').forEach(t=>t.classList.remove('drag-over'));
+  leaf.removeEventListener('pointermove',onLeafPointerMove);
+  leaf.removeEventListener('pointerup',onLeafPointerUp);
+  leaf.removeEventListener('pointercancel',onLeafPointerUp);
   dragState=null;
-  if(fromIdx!==overIdx){
+  if(overBranch){
+    const fromIdx=links.findIndex(l=>l.id===id);
     const [moved]=links.splice(fromIdx,1);
-    links.splice(overIdx,0,moved);
-    persistLinks();
+    moved.branchId=overBranch;
+    if(overId){
+      const toIdx=links.findIndex(l=>l.id===overId);
+      links.splice(toIdx,0,moved);
+    }else{
+      links.push(moved); // dropped on that branch's "+" tile -> append to end
+    }
+    persist();
   }
-  renderGrid();
+  renderTree();
 }
 
 document.getElementById('edit-btn').addEventListener('click',()=>{
   editMode=!editMode;
   document.getElementById('edit-btn').classList.toggle('on',editMode);
   document.body.classList.toggle('edit-mode',editMode);
-  renderGrid();
 });
 
-// ── Add-link modal ───────────────────────────────────────────────
+document.getElementById('add-branch-btn').addEventListener('click',()=>{
+  branches.push({id:'branch_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)});
+  persist();renderTree();
+});
+
+// ── Add / edit link modal ────────────────────────────────────────
 let pickedIcon=null;
 let searchDebounce=null;
+let editingLinkId=null; // null = adding new; otherwise editing this link's id
+let addingToBranch=null;
 
-function openAddModal(){
+function openAddModal(branchId){
+  editingLinkId=null;
+  addingToBranch=branchId;
+  document.getElementById('modal-title').textContent='Add a link';
+  document.getElementById('delete-link-btn').classList.add('hidden');
   document.getElementById('link-url').value='';
   document.getElementById('icon-query').value='';
   document.getElementById('icon-search-results').innerHTML='';
@@ -296,6 +394,24 @@ function openAddModal(){
   updateSaveEnabled();
   document.getElementById('add-modal').classList.remove('hidden');
   document.getElementById('link-url').focus();
+}
+function openEditModal(linkId){
+  const link=links.find(l=>l.id===linkId);
+  if(!link)return;
+  editingLinkId=linkId;
+  addingToBranch=link.branchId;
+  document.getElementById('modal-title').textContent='Edit link';
+  document.getElementById('delete-link-btn').classList.remove('hidden');
+  document.getElementById('link-url').value=link.url;
+  document.getElementById('icon-query').value='';
+  document.getElementById('icon-search-results').innerHTML='';
+  document.getElementById('icon-search-status').textContent='';
+  pickedIcon=link.icon;
+  document.getElementById('picked-preview').classList.remove('hidden');
+  document.getElementById('picked-preview-img').src=iconUrl(pickedIcon,32);
+  document.getElementById('picked-preview-label').textContent=pickedIcon;
+  updateSaveEnabled();
+  document.getElementById('add-modal').classList.remove('hidden');
 }
 function closeAddModal(){document.getElementById('add-modal').classList.add('hidden');}
 
@@ -307,6 +423,11 @@ function updateSaveEnabled(){
 document.getElementById('link-url').addEventListener('input',updateSaveEnabled);
 document.getElementById('cancel-add').addEventListener('click',closeAddModal);
 document.getElementById('add-modal').addEventListener('click',e=>{if(e.target.id==='add-modal')closeAddModal();});
+document.getElementById('delete-link-btn').addEventListener('click',()=>{
+  if(!editingLinkId)return;
+  links=links.filter(l=>l.id!==editingLinkId);
+  persist();closeAddModal();renderTree();
+});
 
 document.getElementById('icon-query').addEventListener('input',e=>{
   const q=e.target.value.trim();
@@ -320,15 +441,11 @@ async function runIconSearch(query){
   const statusEl=document.getElementById('icon-search-status');
   const resultsEl=document.getElementById('icon-search-results');
   try{
-    const res=await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=48`);
+    const res=await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=64`);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
     const icons=data.icons||[];
-    if(!icons.length){
-      resultsEl.innerHTML='';
-      statusEl.textContent='No icons found for "'+query+'"';
-      return;
-    }
+    if(!icons.length){resultsEl.innerHTML='';statusEl.textContent='No icons found for "'+query+'"';return;}
     statusEl.textContent='';
     resultsEl.innerHTML=icons.map(id=>`<div class="res" data-icon="${id}"><img src="${iconUrl(id,40)}" loading="lazy" alt=""></div>`).join('');
     resultsEl.querySelectorAll('.res').forEach(el=>{
@@ -352,10 +469,15 @@ document.getElementById('save-link-btn').addEventListener('click',()=>{
   let url=document.getElementById('link-url').value.trim();
   if(!url||!pickedIcon)return;
   if(!/^https?:\/\//i.test(url))url='https://'+url;
-  links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),url,icon:pickedIcon});
-  persistLinks();
+  if(editingLinkId){
+    const link=links.find(l=>l.id===editingLinkId);
+    if(link){link.url=url;link.icon=pickedIcon;}
+  }else{
+    links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branchId:addingToBranch,url,icon:pickedIcon});
+  }
+  persist();
   closeAddModal();
-  renderGrid();
+  renderTree();
 });
 
 // ── Report content height to Verdure (same-origin parent) ──────────
@@ -372,42 +494,53 @@ if(window.ResizeObserver){
   new ResizeObserver(reportHeight).observe(document.getElementById('app'));
 }
 
-// ── Context doc (downloadable from the app itself) ────────────────
-const BRANCHE_VERSION='I';
+// ── Context doc ──────────────────────────────────────────────────
+const BRANCHE_VERSION='II';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
-Paste this at the start of a new Claude conversation when iterating on Branche. Generated live from the running app — a tiny transparent button in the bottom-right corner (invisible until hovered, matching Verdure's own equivalent and Branche's general "no visible chrome" aesthetic).
+Paste this at the start of a new Claude conversation when iterating on Branche. Generated live from the running app — a tiny transparent button in the bottom-right corner (invisible until hovered).
 
 ## What this is
 
-An icon-only, no-text link launcher — the newest app in Verdure's stack. A grid of icons with no visible grid lines; each icon opens its link in a new tab. Tap ✎ (top right) to enter edit mode: icons jiggle, gain a small red delete badge, and can be dragged to reorder (via Pointer Events, so this works identically with mouse and touch — no separate mobile code path needed).
+An icon-only, no-text link launcher visualized as a tree: a central trunk, with user-created branches extending left/right, each holding leaf-shaped icons that open their link on click. Tap ✎ (top right) to enter edit mode — leaves and branches gain delete controls, leaves can be dragged (Pointer Events, works identically with mouse and touch) to reorder within or between branches, and branches can be nudged up/down via small arrow buttons near their trunk attachment point.
+
+**Build II replaced build I's plain grid entirely** — the flat grid made reordering feel directionless and gave no way to edit an existing link's icon/URL (only delete-and-recreate). Both are fixed now: branches provide real structure, and clicking a leaf in edit mode opens the same modal used for adding, pre-filled, with a Delete option.
+
+## Icon visibility fix (real bug, not cosmetic)
+
+Iconify's monotone/UI icon sets use \`fill="currentColor"\` with no explicit color, which rendered as plain black — invisible against this app's dark green background. Fixed by requesting every icon with \`&color=%23f3ead6\` (the shared \`--ink\` parchment tone) on the \`.svg\` endpoint. This parameter **only affects monotone icons** — brand icons from \`simple-icons\` that hardcode their own palette are untouched, so real logos still show their real colors. If a newly-picked icon ever looks wrong, check whether it's a multi-color icon fighting this override rather than assuming the fix broke.
 
 ## Icons: Iconify, not emoji or uploads
 
-Icons come from the free, keyless Iconify API (\`api.iconify.design\`) — over 100,000 icons across many sets, including \`simple-icons\` (real brand logos). Only the icon identifier (\`prefix:name\`, e.g. \`simple-icons:youtube\`) is stored per link, not image data — rendering just points an \`<img>\` at Iconify's SVG endpoint (\`https://api.iconify.design/{prefix}/{name}.svg\`) on demand. This was chosen over custom PNG uploads specifically to avoid eating into the shared browser-storage quota Fleur and Racine also depend on (image blobs are storage-heavy; icon name strings are effectively free), and over plain emoji because real brand logos were preferred for a link launcher.
+Over 100,000 icons via the free, keyless Iconify API, including \`simple-icons\` (real brand logos). Only the icon identifier (\`prefix:name\`) is stored per link, not image data, to avoid competing with Fleur/Racine for the shared browser-storage quota.
 
-If Iconify's search or rendering ever becomes unreliable, the fallback discussed was plain emoji — not custom uploads — for the same storage-budget reason.
+## Data model
+
+\`\`\`js
+branches = [{id}]                          // order = array order, no name (stays "no text")
+links    = [{id, branchId, url, icon}]     // icon = "prefix:name"
+\`\`\`
+Both arrays are stored together as one Supabase row's \`state\`, plus mirrored to \`localStorage\` under \`branche_branches\` and \`branche_links\` — **never rename either key**, same rule as Racine's storage keys, for the same reason (silent data-loss-that-isn't).
 
 ## Cross-device sync
 
-Links sync via the same Netlify function and Supabase table Fleur and Racine already use (\`/api/sync\`, \`planner_state\` table) — Branche is **row id 3** (Fleur=1, Racine=2, Branche=3). \`localStorage\` (key \`branche_links\`) is a fast local cache/offline fallback; the cloud copy is the source of truth whenever reachable, same pattern as Racine.
-
-**\`branche_links\` and \`branche_sync_endpoint\` must never be renamed** — same rule as Racine's storage keys, for the same reason (a rename silently orphans existing data).
+Same Netlify function and Supabase \`planner_state\` table Fleur and Racine already use — Branche is row id 3 (Fleur=1, Racine=2).
 
 ## Height reporting
 
-Like Racine and Fleur, Branche has no internal scrolling — it reports its real content height to Verdure via \`postMessage\` (a \`ResizeObserver\` on \`#app\`), and Verdure sizes its iframe to match exactly. Verdure's outer page is the only thing that scrolls (see Verdure's own context doc, "Scroll architecture," for why every other approach was tried and rejected first).
+No internal scrolling — reports real content height to Verdure via \`postMessage\` (\`ResizeObserver\` on \`#app\`), same pattern as Racine and Fleur. The tree can grow arbitrarily tall as branches/leaves are added; Verdure's page-level scroll (not an internal scrollbar) handles that, per Verdure's own "Scroll architecture" doc section.
 
 ## Open questions
 
-- **No icon-color customization** — icons render exactly as Iconify provides them (brand-accurate colors for \`simple-icons\`, whatever the set's default is otherwise). Worth revisiting if a more visually unified grid is wanted later.
-- **Delete has no confirmation or undo** — deliberate, for a low-stakes personal launcher (re-adding a link is trivial), but worth reconsidering if that ever causes real annoyance.
+- **Branch reordering is buttons, not drag** — leaf dragging reuses the pointer-based system in full (including dragging a leaf to a completely different branch), but branches themselves use small ▲▼ buttons instead of the same drag mechanism, to keep initial scope contained. Revisit if that feels inconsistent in practice.
+- **No confirmation on delete** (leaf or branch, and deleting a branch cascades to its leaves) — deliberate, consistent with Racine's same choice for a low-stakes personal tool, but branch deletion is a bigger action than leaf deletion and worth reconsidering if it ever causes real annoyance.
+- **Icon search results are still a plain grid** — that's just the picker utility for choosing an icon, not the main "no grid" display surface, so it wasn't in scope for the tree redesign. Worth a look if it ever feels cramped (it was recently enlarged to max-height:48vh from the build I modal's 260px, which was the "seeing slivers of icons" complaint).
 
 ## Working method for future sessions
 
-- Keep this doc (and the button that should trigger it) in sync with reality every version, same discipline as Racine and Verdure.
-- Never rename \`branche_links\` or \`branche_sync_endpoint\`.
+- Keep this doc in sync with reality every version.
+- Never rename \`branche_branches\`, \`branche_links\`, or \`branche_sync_endpoint\`.
 - Branche stays a fully separate app per Verdure's isolation architecture.
 `;
   const blob=new Blob([doc],{type:'text/markdown'});
@@ -420,8 +553,8 @@ Like Racine and Fleur, Branche has no internal scrolling — it reports its real
 
 // ── Init ─────────────────────────────────────────────────────────
 document.getElementById('doc-btn').addEventListener('click',downloadContextDoc);
-renderGrid();
-loadFromCloud().then(()=>renderGrid());
+renderTree();
+loadFromCloud().then(()=>renderTree());
 setInterval(loadFromCloud,5*60000);
 </script>
 </body>
