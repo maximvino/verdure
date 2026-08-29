@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Branche — build I -->
+<title>Branche</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Shared dark-green background/fonts with Fleur and Racine */
+  --page:#0e1c12;
+  --surface:#17281a;
+  --ink:#f3ead6;
+  --ink2:#c3b394;
+  --ink3:#8a7c62;
+  --border:rgba(224,198,150,.1);
+  --border2:rgba(224,198,150,.18);
+  --root:#7f9767;
+  --danger:#c9705a;
+  --font-h:'Lora',Georgia,serif;
+  --font-b:'DM Sans',sans-serif;
+}
+html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);overflow-x:hidden}
+#app{padding:22px 16px;min-height:60px}
+
+.topbar{display:flex;justify-content:flex-end;padding:0 0 6px;max-width:900px;margin:0 auto}
+.icon-btn{width:22px;height:22px;border-radius:50%;border:none;background:transparent;
+  color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;
+  transition:all .15s;padding:0;opacity:.55}
+.icon-btn:hover,.icon-btn.on{opacity:1;color:var(--ink);background:rgba(255,255,255,.05)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:20px;
+  max-width:900px;margin:0 auto;padding:4px 4px 10px}
+.tile{aspect-ratio:1;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;background:transparent;transition:background .15s,transform .1s;
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.tile:hover{background:rgba(255,255,255,.05)}
+.tile img{width:60%;height:60%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.tile.dragging{opacity:.35;z-index:5}
+.tile.drag-over{background:rgba(190,220,170,.18)}
+.tile .del-badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;
+  background:var(--danger);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;
+  cursor:pointer;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+body.edit-mode .tile .del-badge{display:flex}
+body.edit-mode .tile{animation:jiggle .25s ease-in-out infinite alternate}
+body.edit-mode .tile:nth-child(even){animation-delay:.08s}
+@keyframes jiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
+.tile.add-tile{color:var(--ink3);font-size:26px;opacity:.5}
+.tile.add-tile:hover{opacity:.9}
+
+.empty-state{max-width:900px;margin:40px auto;text-align:center;color:var(--ink3);font-size:.85rem}
+
+/* ── Modal (shared shell for add-link + icon search) ── */
+.modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:20px}
+.modal.hidden{display:none}
+.modal-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px;
+  width:100%;max-width:420px;max-height:84vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;gap:12px}
+.modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
+.modal-card input[type=text],.modal-card input[type=url]{width:100%;background:rgba(255,255,255,.05);
+  border:1px solid var(--border2);border-radius:8px;padding:9px 11px;font-size:.85rem;color:var(--ink);
+  font-family:var(--font-b);outline:none}
+.modal-card input::placeholder{color:var(--ink3)}
+.icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;
+  max-height:260px;overflow-y:auto;padding:4px}
+.icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:rgba(255,255,255,.03);transition:background .12s}
+.icon-search-results .res:hover,.icon-search-results .res.picked{background:rgba(190,220,170,.22)}
+.icon-search-results .res img{width:60%;height:60%;object-fit:contain}
+.icon-search-status{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0}
+.picked-preview{display:flex;align-items:center;gap:10px;padding:6px 0}
+.picked-preview img{width:32px;height:32px;object-fit:contain}
+.picked-preview span{color:var(--ink3);font-size:.72rem}
+.modal-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.link-btn{background:none;border:none;color:var(--ink3);font-family:var(--font-b);font-size:.72rem;
+  text-decoration:underline;cursor:pointer;padding:0}
+.link-btn:hover{color:var(--ink2)}
+.btn-primary{background:var(--root);color:var(--page);border:none;border-radius:8px;
+  padding:9px 16px;font-family:var(--font-b);font-weight:600;font-size:.8rem;cursor:pointer}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+.btn-done{background:none;border:1px solid var(--border2);color:var(--ink2);border-radius:20px;
+  padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
+.btn-done:hover{background:rgba(255,255,255,.05)}
+.sync-status{color:var(--ink3);font-size:.68rem;text-align:center;margin-top:6px}
+/* Matches Verdure's own tiny invisible-until-hover corner control — fits
+   Branche's "no visible chrome, just icons" aesthetic better than a
+   labeled button would. */
+#doc-btn{position:fixed;bottom:0;right:0;width:14px;height:14px;border:none;background:transparent;
+  cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
+#doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="topbar">
+    <button class="icon-btn" id="edit-btn" title="Rearrange / remove">✎</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state hidden" id="empty-state">No links yet — tap + to add one.</div>
+</div>
+<button id="doc-btn" title="Download Branche context doc"></button>
+
+<div class="modal hidden" id="add-modal">
+  <div class="modal-card">
+    <h2>Add a link</h2>
+    <input type="url" id="link-url" placeholder="https://example.com">
+    <input type="text" id="icon-query" placeholder="Search for an icon (e.g. youtube)">
+    <div class="icon-search-status" id="icon-search-status"></div>
+    <div class="icon-search-results" id="icon-search-results"></div>
+    <div class="picked-preview hidden" id="picked-preview">
+      <img id="picked-preview-img" alt="">
+      <span id="picked-preview-label"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="link-btn" id="cancel-add">Cancel</button>
+      <button class="btn-primary" id="save-link-btn" disabled>Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────────────
+// IMPORTANT: LINKS_KEY below must NEVER be renamed in any future version
+// of this file -- renaming it silently orphans whatever links the user
+// already has saved, which looks exactly like data loss even though
+// nothing was actually deleted. See Racine's own file for the same rule
+// applied to its storage keys -- same discipline here.
+const LINKS_KEY='branche_links';
+const SYNC_KEY='branche_sync_endpoint';
+const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
+const SYNC_ROW_ID=3; // Fleur=1, Racine=2, Branche=3 in the shared planner_state table
+
+function loadLinksLocal(){try{return JSON.parse(localStorage.getItem(LINKS_KEY))||[];}catch(e){return [];}}
+function saveLinksLocal(v){localStorage.setItem(LINKS_KEY,JSON.stringify(v));}
+function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
+function saveSyncEndpoint(v){localStorage.setItem(SYNC_KEY,v||DEFAULT_SYNC);}
+
+let links=loadLinksLocal(); // [{id, url, icon:'prefix:name'}]
+let editMode=false;
+let cloudSyncFailed=false;
+
+// ── Cross-device sync (same Netlify function + table Fleur/Racine use) ──
+async function loadFromCloud(){
+  try{
+    const res=await fetch(loadSyncEndpoint(),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'load',id:SYNC_ROW_ID})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data&&data.state&&Array.isArray(data.state.links)){
+      links=data.state.links;
+      saveLinksLocal(links);
+      renderGrid();
+      return true;
+    }
+    if(data&&data.state===null&&links.length){
+      saveToCloud(); // seed the cloud from this device's existing links
+    }
+    return false;
+  }catch(err){
+    cloudSyncFailed=true;
+    return false;
+  }
+}
+async function saveToCloud(){
+  try{
+    const res=await fetch(loadSyncEndpoint(),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{links}})
+    });
+    cloudSyncFailed=!res.ok;
+  }catch(err){
+    cloudSyncFailed=true;
+  }
+}
+function persistLinks(){
+  saveLinksLocal(links);
+  saveToCloud();
+}
+
+// ── Rendering ────────────────────────────────────────────────────
+function iconUrl(icon,size){
+  const [prefix,name]=icon.split(':');
+  return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}`;
+}
+
+function renderGrid(){
+  const gridEl=document.getElementById('grid');
+  const emptyEl=document.getElementById('empty-state');
+  emptyEl.classList.toggle('hidden',links.length>0||editMode);
+
+  const tiles=links.map((link,i)=>`
+    <div class="tile" data-idx="${i}" data-id="${link.id}">
+      <img src="${iconUrl(link.icon,64)}" alt="" loading="lazy">
+      <div class="del-badge" data-action="delete" data-id="${link.id}">×</div>
+    </div>`).join('');
+  const addTile=`<div class="tile add-tile" id="add-tile">+</div>`;
+  gridEl.innerHTML=tiles+addTile;
+
+  document.getElementById('add-tile').addEventListener('click',openAddModal);
+  gridEl.querySelectorAll('.tile[data-id]').forEach(tile=>{
+    tile.addEventListener('click',e=>{
+      if(editMode)return; // clicks in edit mode are for dragging/deleting, not navigating
+      const link=links.find(l=>l.id===tile.getAttribute('data-id'));
+      if(link)window.open(link.url,'_blank','noopener');
+    });
+    tile.addEventListener('pointerdown',onTilePointerDown);
+  });
+  gridEl.querySelectorAll('.del-badge').forEach(badge=>{
+    badge.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=badge.getAttribute('data-id');
+      links=links.filter(l=>l.id!==id);
+      persistLinks();
+      renderGrid();
+      reportHeight();
+    });
+  });
+  reportHeight();
+}
+
+// ── Drag to reorder (pointer events -- works for mouse and touch alike) ──
+let dragState=null;
+function onTilePointerDown(e){
+  if(!editMode)return;
+  if(e.target.closest('.del-badge'))return;
+  const tile=e.currentTarget;
+  tile.setPointerCapture(e.pointerId);
+  dragState={
+    pointerId:e.pointerId,tile,
+    startX:e.clientX,startY:e.clientY,
+    fromIdx:+tile.getAttribute('data-idx'),
+    overIdx:+tile.getAttribute('data-idx')
+  };
+  tile.classList.add('dragging');
+  tile.addEventListener('pointermove',onTilePointerMove);
+  tile.addEventListener('pointerup',onTilePointerUp);
+  tile.addEventListener('pointercancel',onTilePointerUp);
+}
+function onTilePointerMove(e){
+  if(!dragState||e.pointerId!==dragState.pointerId)return;
+  const dx=e.clientX-dragState.startX, dy=e.clientY-dragState.startY;
+  dragState.tile.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`;
+  dragState.tile.style.pointerEvents='none';
+  const under=document.elementFromPoint(e.clientX,e.clientY);
+  dragState.tile.style.pointerEvents='';
+  document.querySelectorAll('.tile.drag-over').forEach(t=>t.classList.remove('drag-over'));
+  const overTile=under&&under.closest('.tile[data-idx]');
+  if(overTile){
+    overTile.classList.add('drag-over');
+    dragState.overIdx=+overTile.getAttribute('data-idx');
+  }
+}
+function onTilePointerUp(e){
+  if(!dragState||e.pointerId!==dragState.pointerId)return;
+  const {tile,fromIdx,overIdx}=dragState;
+  tile.style.transform='';
+  tile.classList.remove('dragging');
+  document.querySelectorAll('.tile.drag-over').forEach(t=>t.classList.remove('drag-over'));
+  tile.removeEventListener('pointermove',onTilePointerMove);
+  tile.removeEventListener('pointerup',onTilePointerUp);
+  tile.removeEventListener('pointercancel',onTilePointerUp);
+  dragState=null;
+  if(fromIdx!==overIdx){
+    const [moved]=links.splice(fromIdx,1);
+    links.splice(overIdx,0,moved);
+    persistLinks();
+  }
+  renderGrid();
+}
+
+document.getElementById('edit-btn').addEventListener('click',()=>{
+  editMode=!editMode;
+  document.getElementById('edit-btn').classList.toggle('on',editMode);
+  document.body.classList.toggle('edit-mode',editMode);
+  renderGrid();
+});
+
+// ── Add-link modal ───────────────────────────────────────────────
+let pickedIcon=null;
+let searchDebounce=null;
+
+function openAddModal(){
+  document.getElementById('link-url').value='';
+  document.getElementById('icon-query').value='';
+  document.getElementById('icon-search-results').innerHTML='';
+  document.getElementById('icon-search-status').textContent='';
+  document.getElementById('picked-preview').classList.add('hidden');
+  pickedIcon=null;
+  updateSaveEnabled();
+  document.getElementById('add-modal').classList.remove('hidden');
+  document.getElementById('link-url').focus();
+}
+function closeAddModal(){document.getElementById('add-modal').classList.add('hidden');}
+
+function updateSaveEnabled(){
+  const url=document.getElementById('link-url').value.trim();
+  document.getElementById('save-link-btn').disabled=!(url&&pickedIcon);
+}
+
+document.getElementById('link-url').addEventListener('input',updateSaveEnabled);
+document.getElementById('cancel-add').addEventListener('click',closeAddModal);
+document.getElementById('add-modal').addEventListener('click',e=>{if(e.target.id==='add-modal')closeAddModal();});
+
+document.getElementById('icon-query').addEventListener('input',e=>{
+  const q=e.target.value.trim();
+  clearTimeout(searchDebounce);
+  if(!q){document.getElementById('icon-search-results').innerHTML='';document.getElementById('icon-search-status').textContent='';return;}
+  document.getElementById('icon-search-status').textContent='Searching…';
+  searchDebounce=setTimeout(()=>runIconSearch(q),350);
+});
+
+async function runIconSearch(query){
+  const statusEl=document.getElementById('icon-search-status');
+  const resultsEl=document.getElementById('icon-search-results');
+  try{
+    const res=await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=48`);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const icons=data.icons||[];
+    if(!icons.length){
+      resultsEl.innerHTML='';
+      statusEl.textContent='No icons found for "'+query+'"';
+      return;
+    }
+    statusEl.textContent='';
+    resultsEl.innerHTML=icons.map(id=>`<div class="res" data-icon="${id}"><img src="${iconUrl(id,40)}" loading="lazy" alt=""></div>`).join('');
+    resultsEl.querySelectorAll('.res').forEach(el=>{
+      el.addEventListener('click',()=>{
+        resultsEl.querySelectorAll('.res').forEach(r=>r.classList.remove('picked'));
+        el.classList.add('picked');
+        pickedIcon=el.getAttribute('data-icon');
+        document.getElementById('picked-preview').classList.remove('hidden');
+        document.getElementById('picked-preview-img').src=iconUrl(pickedIcon,32);
+        document.getElementById('picked-preview-label').textContent=pickedIcon;
+        updateSaveEnabled();
+      });
+    });
+  }catch(err){
+    resultsEl.innerHTML='';
+    statusEl.textContent='Icon search unavailable right now — try again in a moment.';
+  }
+}
+
+document.getElementById('save-link-btn').addEventListener('click',()=>{
+  let url=document.getElementById('link-url').value.trim();
+  if(!url||!pickedIcon)return;
+  if(!/^https?:\/\//i.test(url))url='https://'+url;
+  links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),url,icon:pickedIcon});
+  persistLinks();
+  closeAddModal();
+  renderGrid();
+});
+
+// ── Report content height to Verdure (same-origin parent) ──────────
+let lastReportedHeight=0;
+function reportHeight(){
+  requestAnimationFrame(()=>{
+    const h=Math.ceil(document.getElementById('app').getBoundingClientRect().height);
+    if(Math.abs(h-lastReportedHeight)<4)return;
+    lastReportedHeight=h;
+    try{window.parent.postMessage({type:'app-resize',id:'branche',height:h},window.location.origin);}catch(e){}
+  });
+}
+if(window.ResizeObserver){
+  new ResizeObserver(reportHeight).observe(document.getElementById('app'));
+}
+
+// ── Context doc (downloadable from the app itself) ────────────────
+const BRANCHE_VERSION='I';
+function downloadContextDoc(){
+  const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
+
+Paste this at the start of a new Claude conversation when iterating on Branche. Generated live from the running app — a tiny transparent button in the bottom-right corner (invisible until hovered, matching Verdure's own equivalent and Branche's general "no visible chrome" aesthetic).
+
+## What this is
+
+An icon-only, no-text link launcher — the newest app in Verdure's stack. A grid of icons with no visible grid lines; each icon opens its link in a new tab. Tap ✎ (top right) to enter edit mode: icons jiggle, gain a small red delete badge, and can be dragged to reorder (via Pointer Events, so this works identically with mouse and touch — no separate mobile code path needed).
+
+## Icons: Iconify, not emoji or uploads
+
+Icons come from the free, keyless Iconify API (\`api.iconify.design\`) — over 100,000 icons across many sets, including \`simple-icons\` (real brand logos). Only the icon identifier (\`prefix:name\`, e.g. \`simple-icons:youtube\`) is stored per link, not image data — rendering just points an \`<img>\` at Iconify's SVG endpoint (\`https://api.iconify.design/{prefix}/{name}.svg\`) on demand. This was chosen over custom PNG uploads specifically to avoid eating into the shared browser-storage quota Fleur and Racine also depend on (image blobs are storage-heavy; icon name strings are effectively free), and over plain emoji because real brand logos were preferred for a link launcher.
+
+If Iconify's search or rendering ever becomes unreliable, the fallback discussed was plain emoji — not custom uploads — for the same storage-budget reason.
+
+## Cross-device sync
+
+Links sync via the same Netlify function and Supabase table Fleur and Racine already use (\`/api/sync\`, \`planner_state\` table) — Branche is **row id 3** (Fleur=1, Racine=2, Branche=3). \`localStorage\` (key \`branche_links\`) is a fast local cache/offline fallback; the cloud copy is the source of truth whenever reachable, same pattern as Racine.
+
+**\`branche_links\` and \`branche_sync_endpoint\` must never be renamed** — same rule as Racine's storage keys, for the same reason (a rename silently orphans existing data).
+
+## Height reporting
+
+Like Racine and Fleur, Branche has no internal scrolling — it reports its real content height to Verdure via \`postMessage\` (a \`ResizeObserver\` on \`#app\`), and Verdure sizes its iframe to match exactly. Verdure's outer page is the only thing that scrolls (see Verdure's own context doc, "Scroll architecture," for why every other approach was tried and rejected first).
+
+## Open questions
+
+- **No icon-color customization** — icons render exactly as Iconify provides them (brand-accurate colors for \`simple-icons\`, whatever the set's default is otherwise). Worth revisiting if a more visually unified grid is wanted later.
+- **Delete has no confirmation or undo** — deliberate, for a low-stakes personal launcher (re-adding a link is trivial), but worth reconsidering if that ever causes real annoyance.
+
+## Working method for future sessions
+
+- Keep this doc (and the button that should trigger it) in sync with reality every version, same discipline as Racine and Verdure.
+- Never rename \`branche_links\` or \`branche_sync_endpoint\`.
+- Branche stays a fully separate app per Verdure's isolation architecture.
+`;
+  const blob=new Blob([doc],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='branche-context.md';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+document.getElementById('doc-btn').addEventListener('click',downloadContextDoc);
+renderGrid();
+loadFromCloud().then(()=>renderGrid());
+setInterval(loadFromCloud,5*60000);
+</script>
+</body>
+</html>
