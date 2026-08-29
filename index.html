@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build VIII -->
+<!-- Verdure — build IX -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -53,6 +53,7 @@ html,body{background:#000}
 //   height  — initial/fallback pixel height, used before the app's own
 //            reported height (via postMessage) arrives.
 const APPS=[
+  {id:'branche', label:'Branche', path:'branche/', height:'220px', version:'I'},
   {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'VI'},
   {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'marigold-bud'},
 ];
@@ -92,7 +93,7 @@ window.addEventListener('message', (e)=>{
 // Version bumps to the next Roman numeral on every version sent -- tracked
 // here and in the <!-- Verdure — build N --> comment above, deliberately
 // NOT in the <title> tag, which stays plain "Verdure".
-const VERDURE_VERSION='VIII';
+const VERDURE_VERSION='IX';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
@@ -133,6 +134,7 @@ Verdure uses Roman numerals (I, II, III...), bumped on every version sent, track
 
 \`\`\`
 /                  ← Verdure's index.html lives at repo root
+/branche/index.html ← Branche
 /racine/index.html ← Racine
 /fleur/index.html  ← Fleur
 \`\`\`
