@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build 8 -->
+<!-- Racine — build 9 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -629,7 +629,28 @@ function measureAndReport(){
     const hdrEl=dayEl.querySelector('.day-hdr');
     const events=dayEl.querySelector('.day-events');
     if(!hdrEl||!events)return;
-    maxDay=Math.max(maxDay,hdrEl.offsetHeight+events.scrollHeight);
+    // IMPORTANT (build 9): don't use events.scrollHeight here. .day-events
+    // is a flex child that CSS Grid's default stretch behavior expands to
+    // fill whatever height Racine's iframe currently happens to be -- so
+    // when its real content is *shorter* than that, scrollHeight reports
+    // back the stretched (current) box size, not the actual content size,
+    // since scrollHeight can't read as smaller than an element's own
+    // clientHeight when nothing is actually overflowing. That previously
+    // created a feedback loop: report the current (possibly too-tall)
+    // height -> Verdure resizes to match -> ResizeObserver fires again ->
+    // re-measure the now-stretched box -> report an even taller number ->
+    // repeat, ratcheting upward every cycle until hitting MAX_H, leaving a
+    // large empty gap between Racine's real (short) content and Fleur.
+    // Summing each chip's own offsetHeight instead gives the true content
+    // height regardless of how tall the container is currently stretched,
+    // since chips don't grow to fill their flex parent along the column
+    // (main) axis -- this breaks the feedback loop entirely.
+    let contentH=0;
+    const chips=events.children;
+    for(let i=0;i<chips.length;i++)contentH+=chips[i].offsetHeight;
+    if(chips.length>1)contentH+=(chips.length-1)*3; // gap:3px between chips
+    if(chips.length)contentH+=6; // day-events padding: 2px top + 4px bottom
+    maxDay=Math.max(maxDay,hdrEl.offsetHeight+contentH);
   });
   reportHeight(topbarH+maxDay+6);
 }
@@ -873,7 +894,7 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // the same discipline Fleur already follows for its own context doc.
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 7 — project-wide convention change).
-const RACINE_VERSION='8';
+const RACINE_VERSION='9';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -903,6 +924,16 @@ Clamped between \`MIN_H=48\` and \`MAX_H=420\` pixels. **\`MIN_H\` was 90 throug
 Two robustness additions in build 7, both calling \`measureAndReport()\` again rather than duplicating its logic:
 - **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
 - **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
+
+## Height-measurement bug: the "gap before Fleur" (build 9)
+
+\`measureAndReport()\` used to read \`events.scrollHeight\` off each \`.day-events\` element to find its "real, unclipped content height." That doesn't actually work: \`.day-events\` is stretched by CSS Grid/Flexbox default behavior to fill whatever height Racine's iframe currently is, and \`scrollHeight\` can't read as smaller than an element's own (stretched) \`clientHeight\` unless content is genuinely overflowing it. So on a light day, \`scrollHeight\` was reporting back the *current box size*, not the *actual content size*.
+
+That created a feedback loop: report the current (possibly too-tall) height -> Verdure resizes the iframe to match -> the \`ResizeObserver\` on \`#week\` fires again (the box just changed size) -> re-measure the now-restretched box -> report an even taller number -> repeat. Each cycle ratcheted the height upward until it hit \`MAX_H=420\` regardless of how little real content there was, leaving a large empty gap between Racine's actual (short) content and Fleur below it.
+
+**Fixed by summing each chip's own \`offsetHeight\`** (plus the known \`gap:3px\` and padding) instead of reading the parent's \`scrollHeight\`. A chip doesn't stretch to fill \`.day-events\` along the column's main axis, so its \`offsetHeight\` reflects its own real content size regardless of how tall the container is currently stretched — this breaks the feedback loop entirely, since the measurement is no longer reading back a number it previously wrote.
+
+If a similar "box won't shrink back down" bug shows up again anywhere in Racine (or is suspected in another app), suspect this exact pattern first: a *measurement* reading \`scrollHeight\`/\`offsetHeight\` off a container that is itself being resized based on that same measurement, rather than off content that doesn't stretch to fill it.
 
 ## Past-event fade (build 8)
 
