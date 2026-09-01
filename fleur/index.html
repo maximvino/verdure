@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · Marigold Root</title>
+<title>Fleur · 1</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -14,9 +14,9 @@
   --ink2:#b8c4ac;
   --ink3:#6e7a62;
   --border:rgba(190,220,170,.1);
-  --accent:#9bbf7e;
-  --sage:#9dc4a0;
-  --amber:#d4a574;
+  --accent:#9db08d;
+  --sage:#a6bba7;
+  --amber:#bea58a;
   --font-h:'Lora',Georgia,serif;
   --font-b:'DM Sans',sans-serif;
   --font-note:'Spectral',Georgia,serif;
@@ -25,11 +25,11 @@
   --ts:15px;
   /* time box raw colors (kept in sync with TBOX/TBOX_UI in JS, though
      unreferenced by any var(--x) in current CSS/JS as of Marigold Root) */
-  --today:#243a2d;    --today-t:#bcd2c2;
-  --tmrw:#352d1c;     --tmrw-t:#ddd0a8;
-  --upco:#352819;     --upco-t:#ddc3a4;
-  --wait:#352222;     --wait-t:#ddbdbd;
-  --casu:#241f34;     --casu-t:#c3bdd9;
+  --today:#29352e;    --today-t:#c1cdc4;
+  --tmrw:#2f2b22;     --tmrw-t:#d1cab4;
+  --upco:#2f281f;     --upco-t:#d0c2b1;
+  --wait:#312626;     --wait-t:#d6c4c4;
+  --casu:#26242f;     --casu-t:#c7c3d3;
   /* day abbrevs */
 }
 html{height:auto}
@@ -496,7 +496,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div class="cat-chip-row" id="cat-chips"></div>
         <div class="new-cat-row" style="gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fi" id="nca" type="text" style="flex:1;min-width:120px">
-          <input class="fi" id="ncc" type="color" value="#9bbf7e" title="🎨" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
+          <input class="fi" id="ncc" type="color" value="#9db08d" title="🎨" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
           <div class="pill" title="Default date" onclick="document.getElementById('ncdate').showPicker?document.getElementById('ncdate').showPicker():document.getElementById('ncdate').click()">
             📅<span class="pill-val" id="ncdate-val"></span>
             <input type="date" id="ncdate" onchange="document.getElementById('ncdate-val').textContent=fmtDate(this.value);this.closest('.pill').classList.toggle('on',!!this.value)" style="position:absolute;opacity:0;width:0">
@@ -736,7 +736,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_marigold_root_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_1_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -744,15 +744,30 @@ const KEY='fleur_marigold_root_v1',KDAY='fleur_marigold_day';
 // by comparison. Hue and relative identity per box are unchanged, just less
 // saturated/vivid; if a future edit needs to touch these again, adjust here
 // only (this is the single source of truth colStyles copies from).
+// Version 1: pulled saturation down again (~45% further reduction in HSL
+// terms, hue/lightness held steady) once Verdure/Racine/Branche's own
+// palette got quieter still -- same reasoning as Marigold Root, just a
+// second pass now that "quieter" moved again. Remember TBOX_UI, CORK_FRAME,
+// the dead :root vars, AND applyTheme()'s hardcoded defaults object all
+// have to be updated together with this -- that's four places, not three;
+// applyTheme() in particular is easy to miss since it's a separate copy
+// from :root and doesn't visibly break anything if it's left stale (the
+// CSS var just gets silently overwritten back to the old value on load).
 const TBOX={
-  today:   {label:'Today',    bg:'#243a2d',txt:'#bcd2c2',shape:'sticky'},
-  tomorrow:{label:'Tomorrow', bg:'#352d1c',txt:'#ddd0a8',shape:'sticky'},
-  upcoming:{label:'Upcoming', bg:'#352819',txt:'#ddc3a4',shape:'sticky'},
-  wait:    {label:'Wait',     bg:'#352222',txt:'#ddbdbd',shape:'sticky'},
-  casual:  {label:'Casual',   bg:'#241f34',txt:'#c3bdd9',shape:'sticky'},
+  today:   {label:'Today',    bg:'#29352e',txt:'#c1cdc4',shape:'sticky'},
+  tomorrow:{label:'Tomorrow', bg:'#2f2b22',txt:'#d1cab4',shape:'sticky'},
+  upcoming:{label:'Upcoming', bg:'#2f281f',txt:'#d0c2b1',shape:'sticky'},
+  wait:    {label:'Wait',     bg:'#312626',txt:'#d6c4c4',shape:'sticky'},
+  casual:  {label:'Casual',   bg:'#26242f',txt:'#c7c3d3',shape:'sticky'},
 };
-const CORK_FRAME={today:'#3c5c48',tomorrow:'#5a4e30',upcoming:'#5a4230',wait:'#5a3838',casual:'#3a3454'};
-const PASTELS=['#f5e8d3','#e8d5e8','#d3e8d5','#d3dde8','#e8e0d3','#e8d3d3','#d3e8e8','#e8dcd3','#ddd3e8','#d3e8dd'];
+const CORK_FRAME={today:'#43554a',tomorrow:'#514a39',upcoming:'#514339',wait:'#524040',casual:'#3f3b4d'};
+// Version 1: desaturated alongside TBOX/CORK_FRAME/accent -- same hues,
+// pulled down to roughly the same saturation range as Racine/Branche's own
+// ambient palette (~17-20%), since these are the single most visually
+// prominent color source in the whole app (one on every task) and were
+// still noticeably more saturated than everything else after the first
+// desaturation pass touched only the board backgrounds.
+const PASTELS=['#ede6db','#e4d9e4','#d8e3d9','#d8dde3','#e3dfd8','#e3d8d8','#d8e3e3','#e3ddd8','#ddd8e3','#d8e3dd'];
 const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
 let _pi=0;function nxtP(){return PASTELS[_pi++%PASTELS.length];}
 
@@ -871,7 +886,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1003,7 +1018,7 @@ document.addEventListener('keydown',e=>{
 // ── Theme ─────────────────────────────────────────────────────────
 function applyTheme(){
   const r=document.documentElement;
-  const d={'font-h':"'Lora',Georgia,serif",'font-b':"'DM Sans',sans-serif",'font-t':"'DM Sans',sans-serif",'ts':'15px','page':'#0e1c12','surface':'#17281a','ink':'#f3ead6','ink2':'#b8c4ac','ink3':'#6e7a62','border':'rgba(190,220,170,.1)','accent':'#9bbf7e'};
+  const d={'font-h':"'Lora',Georgia,serif",'font-b':"'DM Sans',sans-serif",'font-t':"'DM Sans',sans-serif",'ts':'15px','page':'#0e1c12','surface':'#17281a','ink':'#f3ead6','ink2':'#b8c4ac','ink3':'#6e7a62','border':'rgba(190,220,170,.1)','accent':'#9db08d'};
   for(const[k,v]of Object.entries(d))r.style.setProperty('--'+k,v);
   for(const[k,v]of Object.entries(gTheme))r.style.setProperty('--'+k,v);
   document.body.style.background=gTheme['bg-style']||'';
@@ -1973,11 +1988,11 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
 const TBOX_UI={
-  today:  {label:'Today',    bg:'#243a2d',txt:'#bcd2c2'},
-  tomorrow:{label:'Tomorrow',bg:'#352d1c',txt:'#ddd0a8'},
-  upcoming:{label:'Upcoming',bg:'#352819',txt:'#ddc3a4'},
-  wait:   {label:'Wait',     bg:'#352222',txt:'#ddbdbd'},
-  casual: {label:'Casual',   bg:'#241f34',txt:'#c3bdd9'},
+  today:  {label:'Today',    bg:'#29352e',txt:'#c1cdc4'},
+  tomorrow:{label:'Tomorrow',bg:'#2f2b22',txt:'#d1cab4'},
+  upcoming:{label:'Upcoming',bg:'#2f281f',txt:'#d0c2b1'},
+  wait:   {label:'Wait',     bg:'#312626',txt:'#d6c4c4'},
+  casual: {label:'Casual',   bg:'#26242f',txt:'#c7c3d3'},
 };
 const REP_LABELS=[
   ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
@@ -2389,23 +2404,18 @@ Paste this at the start of a new Claude conversation, then upload the current HT
 
 ---
 
-## Naming convention
+## Naming convention (switched to plain numbers as of this version)
 
-Every update is named after a flower/plant name. Names loosely follow alphabetical order but the priority is **never reusing a name**, not strict letter sequence.
+**Historical flower-name log**, kept for reference (this scheme is retired, not in use for new versions):
+Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud → **Marigold Root** (last flower-named version)
 
-**Known-used log** (append-only — the single source of truth for what NOT to pick again):
-Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud → Marigold Root
+That log was already known to be incomplete — a full alphabet cycle or more happened before Kalmia and was never reliably logged. This is itself part of why the project moved off name-picking entirely: Racine, Branche, and Verdure had already switched to plain numbers (1, 2, 3...) for exactly this reason (simpler, no risk of reuse/collision, no log to maintain), and Fleur now follows the same convention, per explicit project-wide instruction. Fleur keeps its own independent counter, just like the other three apps — not unified with theirs.
 
-**This log is known to be incomplete.** The project went through a full alphabet cycle or more before Kalmia — Bellflower was confirmed used early on (and would've been reused a second time under the old fixed A→Z→A plan, which is exactly the bug this section now fixes), but the exact names between Bellflower and Kalmia were never logged and can't be reliably reconstructed. Do not assume any name is "safe" just because it isn't in this log — if there's any doubt whether a name was used in that untracked stretch, skip it and use a name from the suggested-unused list below instead, since those are confirmed never to have appeared in any part of this project.
+**Current version: 1** (the first plain-numbered version, immediately following Marigold Root).
 
-**On every new version sent**: 
-1. Pick a name — next letter alphabetically from the log's last entry if that letter is safe, otherwise pull from the suggested-unused list below.
-2. Append the name actually used to the **Known-used log** above, in this same edit.
-3. Update \`<title>Fleur · [Name]</title>\`, \`const KEY='fleur_[name]_v1'\`, the \`version:\` string in \`exportData()\`, and add the new key to the \`oldKeys\` fallback array in \`load()\`.
-
-**Suggested unused names** (pull from here whenever the next alphabetical letter is uncertain or already logged): Begonia, Lily, Camellia, Freesia, Heather, Larkspur, Magnolia, Poppy, Saffron, Thistle, Willow, Zephyranthes.
-
-**Sub-version naming (critical)**: When making smaller updates within the same letter (e.g. multiple iterations of Marigold), append a word to the name: \`Marigold Stem\`, \`Marigold Petal\`, \`Marigold Bud\`, etc. Update the \`<title>\`, \`KEY\` (e.g. \`fleur_marigold_stem_v1\`), and \`version:\` string accordingly, and still append the sub-version's exact full name to the log above. This is essential for distinguishing which build is being tested — using the same name for multiple different versions makes debugging impossible. Never send two different files with the same version name.
+**On every new version sent**:
+1. Bump the plain number.
+2. Update \`<title>Fleur · [N]</title>\`, \`const KEY='fleur_[N]_v1'\`, the \`version:\` string in \`exportData()\`, and add the *previous* version's key to the \`oldKeys\` fallback array in \`load()\` (never a bare rename — see the storage-keys warning in the master project doc).
 
 ---
 
@@ -2420,7 +2430,7 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 --ink: #f3ead6        /* primary text — shared with Racine */
 --ink2: #b8c4ac       /* secondary text — green, matches Racine's family */
 --ink3: #6e7a62       /* muted text — green, matches Racine's family */
---accent: #9bbf7e     /* sage green (was dusty rose #c98fd4) */
+--accent: #9db08d     /* sage green, further desaturated in version 1 to match Verdure's more muted palette (was #9bbf7e; before that, dusty rose #c98fd4) */
 --font-h: 'Lora'      /* headings */
 --font-b: 'DM Sans'   /* UI/body */
 --font-note: 'Spectral' /* sticky note text */
@@ -2468,14 +2478,14 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 
 **Metal frame**: \`border:3px solid #5a4a2e\` + directional inset box-shadows (highlight top, shadow bottom)
 
-**TBOX colors** (desaturated in Marigold Root — same hues, pulled quieter to sit better against Verdure's simpler palette; if changing these again, update \`TBOX\`, \`TBOX_UI\`, and \`CORK_FRAME\` together, all three drifted out of sync before):
+**TBOX colors** (desaturated in Marigold Root, then desaturated further in version 1 — same hues throughout, pulled quieter each time to sit better against Verdure/Racine/Branche's own increasingly muted palette; if changing these again, update \`TBOX\`, \`TBOX_UI\`, \`CORK_FRAME\`, **and** \`applyTheme()\`'s hardcoded defaults object together — that's four places, not three; \`applyTheme()\` is the one most likely to get missed since it's a separate copy from \`:root\` and doesn't visibly break anything if left stale):
 | Col | bg | txt |
 |-----|----|-----|
-| today | \`#243a2d\` | \`#bcd2c2\` |
-| tomorrow | \`#352d1c\` | \`#ddd0a8\` |
-| upcoming | \`#352819\` | \`#ddc3a4\` |
-| wait | \`#352222\` | \`#ddbdbd\` |
-| casual | \`#241f34\` | \`#c3bdd9\` |
+| today | \`#29352e\` | \`#c1cdc4\` |
+| tomorrow | \`#2f2b22\` | \`#d1cab4\` |
+| upcoming | \`#2f281f\` | \`#d0c2b1\` |
+| wait | \`#312626\` | \`#d6c4c4\` |
+| casual | \`#26242f\` | \`#c7c3d3\` |
 
 **Cork body grid**: \`display:grid; grid-template-columns:repeat(auto-fill,140px); gap:8px; justify-content:center\`
 
@@ -2737,7 +2747,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'marigold_root',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'1',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
