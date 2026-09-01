@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · Marigold Bud</title>
+<title>Fleur · Marigold Root</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -23,12 +23,13 @@
   --font-t:'DM Sans',sans-serif;
   --font-hand:'DM Sans',sans-serif;
   --ts:15px;
-  /* time box raw colors */
-  --today:#1e3d2a;    --today-t:#c8e6d0;
-  --tmrw:#3a2c06;     --tmrw-t:#f0e0a0;
-  --upco:#2a1200;     --upco-t:#f5d4a8;
-  --wait:#3a0f0f;     --wait-t:#f5c8c8;
-  --casu:#1e1040;     --casu-t:#d4c8f5;
+  /* time box raw colors (kept in sync with TBOX/TBOX_UI in JS, though
+     unreferenced by any var(--x) in current CSS/JS as of Marigold Root) */
+  --today:#243a2d;    --today-t:#bcd2c2;
+  --tmrw:#352d1c;     --tmrw-t:#ddd0a8;
+  --upco:#352819;     --upco-t:#ddc3a4;
+  --wait:#352222;     --wait-t:#ddbdbd;
+  --casu:#241f34;     --casu-t:#c3bdd9;
   /* day abbrevs */
 }
 html{height:auto}
@@ -246,8 +247,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
 .dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
-.dock-panel{background:rgba(20,15,30,.96);border:1px solid rgba(190,220,170,.13);border-top:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
-.dock-panel.open{max-height:500px;border-top:1px solid rgba(190,220,170,.13)}
+.dock-panel{background:rgba(20,15,30,.96);border:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
+.dock-panel.open{max-height:500px;border:1px solid rgba(190,220,170,.13);border-top:none}
 .dock-pane{display:none;padding:20px;flex-direction:column;gap:12px}
 .dock-pane.active{display:flex}
 /* Preset row — shares a line with dock-icons on desktop via .dock-top's
@@ -735,16 +736,22 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_marigold_bud_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_marigold_root_v1',KDAY='fleur_marigold_day';
 
+// Marigold Root: pulled every box's saturation down a notch (bg and text
+// alike) so they read as muted, dusty jewel tones rather than vivid ones --
+// Verdure's simpler, quieter look above made the old TBOX colors feel loud
+// by comparison. Hue and relative identity per box are unchanged, just less
+// saturated/vivid; if a future edit needs to touch these again, adjust here
+// only (this is the single source of truth colStyles copies from).
 const TBOX={
-  today:   {label:'Today',    bg:'#1e3d2a',txt:'#c8e6d0',shape:'sticky'},
-  tomorrow:{label:'Tomorrow', bg:'#3a2c06',txt:'#f0e0a0',shape:'sticky'},
-  upcoming:{label:'Upcoming', bg:'#3a1d00',txt:'#f5d4a8',shape:'sticky'},
-  wait:    {label:'Wait',     bg:'#3a0f0f',txt:'#f5c8c8',shape:'sticky'},
-  casual:  {label:'Casual',   bg:'#1e1040',txt:'#d4c8f5',shape:'sticky'},
+  today:   {label:'Today',    bg:'#243a2d',txt:'#bcd2c2',shape:'sticky'},
+  tomorrow:{label:'Tomorrow', bg:'#352d1c',txt:'#ddd0a8',shape:'sticky'},
+  upcoming:{label:'Upcoming', bg:'#352819',txt:'#ddc3a4',shape:'sticky'},
+  wait:    {label:'Wait',     bg:'#352222',txt:'#ddbdbd',shape:'sticky'},
+  casual:  {label:'Casual',   bg:'#241f34',txt:'#c3bdd9',shape:'sticky'},
 };
-const CORK_FRAME={today:'#2e5c3e',tomorrow:'#5a4410',upcoming:'#5a2e00',wait:'#5a1818',casual:'#2e1860'};
+const CORK_FRAME={today:'#3c5c48',tomorrow:'#5a4e30',upcoming:'#5a4230',wait:'#5a3838',casual:'#3a3454'};
 const PASTELS=['#f5e8d3','#e8d5e8','#d3e8d5','#d3dde8','#e8e0d3','#e8d3d3','#d3e8e8','#e8dcd3','#ddd3e8','#d3e8dd'];
 const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
 let _pi=0;function nxtP(){return PASTELS[_pi++%PASTELS.length];}
@@ -864,7 +871,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1119,10 +1126,18 @@ function showTransferMenu(){document.getElementById('transfer-mo').classList.rem
 // ── Add task pill helpers ─────────────────────────────────────────
 function togglePillExtra(extId,pillId){const el=document.getElementById(extId);const on=el.classList.toggle('open');document.getElementById(pillId).classList.toggle('on',on);}
 function syncWaitUntil(){
-  const d=document.getElementById('awu-date')?.value;
-  const t=document.getElementById('awu-time')?.value;
+  const dEl=document.getElementById('awu-date'),tEl=document.getElementById('awu-time');
+  const d=dEl?.value,t=tEl?.value;
   const awu=document.getElementById('awu');
-  if(awu)awu.value=(d&&t)?`${d}T${t}`:(d?`${d}T00:00`:'');
+  if(!awu)return;
+  if(!d&&!t){awu.value='';return;}
+  // A time with no date is just as natural as a date with no time ("wait
+  // until 3pm" almost always means later TODAY, not some unspecified day) --
+  // presume today's date rather than silently dropping the wait, the same
+  // trap that date-only used to fall into before that got fixed.
+  const dd=d||today();
+  if(dEl&&!dEl.value)dEl.value=dd;
+  awu.value=t?`${dd}T${t}`:`${dd}T00:00`;
 }
 // Edit-modal counterpart. A native single <input type="datetime-local"> only
 // ever reports a value once BOTH its date and time sub-fields are filled —
@@ -1130,12 +1145,18 @@ function syncWaitUntil(){
 // in mind) leaves the browser reporting an empty string, so the wait silently
 // never saves. Splitting into separate date+time inputs (as the add-task
 // modal already did) avoids that trap: a date with no time defaults to
-// midnight instead of vanishing.
+// midnight instead of vanishing. Marigold Root: the same trap existed in the
+// other direction too -- a time with no date presumed nothing and the wait
+// vanished; now a time-only entry presumes today, same as the add modal.
 function syncWaitUntilEdit(){
-  const d=document.getElementById('ewu-date')?.value;
-  const t=document.getElementById('ewu-time')?.value;
+  const dEl=document.getElementById('ewu-date'),tEl=document.getElementById('ewu-time');
+  const d=dEl?.value,t=tEl?.value;
   const ewu=document.getElementById('ewu');
-  if(ewu)ewu.value=(d&&t)?`${d}T${t}`:(d?`${d}T00:00`:'');
+  if(!ewu)return;
+  if(!d&&!t){ewu.value='';return;}
+  const dd=d||today();
+  if(dEl&&!dEl.value)dEl.value=dd;
+  ewu.value=t?`${dd}T${t}`:`${dd}T00:00`;
 }
 
 const DOW_CLR=['#abc9e6','#abe6d4','#b2e6ab','#e1e6ab','#e6bcab','#e6abcb','#d3abe6'];
@@ -1570,12 +1591,20 @@ function renderCatChips(){
 }
 function syncSelects(){
   ['ac','ec'].forEach(sid=>{const s=document.getElementById(sid);if(!s)return;const cur=s.value;s.innerHTML='<option value="">—</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');s.value=cur;});
-  // Task pickers for wait-on-task
+  // Task pickers for wait-on-task. Marigold Root: this used to list every
+  // task ever created, unsorted, in raw creation order -- on a board with
+  // any real history that was a long, alphabetically-scrambled scroll just
+  // to find one task to depend on. Now: done tasks are excluded (nothing
+  // waits on something already finished), the task being edited can't
+  // depend on itself, and the rest is sorted alphabetically so it's
+  // actually scannable.
   ['awt','ewt'].forEach(sid=>{
     const s=document.getElementById(sid);if(!s)return;
     const cur=s.value;
     const label=sid==='awt'?'After task completes…':'After task: (none)';
-    s.innerHTML=`<option value="">${label}</option>`+tasks.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    const selfId=sid==='ewt'?editTid:null;
+    const opts=tasks.filter(t=>!t.done&&t.id!=selfId).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    s.innerHTML=`<option value="">${label}</option>`+opts.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
     s.value=cur;
   });
 }
@@ -1856,18 +1885,27 @@ function addManual(){
   const urgent=document.getElementById('aurgent')?.checked||false;
   const casuPin=document.getElementById('apin')?.checked||false;
   let col=chosenCol||'today';
+  // Today/Tomorrow imply a concrete date even when the user never opened the
+  // date sub-panel (that's the whole point of those two pills). Without
+  // resolving that implied date here, a same-day Wait added to a Today task
+  // looked "dateless" to the routing check below and incorrectly bumped the
+  // whole task into the Wait box instead of leaving it in Today, shown
+  // blocked/faded there -- this was a real regression, not a style choice.
+  let effDate=date;
+  if(!effDate&&chosenCol==='today')effDate=today();
+  else if(!effDate&&chosenCol==='tomorrow')effDate=tomorrow();
   // Route: if wait with no date, go to wait col; if date given, route by date
-  if((wait||waitTaskId||waitUntil)&&!date)col='wait';
-  else if(date)col=d2col(date,rep);
+  if((wait||waitTaskId||waitUntil)&&!effDate)col='wait';
+  else if(effDate)col=d2col(effDate,rep);
   else if(!chosenCol)col=rep?'today':'casual';
-  else if(chosenCol==='upcoming'&&!date){
+  else if(chosenCol==='upcoming'&&!effDate){
     // Upcoming requires a date — open its date sub-panel instead of silently
     // creating a task that can never sort itself correctly.
     aemToggle('date');showU('Upcoming needs a due date');return;
   }
   const color=getDot('add-cr');
   pu('add');
-  tasks.push({id:tid++,name,col,deadlineDate:date,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:color,link,paletteColor:color?'':nxtP()});
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:color,link,paletteColor:color?'':nxtP()});
   // Reset
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';
   mkDots('add-cr','');aemReset();aemClose();save();ra();showU('Added');
@@ -1935,11 +1973,11 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
 const TBOX_UI={
-  today:  {label:'Today',    bg:'#1e3d2a',txt:'#c8e6d0'},
-  tomorrow:{label:'Tomorrow',bg:'#3a2c06',txt:'#f0e0a0'},
-  upcoming:{label:'Upcoming',bg:'#3a1d00',txt:'#f5d4a8'},
-  wait:   {label:'Wait',     bg:'#3a0f0f',txt:'#f5c8c8'},
-  casual: {label:'Casual',   bg:'#1e1040',txt:'#d4c8f5'},
+  today:  {label:'Today',    bg:'#243a2d',txt:'#bcd2c2'},
+  tomorrow:{label:'Tomorrow',bg:'#352d1c',txt:'#ddd0a8'},
+  upcoming:{label:'Upcoming',bg:'#352819',txt:'#ddc3a4'},
+  wait:   {label:'Wait',     bg:'#352222',txt:'#ddbdbd'},
+  casual: {label:'Casual',   bg:'#241f34',txt:'#c3bdd9'},
 };
 const REP_LABELS=[
   ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
@@ -2157,6 +2195,14 @@ function saveTask(){
   const cv=document.getElementById('ec').value;t.categoryId=cv?parseInt(cv):null;
   t.stickyColor=getDot('edit-cr');t.urgent=document.getElementById('eurgent').checked;t.casuPin=document.getElementById('epin').checked;
   const chosenCol=document.getElementById('eco').value;
+  // Today/Tomorrow imply a concrete date even if the task was originally
+  // created without one (the pill alone used to be enough). Resolve that
+  // here, before the wait-routing check below -- otherwise adding a
+  // same-day wait to an existing dateless Today task looks "dateless" to
+  // that check and incorrectly bumps the task into Wait instead of leaving
+  // it in Today, shown blocked/faded there.
+  if(!t.deadlineDate&&chosenCol==='today')t.deadlineDate=today();
+  else if(!t.deadlineDate&&chosenCol==='tomorrow')t.deadlineDate=tomorrow();
   // Casual is explicitly dateless — but only when the user hasn't supplied a date.
   // If they're editing a Casual task AND entered a date, that's an explicit intent
   // to give the task a deadline and move it out of Casual; honour it.
@@ -2348,7 +2394,7 @@ Paste this at the start of a new Claude conversation, then upload the current HT
 Every update is named after a flower/plant name. Names loosely follow alphabetical order but the priority is **never reusing a name**, not strict letter sequence.
 
 **Known-used log** (append-only — the single source of truth for what NOT to pick again):
-Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud
+Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud → Marigold Root
 
 **This log is known to be incomplete.** The project went through a full alphabet cycle or more before Kalmia — Bellflower was confirmed used early on (and would've been reused a second time under the old fixed A→Z→A plan, which is exactly the bug this section now fixes), but the exact names between Bellflower and Kalmia were never logged and can't be reliably reconstructed. Do not assume any name is "safe" just because it isn't in this log — if there's any doubt whether a name was used in that untracked stretch, skip it and use a name from the suggested-unused list below instead, since those are confirmed never to have appeared in any part of this project.
 
@@ -2422,14 +2468,14 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 
 **Metal frame**: \`border:3px solid #5a4a2e\` + directional inset box-shadows (highlight top, shadow bottom)
 
-**TBOX colors**:
+**TBOX colors** (desaturated in Marigold Root — same hues, pulled quieter to sit better against Verdure's simpler palette; if changing these again, update \`TBOX\`, \`TBOX_UI\`, and \`CORK_FRAME\` together, all three drifted out of sync before):
 | Col | bg | txt |
 |-----|----|-----|
-| today | \`#1e3d2a\` | \`#c8e6d0\` |
-| tomorrow | \`#3a2c06\` | \`#f0e0a0\` |
-| upcoming | \`#3a1d00\` | \`#f5d4a8\` |
-| wait | \`#3a0f0f\` | \`#f5c8c8\` |
-| casual | \`#1e1040\` | \`#d4c8f5\` |
+| today | \`#243a2d\` | \`#bcd2c2\` |
+| tomorrow | \`#352d1c\` | \`#ddd0a8\` |
+| upcoming | \`#352819\` | \`#ddc3a4\` |
+| wait | \`#352222\` | \`#ddbdbd\` |
+| casual | \`#241f34\` | \`#c3bdd9\` |
 
 **Cork body grid**: \`display:grid; grid-template-columns:repeat(auto-fill,140px); gap:8px; justify-content:center\`
 
@@ -2603,6 +2649,10 @@ A task is **blocked** when:
 
 **Clearing a date out of Upcoming (fixed in Lavender Vine)**: \`saveTask()\` refuses to save a task into the \`upcoming\` box without a \`deadlineDate\` (see Date↔column routing). The "✕ Clear date & time" button in the edit modal used to only blank the date/time inputs — it never touched \`#eco\` (the hidden box selector), so a task left sitting on "upcoming" after its date was cleared would bounce forever: save → validation fails → date panel reopens → clear again → same result. The button now calls \`emClearDate()\`, which blanks the date fields AND, if \`#eco\` is currently \`'upcoming'\`, calls \`emSetCol('casual')\` — same fallback \`routeTask\`/\`saveTask\` already use elsewhere when Upcoming has no date to route by.
 
+**Time-only wait-until (fixed in Marigold Root)**: \`syncWaitUntil()\`/\`syncWaitUntilEdit()\` previously only defaulted a *date-only* pick to midnight — a *time-only* pick (very natural: "wait until 3pm" almost always means later today) produced an empty \`awu\`/\`ewu\` value and the wait silently never saved. Both functions now default to \`today()\` when only a time is given, and also backfill the visible date input so the UI doesn't look like nothing happened.
+
+**Today/Tomorrow + same-day wait incorrectly routing to Wait (fixed in Marigold Root)**: Today/Tomorrow tasks only ever get an explicit \`deadlineDate\` written if the date sub-panel is opened directly — the pill alone was always meant to be enough. \`addManual()\`'s and \`saveTask()\`'s wait-routing checks (\`if((wait...)&&!date)col='wait'\`) didn't know that, so a Today task with no separately-typed date that also had a same-day wait added looked "dateless" to that check and got moved into the Wait box outright, instead of staying in Today shown blocked/faded (the documented, intended behavior — see the comment directly above that check in both functions). Both functions now resolve Today→\`today()\`/Tomorrow→\`tomorrow()\` as an implied date *before* the wait-routing check runs, and \`addManual()\` persists that resolved date onto the new task rather than the possibly-empty raw field.
+
 ---
 
 ## Export / Import
@@ -2687,7 +2737,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'marigold_bud',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'marigold_root',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by

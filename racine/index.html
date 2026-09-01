@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build VI -->
+<!-- Racine — build 8 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -53,7 +53,8 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
 
 /* ── Event chip ── */
 .chip{border-radius:5px;padding:3px 6px;font-size:.68rem;line-height:1.28;cursor:default;
-  overflow:hidden;flex-shrink:0}
+  overflow:hidden;flex-shrink:0;transition:opacity .3s}
+.chip.past{opacity:.55}
 .chip-time{font-family:var(--font-h);font-weight:500;font-size:.6rem;opacity:.85;display:block}
 .chip-title{font-family:var(--font-h);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .chip.allday{font-style:normal}
@@ -523,6 +524,19 @@ function updateTodayMarker(){
     dayEl.classList.toggle('is-today',dayEl.getAttribute('data-datekey')===todayKey);
   });
 }
+// Same idea, for the "past" fade on today's chips: a class toggle based on
+// data-start-ms, no re-render, so a chip fading as its start time ticks by
+// can't cause the same resize jitter a full render() risks.
+function updatePastEvents(){
+  const todayEl=document.querySelector('.day.is-today');
+  if(!todayEl)return;
+  const now=Date.now();
+  todayEl.querySelectorAll('.chip:not(.allday)').forEach(chipEl=>{
+    const startMs=parseInt(chipEl.dataset.startMs,10);
+    if(!startMs)return;
+    chipEl.classList.toggle('past',startMs<now);
+  });
+}
 
 // Computes {dateKey: [{startMs,endMs,allDay,title,color}, ...]} for every
 // day in `days` (array of local-midnight Date objects), pulling from the
@@ -588,7 +602,12 @@ function render(){
     const chips=items.length?items.map(it=>{
       const tc=textColorFor(it.color);
       const timeHtml=it.allDay?'':`<span class="chip-time">${formatTime(it.startMs)}</span>`;
-      return `<div class="chip${it.allDay?' allday':''}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
+      // Only "today" has a meaningful past/future split -- every other day
+      // in the strip is always still ahead. All-day events are never faded
+      // (they're still "on" for the whole day, not something with a start
+      // time to have slipped past).
+      const isPast=isToday&&!it.allDay&&it.startMs<Date.now();
+      return `<div class="chip${it.allDay?' allday':''}${isPast?' past':''}" data-start-ms="${it.startMs}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
     }).join(''):'';
     return `<div class="day${isToday?' is-today':''}" data-datekey="${key}">
       <div class="day-hdr"><span class="day-dow">${dow}</span><span class="day-num">${d.getDate()}</span></div>
@@ -597,16 +616,22 @@ function render(){
   }).join('');
 
   // Let content settle, then measure real (unclipped) height and tell Verdure.
-  requestAnimationFrame(()=>{
-    const topbarH=document.querySelector('.topbar').offsetHeight;
-    let maxDay=0;
-    document.querySelectorAll('.day').forEach(dayEl=>{
-      const hdr=dayEl.querySelector('.day-hdr').offsetHeight;
-      const events=dayEl.querySelector('.day-events');
-      maxDay=Math.max(maxDay,hdr+events.scrollHeight);
-    });
-    reportHeight(topbarH+maxDay+6);
+  requestAnimationFrame(measureAndReport);
+}
+function measureAndReport(){
+  const weekEl=document.getElementById('week');
+  if(weekEl.classList.contains('hidden'))return; // empty state already reported its own height
+  const topbarEl=document.querySelector('.topbar');
+  if(!topbarEl)return;
+  const topbarH=topbarEl.offsetHeight;
+  let maxDay=0;
+  document.querySelectorAll('.day').forEach(dayEl=>{
+    const hdrEl=dayEl.querySelector('.day-hdr');
+    const events=dayEl.querySelector('.day-events');
+    if(!hdrEl||!events)return;
+    maxDay=Math.max(maxDay,hdrEl.offsetHeight+events.scrollHeight);
   });
+  reportHeight(topbarH+maxDay+6);
 }
 // Tell Verdure (same-origin parent) how tall Racine actually needs to be,
 // so day columns with a few events don't require internal scrolling.
@@ -615,13 +640,40 @@ function render(){
 // Ignores tiny (<4px) changes so sub-pixel font-rendering differences
 // between renders can't cause a repeated, visible "jitter" of the whole
 // stack -- this was a likely contributor to Racine appearing to float.
-const MIN_H=90, MAX_H=420;
+// MIN_H lowered (was 90): that floor was padding out a genuinely light
+// week -- one event, or none -- to look like it held several, leaving an
+// awkward gap above Fleur. 48px is just enough for the topbar + a day
+// header row with zero events; real content still grows it from there.
+const MIN_H=48, MAX_H=420;
 let lastReportedHeight=0;
 function reportHeight(px){
   const clamped=Math.max(MIN_H,Math.min(MAX_H,Math.round(px)));
   if(Math.abs(clamped-lastReportedHeight)<4)return;
   lastReportedHeight=clamped;
   try{window.parent.postMessage({type:'app-resize',id:'racine',height:clamped},window.location.origin);}catch(e){}
+}
+// Re-measure once webfonts actually finish loading. Text metrics (and so
+// each chip's real height) can shift once the real font swaps in for the
+// fallback -- if the very first measurement lands before that, Racine can
+// report and lock in a height that's slightly wrong for its actual content
+// until the next unrelated re-render happens to correct it.
+if(document.fonts&&document.fonts.ready){
+  document.fonts.ready.then(()=>requestAnimationFrame(measureAndReport)).catch(()=>{});
+}
+// Belt-and-braces: watch the week grid itself for size changes (e.g. a
+// wrapped chip title changing line count) that don't happen to go through
+// render() again, so "always as short as it can be" holds continuously,
+// not just right after a manual re-render.
+if(window.ResizeObserver){
+  let roPending=false;
+  const ro=new ResizeObserver(()=>{
+    if(roPending)return;
+    roPending=true;
+    requestAnimationFrame(()=>{roPending=false;measureAndReport();});
+  });
+  const observeWeekEl=()=>{const weekEl=document.getElementById('week');if(weekEl)ro.observe(weekEl);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observeWeekEl);
+  else observeWeekEl();
 }
 function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -819,8 +871,9 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // ── Context doc (downloadable from the app itself, not hand-sent) ──
 // IMPORTANT: keep this in sync with reality every time this file changes,
 // the same discipline Fleur already follows for its own context doc.
-// Version bumps to the next Roman numeral on every version of this file sent.
-const RACINE_VERSION='VI';
+// Version bumps to the next plain number on every version of this file sent
+// (switched from Roman numerals as of build 7 — project-wide convention change).
+const RACINE_VERSION='8';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -832,7 +885,7 @@ A short, horizontal strip in Verdure's stack (above Fleur) showing the next 7 da
 
 ## Current version: ${RACINE_VERSION}
 
-Versioning convention: Racine uses Roman numerals (I, II, III...), bumped on every version sent, tracked in this comment in the source and in this generated doc -- NOT in the \`<title>\` tag, which stays plain "Racine" on purpose. This is Racine's own convention (Fleur keeps its separate flower-name convention; Verdure uses its own Roman-numeral comment, not shared with Racine's numbering).
+Versioning convention: Racine uses plain numbers (1, 2, 3...), bumped on every version sent, tracked in this comment in the source and in this generated doc -- NOT in the \`<title>\` tag, which stays plain "Racine" on purpose. Switched from Roman numerals to plain numbers as of build 7, a project-wide convention change (Verdure and Branche switched at the same time; Fleur keeps its separate flower-name convention, unaffected). This is Racine's own counter, independent of the other apps' counters.
 
 ## Visual language (as of build V)
 
@@ -841,11 +894,21 @@ Versioning convention: Racine uses Roman numerals (I, II, III...), bumped on eve
 - No heading/logo text anywhere in the app. Top bar is just two small low-opacity icons (⟳ refresh, ⚙ settings).
 - Today is marked only by its date/weekday text turning gold (\`--today:#c9a227\`) — no background shading, no borders between day columns.
 
-## Dynamic height (build V)
+## Dynamic height (build 7)
 
-Racine no longer has a fixed pixel height in Verdure. After every render, it measures how tall its content actually wants to be (topbar + the tallest day column's *unclipped* event list) and posts \`{type:'app-resize', id:'racine', height}\` to its parent window via \`postMessage\` (same-origin, since Racine is served from the same domain as Verdure, just a different path). Verdure listens for this and resizes Racine's flex-basis to match, so a normal number of events doesn't require scrolling inside a day column.
+Racine has no fixed pixel height in Verdure. Height is computed by \`measureAndReport()\` (extracted out of \`render()\` in build 7 so it can be triggered from more than one place): topbar height + the tallest day column's *unclipped* event-list \`scrollHeight\`, then posted as \`{type:'app-resize', id:'racine', height}\` to the parent window via \`postMessage\` (same-origin, since Racine is served from the same domain as Verdure, just a different path). Verdure listens for this and resizes Racine's flex-basis to match, so a normal number of events doesn't require scrolling inside a day column.
 
-Clamped between \`MIN_H=90\` and \`MAX_H=420\` pixels — an unusually packed single day still falls back to that day's own internal scrollbar past 420px, rather than letting Racine balloon over most of the screen.
+Clamped between \`MIN_H=48\` and \`MAX_H=420\` pixels. **\`MIN_H\` was 90 through build 6** — that floor was padding out a genuinely light week (one event, or none) to look like it held several, leaving an awkward gap above Fleur; 48px is just enough for the topbar plus a day-header row with zero events, and real content grows the box from there. An unusually packed single day still falls back to that day's own internal scrollbar past \`MAX_H=420\`, rather than letting Racine balloon over most of the screen.
+
+Two robustness additions in build 7, both calling \`measureAndReport()\` again rather than duplicating its logic:
+- **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
+- **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
+
+## Past-event fade (build 8)
+
+Once an event's start time has passed, its chip fades to \`opacity:.55\` (\`.chip.past\`) rather than staying at full strength alongside events still ahead. Only ever applies to **today** — every other day in the 7-day strip is always still in the future (see \`buildWeekDays()\`, which only ever looks forward from today), so "past" is only a meaningful concept for today's column. All-day events are excluded from fading (an all-day event is still "on" all day, not something with a start time that can slip by).
+
+Each chip carries \`data-start-ms\` (the event's actual start timestamp) so this can be checked without re-parsing the formatted time string. The initial \`.past\` class is set at \`render()\` time; after that, \`updatePastEvents()\` re-checks it on the same 60s tick as \`updateTodayMarker()\` (see below) — a class toggle only, no re-render, no re-measure, so a chip fading mid-afternoon can't cause the same resize jitter a full \`render()\` risks.
 
 ## How calendars are managed
 
@@ -879,7 +942,7 @@ Recurring events (\`RRULE\`) and timed events are expanded and converted from th
 
 ## Working method for future sessions
 
-- Bump \`RACINE_VERSION\` (Roman numeral) on every version sent, and re-sync every section of this generated doc against whatever actually changed — same discipline Fleur already follows for its own doc.
+- Bump \`RACINE_VERSION\` (plain number) on every version sent, and re-sync every section of this generated doc against whatever actually changed — same discipline Fleur already follows for its own doc.
 - Racine stays a fully separate app per Verdure's isolation architecture — don't merge its code into Verdure's or Fleur's files.
 - Never rename the storage keys listed above.
 `;
@@ -901,7 +964,7 @@ loadFromCloud().then(changed=>{
 });
 if(calendars.length)refreshAll(false); // immediate local-cache render while cloud load is in flight
 setInterval(()=>refreshAll(false),15*60000);
-setInterval(updateTodayMarker,60000); // keep "today" highlight correct across midnight, without re-measuring height
+setInterval(()=>{updateTodayMarker();updatePastEvents();},60000); // keep "today" highlight and past-event fade correct without re-measuring height
 setInterval(loadFromCloud,5*60000); // pick up calendars added on another device
 </script>
 </body>

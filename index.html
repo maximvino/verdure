@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build X -->
+<!-- Verdure — build 14 -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -53,9 +53,9 @@ html,body{background:#000}
 //   height  — initial/fallback pixel height, used before the app's own
 //            reported height (via postMessage) arrives.
 const APPS=[
-  {id:'branche', label:'Branche', path:'branche/', height:'220px', version:'II'},
-  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'VI'},
-  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'marigold-bud'},
+  {id:'branche', label:'Branche', path:'branche/', height:'220px', version:'9'},
+  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'8'},
+  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'marigold-root'},
 ];
 
 const stack=document.getElementById('stack');
@@ -79,21 +79,38 @@ function showLoadError(id){
 // sizing each app's iframe to match its real content (so neither app
 // ever has its own internal scrollbar); it has nothing to do with
 // pinning anything to the viewport anymore.
+//
+// {type:'modal-open'|'modal-close', id:'<app id>'} handles a separate,
+// real problem: an app's iframe is normally only as tall as its own
+// current content, which can be short -- and a position:fixed modal
+// *inside* that iframe is boxed in by the iframe's actual rendered
+// size, not the real browser viewport, so it can render squished into a
+// tiny box. On modal-open, that app's iframe is temporarily grown to
+// the full window height; modal-close lets the app's own next
+// app-resize call put its real height back.
 window.addEventListener('message', (e)=>{
   if(e.origin!==window.location.origin)return;
   const d=e.data;
-  if(d&&d.type==='app-resize'&&d.id){
-    const el=document.getElementById('app-'+d.id);
-    if(el)el.style.height=d.height+'px';
+  const el=d&&d.id&&document.getElementById('app-'+d.id);
+  if(!el)return;
+  if(d.type==='app-resize'){
+    el.style.height=d.height+'px';
+  }else if(d.type==='modal-open'){
+    el.dataset.prevHeight=el.style.height;
+    el.style.height=Math.max(window.innerHeight,600)+'px';
+  }else if(d.type==='modal-close'){
+    if(el.dataset.prevHeight)el.style.height=el.dataset.prevHeight;
   }
 });
 
 // ── Context doc (downloadable from the app itself) ────────────────
 // IMPORTANT: keep this in sync with reality every time this file changes.
-// Version bumps to the next Roman numeral on every version sent -- tracked
+// Version bumps to the next plain number on every version sent -- tracked
 // here and in the <!-- Verdure — build N --> comment above, deliberately
-// NOT in the <title> tag, which stays plain "Verdure".
-const VERDURE_VERSION='X';
+// NOT in the <title> tag, which stays plain "Verdure". Switched from Roman
+// numerals to plain numbers as of build 13 (project-wide convention change,
+// alongside Branche and Racine; Fleur keeps its own flower-name convention).
+const VERDURE_VERSION='14';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
@@ -118,17 +135,25 @@ Three builds got this wrong before landing on the actually-correct, much simpler
 
 The \`postMessage\` height-reporting from Racine and Fleur is unchanged and still needed — that part was never the bug. It exists purely so each iframe's height matches its real content (so neither has its own internal scrollbar), which is a completely separate concern from viewport-pinning.
 
+## Modal full-height requests (build XI)
+
+An app's iframe is normally only as tall as its own current content. That's fine for the app's normal display, but a \`position:fixed\` modal *inside* an iframe is boxed in by that iframe's actual rendered size, not the real browser viewport — so a short app (Branche especially, before it has much content) could render its own modals squished into a tiny box. Apps can now post \`{type:'modal-open', id}\` before opening a modal to temporarily get a full-viewport-height iframe, and \`{type:'modal-close', id}\` when it closes (after which the app's own next \`app-resize\` call restores its real height). Branche uses this as of its build III; any other app with modals should adopt the same pattern rather than re-solving this.
+
 If a future "floating"/overlap bug shows up again: **do not reach for position:fixed or position:sticky on either app's wrapper.** Both were tried and both caused real problems. The correct model is exactly what's in this build — plain flow, no positioning.
+
+## Page heading (build 13, restyled in Branche build 9 — see Branche's own doc)
+
+Verdure wanted a heading; rather than add a header bar to this invisible shell, it's implemented at the top of Branche's own tree. The first attempt (Branche build 8) was a baobab-crown motif; that didn't read well and was replaced (Branche build 9) with a plain star holding a small "V". Lives entirely in Branche's own file (\`#canopy\`, inside its \`#app\` so its existing \`ResizeObserver\` picks it up automatically) — nothing in Verdure's own file changed to support either version. See Branche's own context doc for the current implementation details; don't assume the description here is current if it's been a while.
 
 ## Versioning
 
-Verdure uses Roman numerals (I, II, III...), bumped on every version sent, tracked in a source comment and in this generated doc — never in \`<title>\`, which stays plain "Verdure" on purpose. Racine has its own separate Roman-numeral counter; Fleur keeps its own flower-name convention. Three independent counters, matching each app's own release rhythm — not meant to be unified. Only files that actually changed get resent with a bumped version; an app with no code changes keeps its existing version number and isn't resent.
+Verdure uses plain numbers (1, 2, 3...), bumped on every version sent, tracked in a source comment and in this generated doc — never in \`<title>\`, which stays plain "Verdure" on purpose. Switched from Roman numerals to plain numbers as of build 13, a project-wide convention change made together with Branche and Racine; Fleur keeps its own flower-name convention, unaffected. Racine and Branche each keep their own separate numeric counter — three independent counters, matching each app's own release rhythm, not meant to be unified. Only files that actually changed get resent with a bumped version; an app with no code changes keeps its existing version number and isn't resent.
 
 ## Why this architecture
 
 - **Isolation**: a bug in one app can't break another. Verdure itself has almost no logic.
 - **No speculative UI** — the \`APPS\` registry only ever lists apps that are actually built and deployed.
-- **Invisible by design** — no headers, borders, gaps, or labels. The one deliberate exception is this tiny context-doc button (fully transparent except on hover, tucked in the top-left corner) — added on explicit request, not a default. Any other visible Verdure-level chrome should still be treated as a real design decision to flag and discuss, not something to default into.
+- **Invisible by design, with two deliberate exceptions**: this tiny context-doc button (fully transparent except on hover, tucked in the top-left corner), and, as of build 13, the page heading living at the top of Branche's tree (see above) — both added on explicit request, not defaults. Any other visible Verdure-level chrome should still be treated as a real design decision to flag and discuss, not something to default into.
 
 ## Repo layout
 
@@ -141,7 +166,7 @@ Verdure uses Roman numerals (I, II, III...), bumped on every version sent, track
 
 ## Working method for future sessions
 
-- Bump \`VERDURE_VERSION\` (Roman numeral) on every version sent, and re-sync this generated doc against whatever actually changed.
+- Bump \`VERDURE_VERSION\` (plain number) on every version sent, and re-sync this generated doc against whatever actually changed.
 - Keep Verdure invisible. Any real feature, any visible UI, any placeholder for something not yet built belongs inside an app's own folder, not Verdure's file — the doc-download button is the one deliberate, minimal exception.
 - Each app keeps (or gets) its own separate context doc — don't consolidate them into this one.
 - Don't reintroduce \`overflow:hidden\`/\`position:fixed\` on this page without a genuinely new reason — re-read the Scroll architecture section above first.

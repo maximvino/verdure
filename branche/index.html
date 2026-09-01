@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build II -->
+<!-- Branche — build 9 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Shared dark-green background/fonts with Fleur and Racine */
   --page:#0e1c12;
   --surface:#17281a;
   --ink:#f3ead6;
@@ -18,101 +17,108 @@
   --border:rgba(224,198,150,.1);
   --border2:rgba(224,198,150,.18);
   --root:#7f9767;
-  --bark:#5a4632;
+  --bark:#4d6b42;
+  --knot:#2f2013;
   --danger:#c9705a;
   --font-h:'Lora',Georgia,serif;
   --font-b:'DM Sans',sans-serif;
 }
 html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);overflow-x:hidden}
-#app{padding:18px 16px 32px;min-height:60px}
+#app{padding:20px 16px 30px;min-height:60px}
 
-.topbar{display:flex;justify-content:flex-end;max-width:900px;margin:0 auto;padding-bottom:4px}
-.icon-btn{width:22px;height:22px;border-radius:50%;border:none;background:transparent;
-  color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;
-  transition:all .15s;padding:0;opacity:.55}
-.icon-btn:hover,.icon-btn.on{opacity:1;color:var(--ink);background:rgba(255,255,255,.05)}
+/* ── Tree: fully deterministic, JS-computed absolute positions.
+   No SVG anywhere -- plain brown rectangles for trunk/branches, a CSS
+   "blob" for the knot, and a simple two-corner-radius CSS shape for
+   every leaf (all identical size), by explicit request after the
+   previous freeform/organic SVG version didn't render as intended and
+   couldn't be visually checked before deploying. ── */
+#desktop-tree{position:relative;max-width:900px;margin:0 auto}
+.trunk-el{position:absolute;background:var(--bark);opacity:.9}
+.branch-el{position:absolute;background:var(--bark);opacity:.9}
+.knot{position:absolute;background:var(--knot);cursor:pointer;opacity:.92;
+  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
+.knot:hover{filter:brightness(1.2)}
 
-/* ── Tree ── */
-#tree{position:relative;max-width:900px;margin:0 auto;padding:8px 0}
-.trunk{position:absolute;left:50%;top:0;bottom:0;width:9px;transform:translateX(-50%);
-  background:linear-gradient(90deg,var(--bark),#6e5940 45%,var(--bark));border-radius:5px;opacity:.85}
-.branch-row{display:grid;grid-template-columns:1fr 30px 1fr;align-items:center;margin:20px 0;position:relative;min-height:56px}
-.branch-connector{grid-column:2;width:30px;height:56px;overflow:visible;position:relative;z-index:1}
-.branch-connector path{fill:none;stroke:var(--root);stroke-width:2.5;opacity:.6}
-.leaf-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:relative;z-index:2}
-.branch-row.left .leaf-row{grid-column:1;justify-self:end}
-.branch-row.right .leaf-row{grid-column:3;justify-self:start}
-.branch-del{grid-column:2;justify-self:center;width:18px;height:18px;border-radius:50%;background:var(--danger);
-  color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;
-  position:relative;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-body.edit-mode .branch-del{display:flex}
-.branch-move{display:none;flex-direction:column;gap:1px;position:absolute;left:50%;transform:translateX(-50%);top:-14px}
-body.edit-mode .branch-move{display:flex}
-.branch-move button{width:16px;height:12px;border:none;background:rgba(255,255,255,.08);color:var(--ink3);
-  font-size:9px;cursor:pointer;border-radius:3px;line-height:1;padding:0}
-.branch-move button:hover{background:rgba(255,255,255,.16);color:var(--ink)}
+.leaf-anchor{position:absolute;width:0;height:0}
+.leaf-wrap{position:absolute;left:0;top:0;transform-origin:0 0}
+.leaf-shape{position:absolute;cursor:pointer;opacity:.82;border-radius:50%}
+.leaf-icon-wrap{position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.leaf-icon-wrap img{width:65%;height:65%;object-fit:contain}
 
-.leaf{width:46px;height:58px;position:relative;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0}
-.leaf-outline{position:absolute;inset:0;width:100%;height:100%;transition:filter .12s}
-.leaf-outline path{fill:rgba(127,151,103,.14);stroke:var(--root);stroke-width:1.4}
-.leaf-outline line{stroke:var(--root);stroke-width:1;opacity:.4}
-.leaf:hover .leaf-outline path{fill:rgba(127,151,103,.24)}
-.leaf-icon{position:relative;z-index:1;width:24px;height:24px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
-.leaf.dragging{opacity:.35;z-index:10}
-.leaf.drag-over .leaf-outline path{fill:rgba(190,220,170,.4)}
-.leaf .del-badge{position:absolute;top:-2px;right:2px;width:18px;height:18px;border-radius:50%;
-  background:var(--danger);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;
-  cursor:pointer;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-body.edit-mode .leaf .del-badge{display:flex}
-body.edit-mode .leaf{animation:jiggle .25s ease-in-out infinite alternate}
-body.edit-mode .leaf:nth-child(even){animation-delay:.08s}
-@keyframes jiggle{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
-.leaf.add-leaf .leaf-outline path{stroke-dasharray:3 3;opacity:.5}
-.leaf.add-leaf{color:var(--ink3);font-size:18px;opacity:.7}
-.leaf.add-leaf:hover{opacity:1}
+#mobile-compact{display:none;padding:16px}
+@media (max-width:640px){#desktop-tree{display:none}#mobile-compact{display:block}}
+#mobile-tree{position:relative;cursor:pointer}
+.mobile-knot-btn{width:44px;height:44px;background:var(--knot);border:none;cursor:pointer;opacity:.9;
+  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
+.mobile-maxi-tree{position:relative;min-height:200px}
 
-.add-branch-row{display:flex;justify-content:center;margin-top:8px}
-.add-branch-btn{width:34px;height:34px;border-radius:50%;border:1.5px dashed var(--root);background:transparent;
-  color:var(--root);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.6}
-.add-branch-btn:hover{opacity:1;background:rgba(127,151,103,.1)}
+/* ── Canopy heading: the page's one heading. The baobab-crown treatment
+   didn't read well (per feedback, "looking terrible") -- replaced with a
+   plain star holding a small "V", simple enough to not fight with the
+   tree underneath it while still sitting up top like a small badge/mark
+   rather than a header bar. Star drawn with clip-path (no SVG, consistent
+   with the rest of this file's plain-shape approach). ── */
+#canopy{display:flex;justify-content:center;padding:10px 0 2px;user-select:none}
+.canopy-star{position:relative;width:36px;height:36px;background:var(--root);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  display:flex;align-items:center;justify-content:center}
+.canopy-star-v{font-family:var(--font-h);font-weight:600;font-size:14px;color:var(--page);
+  margin-top:7px} /* nudges the V down into the star's visual (not bounding-box) center */
 
-.empty-state{max-width:900px;margin:20px auto 0;text-align:center;color:var(--ink3);font-size:.85rem}
-
-/* ── Modal ── */
+/* ── Edit pane (opened only via the knot) ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
   z-index:1000;padding:20px}
 .modal.hidden{display:none}
 .modal-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px;
-  width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
-  display:flex;flex-direction:column;gap:12px}
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;gap:14px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
-.modal-card input[type=text],.modal-card input[type=url]{width:100%;background:rgba(255,255,255,.05);
-  border:1px solid var(--border2);border-radius:8px;padding:9px 11px;font-size:.85rem;color:var(--ink);
-  font-family:var(--font-b);outline:none}
-.modal-card input::placeholder{color:var(--ink3)}
-.icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;
-  max-height:48vh;overflow-y:auto;padding:4px}
-.icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;background:rgba(255,255,255,.05);transition:background .12s}
-.icon-search-results .res:hover,.icon-search-results .res.picked{background:rgba(190,220,170,.22)}
-.icon-search-results .res img{width:65%;height:65%;object-fit:contain}
-.icon-search-status{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0}
-.picked-preview{display:flex;align-items:center;gap:10px;padding:6px 0}
-.picked-preview img{width:32px;height:32px;object-fit:contain}
-.picked-preview span{color:var(--ink3);font-size:.72rem}
-.modal-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.link-btn{background:none;border:none;color:var(--ink3);font-family:var(--font-b);font-size:.72rem;
-  text-decoration:underline;cursor:pointer;padding:0}
+.branch-block{border:1px solid var(--border);border-radius:10px;padding:10px}
+.branch-block-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+.branch-name-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.branch-block-hdr .moves{display:flex;gap:4px}
+.tiny-btn{background:rgba(255,255,255,.06);border:none;color:var(--ink2);border-radius:5px;
+  font-size:11px;padding:3px 6px;cursor:pointer}
+.tiny-btn:hover{background:rgba(255,255,255,.12)}
+.tiny-btn.danger{color:var(--danger)}
+.leaf-edit-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
+.leaf-edit-row img{width:24px;height:24px;object-fit:contain;flex-shrink:0}
+.leaf-edit-row input[type=url]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.leaf-edit-row input[type=color]{width:22px;height:22px;border:none;padding:0;border-radius:50%;cursor:pointer;background:none}
+.leaf-edit-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.leaf-edit-row input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
+.leaf-name-input{background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.add-leaf-btn,.add-branch-btn{background:none;border:1.5px dashed var(--root);color:var(--root);
+  border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;font-family:var(--font-b)}
+.add-leaf-btn{margin-top:8px;width:100%}
+.add-branch-btn{width:100%;padding:10px}
+/* Export/import backup -- a safety net independent of localStorage itself,
+   same pattern Fleur and Racine already use for their own data. */
+.backup-row{display:flex;gap:14px;justify-content:center;padding:10px 0 2px}
+.link-btn{background:none;border:none;color:var(--root);font-family:var(--font-b);
+  font-size:.72rem;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:2px}
 .link-btn:hover{color:var(--ink2)}
-.link-btn.danger{color:var(--danger)}
-.btn-primary{background:var(--root);color:var(--page);border:none;border-radius:8px;
-  padding:9px 16px;font-family:var(--font-b);font-weight:600;font-size:.8rem;cursor:pointer}
-.btn-primary:disabled{opacity:.4;cursor:default}
-.btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+.modal-actions{display:flex;justify-content:flex-end}
 .btn-done{background:none;border:1px solid var(--border2);color:var(--ink2);border-radius:20px;
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
+
+/* ── Nested icon-search modal (opened from a leaf row's "icon" button) ── */
+.icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;
+  max-height:340px;overflow-y:auto;padding:4px}
+.icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:rgba(255,255,255,.05)}
+.icon-search-results .res:hover{background:rgba(190,220,170,.22)}
+.icon-search-results .res img{width:65%;height:65%;object-fit:contain}
+.icon-search-status{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0}
+.modal-card input[type=text]{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:8px;padding:9px 11px;font-size:.85rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.btn-primary{background:var(--root);color:var(--page);border:none;border-radius:8px;
+  padding:9px 16px;font-family:var(--font-b);font-weight:600;font-size:.8rem;cursor:pointer}
+.btn-primary:hover{filter:brightness(1.1)}
 #doc-btn{position:fixed;bottom:0;right:0;width:14px;height:14px;border:none;background:transparent;
   cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
 #doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
@@ -121,314 +127,468 @@ body.edit-mode .leaf:nth-child(even){animation-delay:.08s}
 <body>
 
 <div id="app">
-  <div class="topbar">
-    <button class="icon-btn" id="edit-btn" title="Rearrange / remove">✎</button>
+  <div id="canopy">
+    <div class="canopy-star" title="Verdure"><span class="canopy-star-v">V</span></div>
   </div>
-  <div id="tree">
-    <div class="trunk" id="trunk"></div>
-    <div id="branches"></div>
-    <div class="add-branch-row"><button class="add-branch-btn" id="add-branch-btn" title="Add a branch">+</button></div>
-  </div>
-  <div class="empty-state hidden" id="empty-state">No branches yet — tap + to grow one.</div>
+  <div id="desktop-tree"></div>
+  <div id="mobile-compact"><div id="mobile-tree" title="Tap to view full size"></div></div>
 </div>
 <button id="doc-btn" title="Download Branche context doc"></button>
 
-<div class="modal hidden" id="add-modal">
+<div class="modal hidden" id="mobile-maxi-modal">
+  <div class="modal-card" style="max-width:420px">
+    <h2>Branche</h2>
+    <div class="mobile-maxi-tree" id="mobile-maxi-tree"></div>
+    <div class="modal-actions"><button class="btn-done" id="close-mobile-maxi">Done</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="edit-modal">
   <div class="modal-card">
-    <h2 id="modal-title">Add a link</h2>
-    <input type="url" id="link-url" placeholder="https://example.com">
-    <input type="text" id="icon-query" placeholder="Search for an icon (e.g. youtube)">
+    <h2>Edit Branche</h2>
+    <div id="edit-branches"></div>
+    <button class="add-branch-btn" id="add-branch-btn">+ Add branch</button>
+    <div class="backup-row">
+      <button class="link-btn" id="export-btn">Export backup</button>
+      <button class="link-btn" id="import-btn">Import backup</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none">
+    </div>
+    <div class="modal-actions"><button class="btn-done" id="close-edit">Done</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="icon-pick-modal">
+  <div class="modal-card">
+    <h2>Choose an icon</h2>
+    <input type="text" id="icon-query" placeholder="Search (e.g. youtube)">
     <div class="icon-search-status" id="icon-search-status"></div>
     <div class="icon-search-results" id="icon-search-results"></div>
-    <div class="picked-preview hidden" id="picked-preview">
-      <img id="picked-preview-img" alt="">
-      <span id="picked-preview-label"></span>
-    </div>
-    <div class="modal-actions">
-      <button class="link-btn danger hidden" id="delete-link-btn">Delete</button>
-      <button class="link-btn" id="cancel-add">Cancel</button>
-      <button class="btn-primary" id="save-link-btn" disabled>Save</button>
-    </div>
+    <div class="modal-actions"><button class="btn-done" id="close-icon-pick">Cancel</button></div>
   </div>
 </div>
 
 <script>
 // ── Storage ──────────────────────────────────────────────────────
-// IMPORTANT: BRANCHES_KEY/LINKS_KEY below must NEVER be renamed in any
-// future version of this file -- renaming silently orphans whatever the
-// user already has saved. Same rule as Racine's storage keys.
 const BRANCHES_KEY='branche_branches';
 const LINKS_KEY='branche_links';
 const SYNC_KEY='branche_sync_endpoint';
 const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
-const SYNC_ROW_ID=3; // Fleur=1, Racine=2, Branche=3 in the shared planner_state table
+const SYNC_ROW_ID=3;
+const DEFAULT_LEAF_COLOR='#7f9767';
+const DEFAULT_ICON_COLOR='#f3ead6';
 
 function loadBranchesLocal(){try{return JSON.parse(localStorage.getItem(BRANCHES_KEY))||[];}catch(e){return [];}}
 function saveBranchesLocal(v){localStorage.setItem(BRANCHES_KEY,JSON.stringify(v));}
 function loadLinksLocal(){try{return JSON.parse(localStorage.getItem(LINKS_KEY))||[];}catch(e){return [];}}
 function saveLinksLocal(v){localStorage.setItem(LINKS_KEY,JSON.stringify(v));}
 function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
-function saveSyncEndpoint(v){localStorage.setItem(SYNC_KEY,v||DEFAULT_SYNC);}
 
-let branches=loadBranchesLocal(); // [{id}]
-let links=loadLinksLocal();       // [{id, branchId, url, icon}]
-let editMode=false;
+let branches=loadBranchesLocal();
+let links=loadLinksLocal();
 
-// ── Cross-device sync ────────────────────────────────────────────
+function migrateOrphanedLinks(){
+  const branchIds=new Set(branches.map(b=>b.id));
+  const orphans=links.filter(l=>!l.branchId||!branchIds.has(l.branchId));
+  if(!orphans.length)return false;
+  let home=branches[0];
+  if(!home){home={id:'branch_recovered_'+Date.now()};branches.push(home);}
+  orphans.forEach(l=>{l.branchId=home.id;});
+  return true;
+}
+if(migrateOrphanedLinks()){saveBranchesLocal(branches);saveLinksLocal(links);}
+
+// ── Cross-device sync (push-only from a device with existing data;
+// only a genuinely empty device pulls -- see build III notes) ──────
 let cloudSyncFailed=false;
 async function loadFromCloud(){
+  if(links.length||branches.length){saveToCloud();return false;}
   try{
-    const res=await fetch(loadSyncEndpoint(),{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'load',id:SYNC_ROW_ID})
-    });
+    const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'load',id:SYNC_ROW_ID})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    if(data&&data.state&&Array.isArray(data.state.links)){
-      links=data.state.links;
-      branches=Array.isArray(data.state.branches)?data.state.branches:branches;
-      saveLinksLocal(links);saveBranchesLocal(branches);
-      renderTree();
+    if(data&&data.state&&(Array.isArray(data.state.links)||Array.isArray(data.state.branches))){
+      links=data.state.links||[];branches=data.state.branches||[];
+      migrateOrphanedLinks();
+      saveBranchesLocal(branches);saveLinksLocal(links);
+      renderAll();
       return true;
-    }
-    if(data&&data.state===null&&(links.length||branches.length)){
-      saveToCloud();
     }
     return false;
   }catch(err){cloudSyncFailed=true;return false;}
 }
 async function saveToCloud(){
   try{
-    const res=await fetch(loadSyncEndpoint(),{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links}})
-    });
+    const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links}})});
     cloudSyncFailed=!res.ok;
   }catch(err){cloudSyncFailed=true;}
 }
-function persist(){
-  saveBranchesLocal(branches);
-  saveLinksLocal(links);
-  saveToCloud();
-}
+function persist(){saveBranchesLocal(branches);saveLinksLocal(links);saveToCloud();}
 
 // ── Icon rendering ───────────────────────────────────────────────
-// &color= recolors only monotone icons (currentColor-based); icons with
-// their own hardcoded palette (most simple-icons brand logos) are
-// unaffected. Without this, generic/UI icon sets render pure black and
-// vanish against the dark background -- this was the actual bug.
-const ICON_COLOR='%23f3ead6'; // var(--ink), URL-encoded (# -> %23)
-function iconUrl(icon,size){
+function iconUrl(icon,size,color){
   const [prefix,name]=icon.split(':');
-  return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}&color=${ICON_COLOR}`;
+  const c=encodeURIComponent(color||DEFAULT_ICON_COLOR);
+  return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}&color=${c}`;
 }
 
-const LEAF_SVG=`<svg class="leaf-outline" viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20 2 C34 10 36 30 20 54 C4 30 6 10 20 2 Z"/>
-  <line x1="20" y1="10" x2="20" y2="46"/>
-</svg>`;
+// ── Deterministic tree layout (no measuring, no randomness) ─────────
+// Parameterized by a `scale` (for mobile's mini/maxi sizes) and a
+// `sideMount` flag: desktop centers the trunk with branches alternating
+// left/right; sideMount pins the trunk near one edge with every branch
+// extending the same direction (the only side that has visible room).
+const TRUNK_WIDTH=64, BRANCH_THICKNESS=14, BRANCH_V_GAP=140, LEAF_SPACING=70,
+      LEAF_LENGTH=56, LEAF_WIDTH=44, ICON_SIZE_RATIO=.75, KNOT_SIZE=38,
+      KNOT_GAP_AFTER_LAST_BRANCH=64, BOTTOM_PAD=24, TOP_PAD=24, EDGE_MARGIN=10;
 
-// ── Rendering ────────────────────────────────────────────────────
-function branchConnectorSvg(side){
-  const d=side==='left' ? 'M28,28 C16,12 12,12 0,20' : 'M0,28 C12,12 16,12 28,20';
-  return `<svg class="branch-connector" viewBox="0 0 28 56" preserveAspectRatio="none"><path d="${d}"/></svg>`;
+function computeLayout(containerWidth,opts){
+  opts=opts||{};
+  const scale=opts.scale||1;
+  const sideMount=!!opts.sideMount;
+  const tw=TRUNK_WIDTH*scale, bt=BRANCH_THICKNESS*scale, bvg=BRANCH_V_GAP*scale,
+        ls=LEAF_SPACING*scale, ll=LEAF_LENGTH*scale, lw=LEAF_WIDTH*scale,
+        knotSize=KNOT_SIZE*scale, gap=KNOT_GAP_AFTER_LAST_BRANCH*scale,
+        bottomPad=BOTTOM_PAD*scale, topPad=TOP_PAD*scale, edgeMargin=EDGE_MARGIN*scale;
+  const stub=tw/2+16*scale;
+  const centerX=sideMount?(tw/2+edgeMargin):containerWidth/2;
+  let y=topPad;
+  // Branches used to alternate left/right by simple index parity
+  // (bi%2===0?'left':'right'). The trunk itself was always mathematically
+  // centered on centerX, but that alternation ignored how much each side
+  // actually weighed -- an odd branch count, or one branch with far more
+  // links than another, always left one side visibly heavier, which read
+  // as the whole tree being off-center even though the trunk wasn't.
+  // Assigning each branch to whichever side currently carries less total
+  // link weight keeps the silhouette actually balanced regardless of how
+  // many branches or links exist.
+  let leftWeight=0,rightWeight=0;
+  const branchLayouts=branches.map((branch,bi)=>{
+    const branchLinks=links.filter(l=>l.branchId===branch.id);
+    const weight=branchLinks.length||1; // an empty branch still has visual weight (its own stub)
+    let side;
+    if(sideMount)side='right';
+    else if(leftWeight<rightWeight)side='left';
+    else if(rightWeight<leftWeight)side='right';
+    else side=bi%2===0?'left':'right'; // tied: alternate, still deterministic
+    if(!sideMount){if(side==='left')leftWeight+=weight;else rightWeight+=weight;}
+    const dir=sideMount?1:(side==='left'?-1:1);
+    // Each leaf's BASE (attachment point) sits at stub + li*spacing; the
+    // branch's own rendered length ends exactly at the LAST leaf's base,
+    // not extending past it -- the leaf's own body may still reach
+    // further out once tilted, same as a real leaf tilts away from its
+    // twig, but the branch line itself stops where the leaves are.
+    const lastBaseOffset=stub+Math.max(branchLinks.length-1,0)*ls;
+    const leafLayouts=branchLinks.map((link,li)=>({
+      link,
+      x:centerX+dir*(stub+li*ls),
+      rotSign:li%2===0?1:-1
+    }));
+    const row={branch,side,dir,y,x0:centerX+dir*(tw/2),x1:centerX+dir*lastBaseOffset,leaves:leafLayouts};
+    y+=bvg;
+    return row;
+  });
+  const lastBranchY=branchLayouts.length?branchLayouts[branchLayouts.length-1].y:topPad;
+  const knotY=lastBranchY+gap;
+  const trunkHeight=knotY+knotSize/2+bottomPad;
+  return {centerX,trunkHeight,knotY,branchLayouts,scale,tw,bt,ll,lw,knotSize};
+}
+
+function renderAll(){renderTree();renderMobileTree();}
+
+// Shared renderer: builds the HTML for one tree instance into `container`
+// at the given layout, and wires up click/knot handlers. Used for the
+// desktop tree, the small "minimized" mobile tree, and the full-size
+// "maximized" mobile overlay tree alike.
+function renderTreeInto(container,layout,onKnotClick){
+  let html=`<div class="trunk-el" style="left:${layout.centerX-layout.tw/2}px;top:0;width:${layout.tw}px;height:${layout.trunkHeight}px"></div>`;
+
+  layout.branchLayouts.forEach(row=>{
+    const left=Math.min(row.x0,row.x1);
+    const w=Math.abs(row.x1-row.x0);
+    html+=`<div class="branch-el" style="left:${left}px;top:${row.y-layout.bt/2}px;width:${w}px;height:${layout.bt}px"></div>`;
+    // Baseline: a leaf lies flat pointing the SAME direction the branch
+    // extends (its base and tip both resting on the branch line). The
+    // only rotation applied from there is a ±45° tilt of the whole leaf
+    // around its BASE (the point actually touching the branch) -- tip
+    // lifting toward the sky (-45° from baseline) or dropping toward the
+    // ground (+45°), alternating leaf to leaf. Nothing else feeds into
+    // the angle: no separate "above/below attachment" concept, no
+    // per-side sign flip beyond the baseline direction itself.
+    const baselineRot=row.dir===1?0:180;
+    row.leaves.forEach(leafInfo=>{
+      const {link,x,rotSign}=leafInfo;
+      const leafColor=link.leafColor||DEFAULT_LEAF_COLOR;
+      const iconColor=link.iconColor||DEFAULT_ICON_COLOR;
+      const tilt=rotSign>0?-45:45; // -45 = tip up (sky), +45 = tip down (ground)
+      const rot=baselineRot+tilt;
+      const title=link.name?link.name:link.url;
+      const iconSize=layout.lw*ICON_SIZE_RATIO;
+      // Leaf-shape spans local x:[0, ll] (base at the anchor, extending
+      // outward along the baseline direction), centered on the branch
+      // line vertically (y:[-lw/2, +lw/2]) before rotation.
+      html+=`<div class="leaf-anchor" style="left:${x}px;top:${row.y}px">
+        <div class="leaf-wrap" style="transform:rotate(${rot}deg)">
+          <div class="leaf-shape" data-id="${link.id}" title="${title}" style="left:0px;top:${-layout.lw/2}px;width:${layout.ll}px;height:${layout.lw}px;background:${leafColor}"></div>
+          <div class="leaf-icon-wrap" title="${title}" style="left:${layout.ll/2-iconSize/2}px;top:${-iconSize/2}px;width:${iconSize}px;height:${iconSize}px;transform:rotate(${-rot}deg)">
+            <img src="${iconUrl(link.icon,32,iconColor)}" alt="" loading="lazy">
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  html+=`<div class="knot" title="Edit Branche" style="left:${layout.centerX-layout.knotSize/2}px;top:${layout.knotY-layout.knotSize*.4}px;width:${layout.knotSize}px;height:${layout.knotSize*.8}px"></div>`;
+
+  container.style.height=layout.trunkHeight+layout.knotSize/2+'px';
+  container.innerHTML=html;
+
+  container.querySelectorAll('.leaf-shape').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      if(link)window.open(link.url,'_blank','noopener');
+    });
+  });
+  const knotEl=container.querySelector('.knot');
+  if(knotEl)knotEl.addEventListener('click',onKnotClick||openEditPane);
 }
 
 function renderTree(){
-  const wrap=document.getElementById('branches');
-  const emptyEl=document.getElementById('empty-state');
-  emptyEl.classList.toggle('hidden',branches.length>0);
+  const container=document.getElementById('desktop-tree');
+  const width=container.getBoundingClientRect().width||600;
+  const layout=computeLayout(width,{scale:1,sideMount:false});
+  renderTreeInto(container,layout,openEditPane);
+  reportHeight();
+}
+window.addEventListener('resize',()=>{renderTree();renderMobileTree();});
 
+// Mobile: trunk pinned to the left edge, every branch extending
+// rightward (the only direction with visible room), shown small by
+// default ("minimized") and tappable to view at full size in a
+// full-height overlay ("maximized") -- same knot, same editing.
+const MOBILE_MINI_SCALE=.42;
+function renderMobileTree(){
+  const container=document.getElementById('mobile-tree');
+  if(!container)return;
+  const width=container.getBoundingClientRect().width||360;
+  const layout=computeLayout(width,{scale:MOBILE_MINI_SCALE,sideMount:true});
+  renderTreeInto(container,layout,openMaximizedMobileTree);
+  container.onclick=(e)=>{
+    if(!e.target.closest('.leaf-shape')&&!e.target.closest('.knot'))openMaximizedMobileTree();
+  };
+}
+function openMaximizedMobileTree(){
+  requestFullHeight();
+  document.getElementById('mobile-maxi-modal').classList.remove('hidden');
+  renderMaximizedMobileTree();
+}
+function renderMaximizedMobileTree(){
+  const container=document.getElementById('mobile-maxi-tree');
+  const width=container.getBoundingClientRect().width||360;
+  const layout=computeLayout(width,{scale:.85,sideMount:true});
+  renderTreeInto(container,layout,openEditPane);
+}
+document.getElementById('close-mobile-maxi').addEventListener('click',()=>{
+  document.getElementById('mobile-maxi-modal').classList.add('hidden');
+  releaseFullHeight();
+});
+
+
+
+// ── Edit pane (the ONLY place any controls beyond click-to-visit live) ──
+function openEditPane(){
+  renderEditPane();
+  requestFullHeight();
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+function closeEditPane(){
+  document.getElementById('edit-modal').classList.add('hidden');
+  releaseFullHeight();
+  renderAll();
+  if(!document.getElementById('mobile-maxi-modal').classList.contains('hidden')){
+    renderMaximizedMobileTree(); // refresh without a duplicate height request
+  }
+}
+document.getElementById('close-edit').addEventListener('click',closeEditPane);
+document.getElementById('add-branch-btn').addEventListener('click',()=>{
+  branches.push({id:'branch_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)});
+  persist();renderEditPane();
+});
+
+// ── Backup / restore (safety net independent of localStorage/cloud sync —
+// covers the case an update or a bad sync silently erases existing icons) ──
+document.getElementById('export-btn').addEventListener('click',()=>{
+  const data=JSON.stringify({branches,links},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='branche-backup.json';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-btn').addEventListener('click',()=>{
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change',async(e)=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(!Array.isArray(data.branches)||!Array.isArray(data.links))throw new Error('bad shape');
+    branches=data.branches;links=data.links;
+    migrateOrphanedLinks(); // same safety net a normal load already gets
+    persist();renderAll();renderEditPane();
+  }catch(err){
+    alert("Couldn't read that backup file.");
+  }
+  e.target.value='';
+});
+
+function renderEditPane(){
+  const wrap=document.getElementById('edit-branches');
   wrap.innerHTML=branches.map((branch,bi)=>{
-    const side=bi%2===0?'left':'right';
     const branchLinks=links.filter(l=>l.branchId===branch.id);
-    const leaves=branchLinks.map(link=>`
-      <div class="leaf" data-id="${link.id}" data-branch="${branch.id}">
-        ${LEAF_SVG}
-        <img class="leaf-icon" src="${iconUrl(link.icon,32)}" alt="" loading="lazy">
-        <div class="del-badge" data-action="delete-leaf" data-id="${link.id}">×</div>
+    const rows=branchLinks.map((link,li)=>`
+      <div class="leaf-edit-row" data-link-id="${link.id}">
+        <img src="${iconUrl(link.icon,24,link.iconColor)}" alt="">
+        <input type="text" class="leaf-name-input" data-id="${link.id}" placeholder="Name" value="${link.name?link.name.replace(/"/g,'&quot;'):''}" style="width:70px;flex:none">
+        <input type="url" class="link-url-input" data-id="${link.id}" value="${link.url}">
+        <button class="tiny-btn" data-action="change-icon" data-id="${link.id}" title="Change icon">icon</button>
+        <input type="color" data-action="leaf-color" data-id="${link.id}" value="${link.leafColor||DEFAULT_LEAF_COLOR}" title="Leaf color">
+        <input type="color" data-action="icon-color" data-id="${link.id}" value="${link.iconColor||DEFAULT_ICON_COLOR}" title="Icon color">
+        <button class="tiny-btn" data-action="leaf-up" data-id="${link.id}" ${li===0?'disabled':''}>▲</button>
+        <button class="tiny-btn" data-action="leaf-down" data-id="${link.id}" ${li===branchLinks.length-1?'disabled':''}>▼</button>
+        <button class="tiny-btn danger" data-action="delete-leaf" data-id="${link.id}">×</button>
       </div>`).join('');
-    const addLeaf=`<div class="leaf add-leaf" data-action="add-leaf" data-branch="${branch.id}">+</div>`;
-    return `<div class="branch-row ${side}" data-branch-id="${branch.id}">
-      ${side==='right'?`<div class="leaf-row">${leaves}${addLeaf}</div>`:'<div></div>'}
-      <div style="position:relative">
-        ${branchConnectorSvg(side)}
-        <div class="branch-move">
-          <button data-action="branch-up" data-idx="${bi}" title="Move up">▲</button>
-          <button data-action="branch-down" data-idx="${bi}" title="Move down">▼</button>
+    return `<div class="branch-block" data-branch-id="${branch.id}">
+      <div class="branch-block-hdr">
+        <input type="text" class="branch-name-input" data-id="${branch.id}" placeholder="Branch ${bi+1}" value="${branch.name?branch.name.replace(/"/g,'&quot;'):''}">
+        <div class="moves">
+          <button class="tiny-btn" data-action="branch-up" data-idx="${bi}">▲</button>
+          <button class="tiny-btn" data-action="branch-down" data-idx="${bi}">▼</button>
+          <button class="tiny-btn danger" data-action="delete-branch" data-id="${branch.id}">Delete branch</button>
         </div>
-        <div class="branch-del" data-action="delete-branch" data-id="${branch.id}">×</div>
       </div>
-      ${side==='left'?`<div class="leaf-row">${leaves}${addLeaf}</div>`:'<div></div>'}
+      ${rows}
+      <button class="add-leaf-btn" data-action="add-leaf" data-branch="${branch.id}">+ Add leaf</button>
     </div>`;
-  }).join('');
+  }).join('')||'<div style="color:var(--ink3);font-size:.8rem;text-align:center">No branches yet.</div>';
 
-  wrap.querySelectorAll('.leaf[data-id]').forEach(leaf=>{
-    leaf.addEventListener('click',()=>{
-      if(editMode){
-        openEditModal(leaf.getAttribute('data-id'));
-      }else{
-        const link=links.find(l=>l.id===leaf.getAttribute('data-id'));
-        if(link)window.open(link.url,'_blank','noopener');
-      }
+  wrap.querySelectorAll('.branch-name-input').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const branch=branches.find(b=>b.id===el.getAttribute('data-id'));
+      if(branch){branch.name=el.value.trim();persist();}
     });
-    leaf.addEventListener('pointerdown',onLeafPointerDown);
   });
-  wrap.querySelectorAll('[data-action="add-leaf"]').forEach(el=>{
-    el.addEventListener('click',e=>{e.stopPropagation();openAddModal(el.getAttribute('data-branch'));});
+  wrap.querySelectorAll('.leaf-name-input').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      if(link){link.name=el.value.trim();persist();}
+    });
+  });
+  wrap.querySelectorAll('.link-url-input').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      let v=el.value.trim();
+      if(v&&!/^https?:\/\//i.test(v))v='https://'+v;
+      if(link){link.url=v;persist();}
+    });
+  });
+  wrap.querySelectorAll('[data-action="leaf-color"]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      if(link){link.leafColor=el.value;persist();}
+    });
+  });
+  wrap.querySelectorAll('[data-action="icon-color"]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      if(link){link.iconColor=el.value;persist();renderEditPane();}
+    });
+  });
+  wrap.querySelectorAll('[data-action="leaf-up"],[data-action="leaf-down"]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const dir=el.getAttribute('data-action')==='leaf-up'?-1:1;
+      moveLeafWithinBranch(el.getAttribute('data-id'),dir);
+    });
   });
   wrap.querySelectorAll('[data-action="delete-leaf"]').forEach(el=>{
-    el.addEventListener('click',e=>{
-      e.stopPropagation();
+    el.addEventListener('click',()=>{
       links=links.filter(l=>l.id!==el.getAttribute('data-id'));
-      persist();renderTree();reportHeight();
+      persist();renderEditPane();
     });
   });
   wrap.querySelectorAll('[data-action="delete-branch"]').forEach(el=>{
-    el.addEventListener('click',e=>{
-      e.stopPropagation();
+    el.addEventListener('click',()=>{
       const id=el.getAttribute('data-id');
       branches=branches.filter(b=>b.id!==id);
       links=links.filter(l=>l.branchId!==id);
-      persist();renderTree();reportHeight();
+      persist();renderEditPane();
     });
   });
   wrap.querySelectorAll('[data-action="branch-up"],[data-action="branch-down"]').forEach(el=>{
-    el.addEventListener('click',e=>{
-      e.stopPropagation();
+    el.addEventListener('click',()=>{
       const idx=+el.getAttribute('data-idx');
       const dir=el.getAttribute('data-action')==='branch-up'?-1:1;
-      const target=idx+dir;
-      if(target<0||target>=branches.length)return;
-      [branches[idx],branches[target]]=[branches[target],branches[idx]];
-      persist();renderTree();
+      const t=idx+dir;
+      if(t<0||t>=branches.length)return;
+      [branches[idx],branches[t]]=[branches[t],branches[idx]];
+      persist();renderEditPane();
     });
   });
-
-  reportHeight();
+  wrap.querySelectorAll('[data-action="add-leaf"]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const branchId=el.getAttribute('data-branch');
+      openIconPicker(icon=>{
+        links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branchId,url:'https://',icon,
+          leafColor:DEFAULT_LEAF_COLOR,iconColor:DEFAULT_ICON_COLOR});
+        persist();renderEditPane();
+      });
+    });
+  });
+  wrap.querySelectorAll('[data-action="change-icon"]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const id=el.getAttribute('data-id');
+      openIconPicker(icon=>{
+        const link=links.find(l=>l.id===id);
+        if(link){link.icon=icon;persist();renderEditPane();}
+      });
+    });
+  });
 }
 
-// ── Drag to reorder leaves (works across branches too) ──────────
-let dragState=null;
-function onLeafPointerDown(e){
-  if(!editMode)return;
-  if(e.target.closest('.del-badge'))return;
-  const leaf=e.currentTarget;
-  leaf.setPointerCapture(e.pointerId);
-  dragState={pointerId:e.pointerId,leaf,startX:e.clientX,startY:e.clientY,id:leaf.getAttribute('data-id')};
-  leaf.classList.add('dragging');
-  leaf.addEventListener('pointermove',onLeafPointerMove);
-  leaf.addEventListener('pointerup',onLeafPointerUp);
-  leaf.addEventListener('pointercancel',onLeafPointerUp);
-}
-function onLeafPointerMove(e){
-  if(!dragState||e.pointerId!==dragState.pointerId)return;
-  const dx=e.clientX-dragState.startX, dy=e.clientY-dragState.startY;
-  dragState.leaf.style.transform=`translate(${dx}px,${dy}px) scale(1.1)`;
-  dragState.leaf.style.pointerEvents='none';
-  const under=document.elementFromPoint(e.clientX,e.clientY);
-  dragState.leaf.style.pointerEvents='';
-  document.querySelectorAll('.leaf.drag-over').forEach(t=>t.classList.remove('drag-over'));
-  const overLeaf=under&&under.closest('.leaf[data-id]');
-  if(overLeaf&&overLeaf!==dragState.leaf){
-    overLeaf.classList.add('drag-over');
-    dragState.overId=overLeaf.getAttribute('data-id');
-    dragState.overBranch=overLeaf.getAttribute('data-branch');
-  }else if(under&&under.closest('[data-action="add-leaf"]')){
-    dragState.overId=null;
-    dragState.overBranch=under.closest('[data-action="add-leaf"]').getAttribute('data-branch');
-  }
-}
-function onLeafPointerUp(e){
-  if(!dragState||e.pointerId!==dragState.pointerId)return;
-  const {leaf,id,overId,overBranch}=dragState;
-  leaf.style.transform='';leaf.classList.remove('dragging');
-  document.querySelectorAll('.leaf.drag-over').forEach(t=>t.classList.remove('drag-over'));
-  leaf.removeEventListener('pointermove',onLeafPointerMove);
-  leaf.removeEventListener('pointerup',onLeafPointerUp);
-  leaf.removeEventListener('pointercancel',onLeafPointerUp);
-  dragState=null;
-  if(overBranch){
-    const fromIdx=links.findIndex(l=>l.id===id);
-    const [moved]=links.splice(fromIdx,1);
-    moved.branchId=overBranch;
-    if(overId){
-      const toIdx=links.findIndex(l=>l.id===overId);
-      links.splice(toIdx,0,moved);
-    }else{
-      links.push(moved); // dropped on that branch's "+" tile -> append to end
-    }
-    persist();
-  }
-  renderTree();
-}
-
-document.getElementById('edit-btn').addEventListener('click',()=>{
-  editMode=!editMode;
-  document.getElementById('edit-btn').classList.toggle('on',editMode);
-  document.body.classList.toggle('edit-mode',editMode);
-});
-
-document.getElementById('add-branch-btn').addEventListener('click',()=>{
-  branches.push({id:'branch_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)});
-  persist();renderTree();
-});
-
-// ── Add / edit link modal ────────────────────────────────────────
-let pickedIcon=null;
-let searchDebounce=null;
-let editingLinkId=null; // null = adding new; otherwise editing this link's id
-let addingToBranch=null;
-
-function openAddModal(branchId){
-  editingLinkId=null;
-  addingToBranch=branchId;
-  document.getElementById('modal-title').textContent='Add a link';
-  document.getElementById('delete-link-btn').classList.add('hidden');
-  document.getElementById('link-url').value='';
-  document.getElementById('icon-query').value='';
-  document.getElementById('icon-search-results').innerHTML='';
-  document.getElementById('icon-search-status').textContent='';
-  document.getElementById('picked-preview').classList.add('hidden');
-  pickedIcon=null;
-  updateSaveEnabled();
-  document.getElementById('add-modal').classList.remove('hidden');
-  document.getElementById('link-url').focus();
-}
-function openEditModal(linkId){
+// Reorders a leaf relative only to OTHER leaves on the same branch --
+// finds its neighbor within that branch's own subset, then swaps their
+// actual positions in the shared `links` array (which correctly changes
+// their relative order within the subset regardless of other branches'
+// links interleaved in between, since Array.filter preserves relative
+// order of matching items).
+function moveLeafWithinBranch(linkId,dir){
   const link=links.find(l=>l.id===linkId);
   if(!link)return;
-  editingLinkId=linkId;
-  addingToBranch=link.branchId;
-  document.getElementById('modal-title').textContent='Edit link';
-  document.getElementById('delete-link-btn').classList.remove('hidden');
-  document.getElementById('link-url').value=link.url;
+  const branchLinks=links.filter(l=>l.branchId===link.branchId);
+  const pos=branchLinks.indexOf(link);
+  const targetPos=pos+dir;
+  if(targetPos<0||targetPos>=branchLinks.length)return;
+  const targetLink=branchLinks[targetPos];
+  const i1=links.indexOf(link), i2=links.indexOf(targetLink);
+  [links[i1],links[i2]]=[links[i2],links[i1]];
+  persist();renderEditPane();
+}
+
+// ── Icon picker (nested modal, reused for both add-leaf and change-icon) ──
+let iconPickCallback=null, searchDebounce=null;
+function openIconPicker(onPick){
+  iconPickCallback=onPick;
   document.getElementById('icon-query').value='';
   document.getElementById('icon-search-results').innerHTML='';
   document.getElementById('icon-search-status').textContent='';
-  pickedIcon=link.icon;
-  document.getElementById('picked-preview').classList.remove('hidden');
-  document.getElementById('picked-preview-img').src=iconUrl(pickedIcon,32);
-  document.getElementById('picked-preview-label').textContent=pickedIcon;
-  updateSaveEnabled();
-  document.getElementById('add-modal').classList.remove('hidden');
+  document.getElementById('icon-pick-modal').classList.remove('hidden');
+  document.getElementById('icon-query').focus();
 }
-function closeAddModal(){document.getElementById('add-modal').classList.add('hidden');}
-
-function updateSaveEnabled(){
-  const url=document.getElementById('link-url').value.trim();
-  document.getElementById('save-link-btn').disabled=!(url&&pickedIcon);
-}
-
-document.getElementById('link-url').addEventListener('input',updateSaveEnabled);
-document.getElementById('cancel-add').addEventListener('click',closeAddModal);
-document.getElementById('add-modal').addEventListener('click',e=>{if(e.target.id==='add-modal')closeAddModal();});
-document.getElementById('delete-link-btn').addEventListener('click',()=>{
-  if(!editingLinkId)return;
-  links=links.filter(l=>l.id!==editingLinkId);
-  persist();closeAddModal();renderTree();
+document.getElementById('close-icon-pick').addEventListener('click',()=>{
+  document.getElementById('icon-pick-modal').classList.add('hidden');
 });
-
 document.getElementById('icon-query').addEventListener('input',e=>{
   const q=e.target.value.trim();
   clearTimeout(searchDebounce);
@@ -436,7 +596,6 @@ document.getElementById('icon-query').addEventListener('input',e=>{
   document.getElementById('icon-search-status').textContent='Searching…';
   searchDebounce=setTimeout(()=>runIconSearch(q),350);
 });
-
 async function runIconSearch(query){
   const statusEl=document.getElementById('icon-search-status');
   const resultsEl=document.getElementById('icon-search-results');
@@ -450,13 +609,9 @@ async function runIconSearch(query){
     resultsEl.innerHTML=icons.map(id=>`<div class="res" data-icon="${id}"><img src="${iconUrl(id,40)}" loading="lazy" alt=""></div>`).join('');
     resultsEl.querySelectorAll('.res').forEach(el=>{
       el.addEventListener('click',()=>{
-        resultsEl.querySelectorAll('.res').forEach(r=>r.classList.remove('picked'));
-        el.classList.add('picked');
-        pickedIcon=el.getAttribute('data-icon');
-        document.getElementById('picked-preview').classList.remove('hidden');
-        document.getElementById('picked-preview-img').src=iconUrl(pickedIcon,32);
-        document.getElementById('picked-preview-label').textContent=pickedIcon;
-        updateSaveEnabled();
+        const icon=el.getAttribute('data-icon');
+        document.getElementById('icon-pick-modal').classList.add('hidden');
+        if(iconPickCallback)iconPickCallback(icon);
       });
     });
   }catch(err){
@@ -465,23 +620,9 @@ async function runIconSearch(query){
   }
 }
 
-document.getElementById('save-link-btn').addEventListener('click',()=>{
-  let url=document.getElementById('link-url').value.trim();
-  if(!url||!pickedIcon)return;
-  if(!/^https?:\/\//i.test(url))url='https://'+url;
-  if(editingLinkId){
-    const link=links.find(l=>l.id===editingLinkId);
-    if(link){link.url=url;link.icon=pickedIcon;}
-  }else{
-    links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branchId:addingToBranch,url,icon:pickedIcon});
-  }
-  persist();
-  closeAddModal();
-  renderTree();
-});
-
-// ── Report content height to Verdure (same-origin parent) ──────────
+// ── Height reporting + modal full-height requests ───────────────
 let lastReportedHeight=0;
+let modalOpenCount=0;
 function reportHeight(){
   requestAnimationFrame(()=>{
     const h=Math.ceil(document.getElementById('app').getBoundingClientRect().height);
@@ -490,58 +631,97 @@ function reportHeight(){
     try{window.parent.postMessage({type:'app-resize',id:'branche',height:h},window.location.origin);}catch(e){}
   });
 }
-if(window.ResizeObserver){
-  new ResizeObserver(reportHeight).observe(document.getElementById('app'));
+function requestFullHeight(){
+  modalOpenCount++;
+  try{window.parent.postMessage({type:'modal-open',id:'branche'},window.location.origin);}catch(e){}
 }
+function releaseFullHeight(){
+  modalOpenCount=Math.max(0,modalOpenCount-1);
+  if(modalOpenCount>0)return; // a parent modal (e.g. the maximized mobile tree) is still open
+  try{window.parent.postMessage({type:'modal-close',id:'branche'},window.location.origin);}catch(e){}
+  reportHeight();
+}
+if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getElementById('app'));}
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='II';
+// Version bumps to the next plain number on every version of this file sent
+// (switched from Roman numerals as of build 8 — project-wide convention change).
+const BRANCHE_VERSION='9';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
-Paste this at the start of a new Claude conversation when iterating on Branche. Generated live from the running app — a tiny transparent button in the bottom-right corner (invisible until hovered).
+Paste this at the start of a new Claude conversation when iterating on Branche. Generated live (tiny transparent button, bottom-right corner).
 
 ## What this is
 
-An icon-only, no-text link launcher visualized as a tree: a central trunk, with user-created branches extending left/right, each holding leaf-shaped icons that open their link on click. Tap ✎ (top right) to enter edit mode — leaves and branches gain delete controls, leaves can be dragged (Pointer Events, works identically with mouse and touch) to reorder within or between branches, and branches can be nudged up/down via small arrow buttons near their trunk attachment point.
+An icon-only link launcher visualized as a tree. Builds IV-VII are successive rounds of fixes made after actually seeing each previous build rendered (via the preview-file workflow — see "Working method" below). Several of these were real logic bugs, not just taste adjustments — read the sections below before assuming something is just a style choice.
 
-**Build II replaced build I's plain grid entirely** — the flat grid made reordering feel directionless and gave no way to edit an existing link's icon/URL (only delete-and-recreate). Both are fixed now: branches provide real structure, and clicking a leaf in edit mode opens the same modal used for adding, pre-filled, with a Delete option.
+- **Colors**: trunk, branches, and knot are green-family (\`--bark\`), not brown — an earlier attempt used brown and it looked bad. Leaves default to green too (\`DEFAULT_LEAF_COLOR\`); both leaf fill and icon tint stay independently editable per link.
+- **Trunk and branches**: sharp rectangular edges (no border-radius at all — an earlier version rounded these, which wasn't wanted), straight lines only. Branches start exactly at the trunk's edge, not its center, so their independent \`opacity\` doesn't double-stack into a visible seam where they'd otherwise overlap. A branch's rendered length now ends exactly at its last leaf's attachment point, not extending past it with a dangling stub.
+- **Leaves (build VII — the actual geometry fix)**: a plain round ellipse (\`border-radius:50%\`, not a polygon — "round" means round, not more-sided-but-still-blocky). Each leaf's baseline orientation lies flat along the SAME direction its branch extends (base and tip both effectively resting on the branch line), and the only rotation applied is a ±45° tilt of that whole leaf around its base — tip lifting toward the sky or dropping toward the ground, alternating leaf to leaf along the branch. See the dedicated section below for exactly what was wrong before and why.
+- **Per-leaf color + naming**: leaf fill, icon recolor tint, and an optional name are independently editable per link; a branch can be named too. A leaf's name (or URL if unnamed) becomes its \`title\` — a hover tooltip, no permanently visible text on the tree.
+- **Leaf reordering**: ▲▼ per leaf in the edit pane, scoped to just that leaf's own branch.
 
-## Icon visibility fix (real bug, not cosmetic)
+## The leaf-angle bug — full history, since it took multiple rounds to actually fix
 
-Iconify's monotone/UI icon sets use \`fill="currentColor"\` with no explicit color, which rendered as plain black — invisible against this app's dark green background. Fixed by requesting every icon with \`&color=%23f3ead6\` (the shared \`--ink\` parchment tone) on the \`.svg\` endpoint. This parameter **only affects monotone icons** — brand icons from \`simple-icons\` that hardcode their own palette are untouched, so real logos still show their real colors. If a newly-picked icon ever looks wrong, check whether it's a multi-color icon fighting this override rather than assuming the fix broke.
+**Build IV** used a leaf shape with two opposite \`border-radius\` corners at 100%, which bakes in its own diagonal before any rotation is applied — an added ±45° could land anywhere depending on which diagonal it started from. It also had leaves attached only by a single tip-point with an "above/below the branch" concept that, combined with which side of the trunk a branch was on, produced four different effective lean directions instead of one clean alternation.
 
-## Icons: Iconify, not emoji or uploads
+**Build VI** fixed the shape's built-in diagonal (switched to an unambiguous \`clip-path\` polygon) and added the missing \`transform-origin:0 0\` (without it, rotation pivots around the element's center, not its anchor point, so the "tip" never actually stayed touching the branch) — but kept a fundamentally wrong mental model: leaves standing up roughly perpendicular from a single touch-point, rotated ±45° from *vertical*.
 
-Over 100,000 icons via the free, keyless Iconify API, including \`simple-icons\` (real brand logos). Only the icon identifier (\`prefix:name\`) is stored per link, not image data, to avoid competing with Fleur/Racine for the shared browser-storage quota.
+**Build VII** replaces that model entirely, based on an explicit correction: a leaf's baseline (unrotated) orientation is *along the branch itself* — not standing up from it — with its base anchored at the touch point and its body extending in the same direction the branch travels. The whole leaf then tilts 45° up or down *from that baseline*, alternating along the branch. Concretely: \`baselineRot\` is \`0\`° for a rightward-extending branch or \`180\`° for a leftward one (so the leaf points away from the trunk before any tilt), and the final rotation is \`baselineRot + (-45 or +45)\`, alternating by leaf index. This was verified arithmetically (not just asserted) against the actual rotation math before shipping — see the "tip offset" sanity check in this build's development notes if the angle ever needs re-deriving. Leftward and rightward branches end up on opposite alternation phases (one starts tip-up, the other starts tip-down) — this is a harmless byproduct of the trig, not a bug, since the request was for each branch to alternate cleanly along its own length, which both do.
+
+## Canopy heading (build 9 — replaced the build 8 baobab treatment)
+
+Verdure's requested page heading. **Build 8** tried a baobab-crown motif (sparse splayed CSS ticks flanking a "Verdure" wordmark) evoking the tree's own top; that didn't read well in practice ("looking terrible") and was replaced in build 9 with something much plainer: a single star (\`.canopy-star\`, drawn with \`clip-path\`, no SVG) with a small "V" centered inside it (\`.canopy-star-v\`). Sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, so it's still picked up automatically by the existing \`ResizeObserver\` on \`#app\` — no separate height-reporting wiring needed either way. Static, no JS generation required (the build 8 version needed a small \`renderCanopy()\` to build its ticks; this one doesn't).
+
+## Branch left/right balance (build 9)
+
+\`computeLayout()\` used to alternate each branch left/right by simple index parity (\`bi%2===0?'left':'right'\`). The trunk itself was always mathematically centered on \`centerX\`, but that alternation ignored how much each side actually weighed — an odd branch count, or one branch with far more links than another, reliably left one side visibly heavier, which read as the whole tree being off-center even though the trunk pixel wasn't. Fixed by tracking a running link-count weight per side and assigning each new branch to whichever side is currently lighter (ties still alternate by index, so the result stays fully deterministic — no measuring, no randomness, matching this file's existing convention). Only affects the desktop/centered path (\`sideMount:false\`) — mobile's side-mounted tree was never trying to be centered in the first place.
+
+## Zero visible chrome outside the edit pane (with one exception as of build 8)
+
+No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and (as of build 8, restyled in build 9) the canopy heading above. The knot at the base of the trunk is the only entry point to the edit pane, on both desktop and mobile.
+
+## Export / Import (build 8)
+
+Two text-link buttons in the edit pane's footer, above the Done button: **Export backup** downloads \`{branches, links}\` as \`branche-backup.json\`; **Import backup** reads a JSON file back in, validates both fields are arrays before replacing anything, runs the same \`migrateOrphanedLinks()\` safety net a normal load already gets, then persists and re-renders. Exists as a safety net independent of \`localStorage\`/cloud sync — specifically so an update that goes wrong (this has happened before, per the storage-key history below) doesn't mean re-building every icon from scratch. Same pattern Fleur and Racine already use for their own backups.
+
+## Mobile (build VI — real redesign, not a restyle)
+
+Earlier builds hid the tree entirely on mobile in favor of a flat list. As of build VI, mobile shows the **same tree**, just reoriented: the trunk is pinned near the left edge (\`sideMount:true\` in \`computeLayout()\`) and every branch extends rightward — alternating sides the way desktop does would run branches off the left edge of a narrow screen, so instead every branch shares the one direction that actually has room. The tree renders small by default ("minimized", \`MOBILE_MINI_SCALE\` = 0.42), and tapping anywhere on it (except an actual leaf or the knot) opens the same tree at a larger scale (0.85) in a full-height overlay ("maximized") — the knot is reachable and opens the normal edit pane from either the mini or maxi view. \`computeLayout()\` and \`renderTreeInto()\` are fully parameterized by \`{scale, sideMount}\` so desktop, mini-mobile, and maxi-mobile are three calls to the same code, not three separate implementations to keep in sync by hand.
+
+Height-boost requests (\`requestFullHeight\`/\`releaseFullHeight\`) are now reference-counted (\`modalOpenCount\`), specifically because tapping the knot from inside the maximized mobile tree opens a second modal (the edit pane) on top of the first — without counting, closing the inner modal would have released the height request while the outer maximized-tree modal was still supposed to be full-height.
+
+## Layout constants (tune these first if spacing/size looks off)
+
+\`TRUNK_WIDTH\`, \`BRANCH_THICKNESS\`, \`BRANCH_V_GAP\`, \`LEAF_SPACING\`, \`LEAF_LENGTH\`/\`LEAF_WIDTH\`, \`KNOT_SIZE\`, \`KNOT_GAP_AFTER_LAST_BRANCH\`, \`EDGE_MARGIN\` (mobile side-mount margin from the screen edge) — all named constants near the top of the script. \`MOBILE_MINI_SCALE\` (0.42) and the maximized view's 0.85 scale (currently inline in \`openMaximizedMobileTree\`) control the two mobile sizes.
+
+## Modal full-height requests
+
+\`requestFullHeight()\`/\`releaseFullHeight()\` ask Verdure for a temporary full-viewport iframe height while any modal is open, since Branche's normal iframe height only matches its own (possibly short) content. Reference-counted as of build VI (see Mobile section above). See Verdure's own context doc for the generic \`modal-open\`/\`modal-close\` protocol.
 
 ## Data model
 
 \`\`\`js
-branches = [{id}]                          // order = array order, no name (stays "no text")
-links    = [{id, branchId, url, icon}]     // icon = "prefix:name"
+branches = [{id, name}]
+links    = [{id, branchId, url, icon, leafColor, iconColor, name}]
 \`\`\`
-Both arrays are stored together as one Supabase row's \`state\`, plus mirrored to \`localStorage\` under \`branche_branches\` and \`branche_links\` — **never rename either key**, same rule as Racine's storage keys, for the same reason (silent data-loss-that-isn't).
+\`name\` is optional on both. \`leafColor\`/\`iconColor\` default to \`${DEFAULT_LEAF_COLOR}\`/\`${DEFAULT_ICON_COLOR}\` when absent. \`branche_branches\`, \`branche_links\`, \`branche_sync_endpoint\` must never be renamed.
 
 ## Cross-device sync
 
-Same Netlify function and Supabase \`planner_state\` table Fleur and Racine already use — Branche is row id 3 (Fleur=1, Racine=2).
-
-## Height reporting
-
-No internal scrolling — reports real content height to Verdure via \`postMessage\` (\`ResizeObserver\` on \`#app\`), same pattern as Racine and Fleur. The tree can grow arbitrarily tall as branches/leaves are added; Verdure's page-level scroll (not an internal scrollbar) handles that, per Verdure's own "Scroll architecture" doc section.
+Unchanged since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync).
 
 ## Open questions
 
-- **Branch reordering is buttons, not drag** — leaf dragging reuses the pointer-based system in full (including dragging a leaf to a completely different branch), but branches themselves use small ▲▼ buttons instead of the same drag mechanism, to keep initial scope contained. Revisit if that feels inconsistent in practice.
-- **No confirmation on delete** (leaf or branch, and deleting a branch cascades to its leaves) — deliberate, consistent with Racine's same choice for a low-stakes personal tool, but branch deletion is a bigger action than leaf deletion and worth reconsidering if it ever causes real annoyance.
-- **Icon search results are still a plain grid** — that's just the picker utility for choosing an icon, not the main "no grid" display surface, so it wasn't in scope for the tree redesign. Worth a look if it ever feels cramped (it was recently enlarged to max-height:48vh from the build I modal's 260px, which was the "seeing slivers of icons" complaint).
+- **Geometry has been fixed twice now based on actual visual feedback (build V, build VI) and should be close**, but sizes/spacing are still worth confirming against the preview file rather than assumed correct from reading the code.
+- **Mobile's maximized-view scale (0.85) is a first guess**, not yet confirmed against a real narrow screen.
+- **Branch and leaf reordering both use ▲▼ buttons only**, no drag, by deliberate choice since build IV.
+- **The tree metaphor itself may not be working (as of build 9)** — direct feedback was that it's "just looking terrible" and a different approach entirely might be tried next, separate from any individual geometry fix. Build 9 only did the specific fixes asked for (branch balance, canopy restyle); it did not attempt a broader redesign. If a future session is asked to "start over" on Branche's visual concept, that's a deliberate reset, not a sign every prior build's reasoning was wrong.
 
 ## Working method for future sessions
 
-- Keep this doc in sync with reality every version.
-- Never rename \`branche_branches\`, \`branche_links\`, or \`branche_sync_endpoint\`.
-- Branche stays a fully separate app per Verdure's isolation architecture.
+Keep this doc in sync every version. Never rename the storage keys. Branche stays fully separate from Verdure/Fleur/Racine's own files. Versioning switched from Roman numerals to plain numbers as of build 8 (project-wide convention change, alongside Racine and Verdure; Fleur keeps its own flower-name convention).
 `;
   const blob=new Blob([doc],{type:'text/markdown'});
   const url=URL.createObjectURL(blob);
@@ -553,9 +733,8 @@ No internal scrolling — reports real content height to Verdure via \`postMessa
 
 // ── Init ─────────────────────────────────────────────────────────
 document.getElementById('doc-btn').addEventListener('click',downloadContextDoc);
-renderTree();
-loadFromCloud().then(()=>renderTree());
-setInterval(loadFromCloud,5*60000);
+renderAll();
+loadFromCloud();
 </script>
 </body>
 </html>
