@@ -52,18 +52,18 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
 .mobile-maxi-tree{position:relative;min-height:200px}
 
-/* ── Canopy heading: the page's one heading. The baobab-crown treatment
-   didn't read well (per feedback, "looking terrible") -- replaced with a
-   plain star holding a small "V", simple enough to not fight with the
-   tree underneath it while still sitting up top like a small badge/mark
-   rather than a header bar. Star drawn with clip-path (no SVG, consistent
-   with the rest of this file's plain-shape approach). ── */
-#canopy{display:flex;justify-content:center;padding:10px 0 2px;user-select:none}
-.canopy-star{position:relative;width:36px;height:36px;background:var(--root);
-  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
-  display:flex;align-items:center;justify-content:center}
-.canopy-star-v{font-family:var(--font-h);font-weight:600;font-size:14px;color:var(--page);
-  margin-top:7px} /* nudges the V down into the star's visual (not bounding-box) center */
+/* ── Canopy heading: the page's one heading. Was a plain star+"V" mark
+   (build 9); replaced entirely (build 10) with a French greeting that
+   changes with the time of day, plus a smaller line underneath for any
+   holiday (American/Canadian/Québécois/Jewish) or friend's birthday that
+   falls on today. No icon/mark anymore -- text only, centered, sized to
+   read as a small heading rather than a header bar. ── */
+#canopy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px 4px;user-select:none;text-align:center}
+.canopy-main{font-family:var(--font-h);font-weight:500;font-size:1.3rem;color:var(--ink)}
+.canopy-sub{font-family:var(--font-b);font-size:.72rem;color:var(--ink2);line-height:1.5;max-width:280px}
+.canopy-sub:empty{display:none}
+.canopy-sub .cs-holiday{color:var(--ink2)}
+.canopy-sub .cs-bday{color:var(--root)}
 
 /* ── Edit pane (opened only via the knot) ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
@@ -74,6 +74,17 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   display:flex;flex-direction:column;gap:14px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
 .branch-block{border:1px solid var(--border);border-radius:10px;padding:10px}
+/* ── Birthdays (build 10) -- lives in the same edit pane as branches,
+   same visual language (tiny-btn, dashed add button, leaf-edit-row-style
+   input rows) so it doesn't feel like a bolted-on second app. ── */
+.section-label{font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin:2px 0 6px}
+.bday-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
+.bday-row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.bday-row input[type=date]{background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none;color-scheme:dark}
+.add-bday-row{display:flex;gap:8px;margin-top:8px}
+.add-bday-row input[type=text]{flex:1;min-width:0}
 .branch-block-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
 .branch-name-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:6px;padding:4px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
@@ -128,7 +139,8 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 
 <div id="app">
   <div id="canopy">
-    <div class="canopy-star" title="Verdure"><span class="canopy-star-v">V</span></div>
+    <div class="canopy-main" id="canopy-main"></div>
+    <div class="canopy-sub" id="canopy-sub"></div>
   </div>
   <div id="desktop-tree"></div>
   <div id="mobile-compact"><div id="mobile-tree" title="Tap to view full size"></div></div>
@@ -146,6 +158,14 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 <div class="modal hidden" id="edit-modal">
   <div class="modal-card">
     <h2>Edit Branche</h2>
+    <div class="section-label">Anniversaires</div>
+    <div id="edit-birthdays"></div>
+    <div class="add-bday-row">
+      <input type="text" id="new-bday-name" placeholder="Nom">
+      <input type="date" id="new-bday-date">
+      <button class="tiny-btn" id="add-bday-btn">+ Ajouter</button>
+    </div>
+    <div class="section-label" style="margin-top:14px">Branches</div>
     <div id="edit-branches"></div>
     <button class="add-branch-btn" id="add-branch-btn">+ Add branch</button>
     <div class="backup-row">
@@ -171,6 +191,7 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 // ── Storage ──────────────────────────────────────────────────────
 const BRANCHES_KEY='branche_branches';
 const LINKS_KEY='branche_links';
+const BIRTHDAYS_KEY='branche_birthdays';
 const SYNC_KEY='branche_sync_endpoint';
 const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
 const SYNC_ROW_ID=3;
@@ -181,10 +202,17 @@ function loadBranchesLocal(){try{return JSON.parse(localStorage.getItem(BRANCHES
 function saveBranchesLocal(v){localStorage.setItem(BRANCHES_KEY,JSON.stringify(v));}
 function loadLinksLocal(){try{return JSON.parse(localStorage.getItem(LINKS_KEY))||[];}catch(e){return [];}}
 function saveLinksLocal(v){localStorage.setItem(LINKS_KEY,JSON.stringify(v));}
+// Birthdays: [{id, name, month(1-12), day}] -- deliberately no year stored.
+// The greeting only ever needs "is today someone's birthday" / "whose is
+// coming up", never an age -- keeping year out avoids ever having to ask
+// "do you mean they turn N or N+1" for a friend who didn't give a year.
+function loadBirthdaysLocal(){try{return JSON.parse(localStorage.getItem(BIRTHDAYS_KEY))||[];}catch(e){return [];}}
+function saveBirthdaysLocal(v){localStorage.setItem(BIRTHDAYS_KEY,JSON.stringify(v));}
 function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
 
 let branches=loadBranchesLocal();
 let links=loadLinksLocal();
+let birthdays=loadBirthdaysLocal();
 
 function migrateOrphanedLinks(){
   const branchIds=new Set(branches.map(b=>b.id));
@@ -201,7 +229,7 @@ if(migrateOrphanedLinks()){saveBranchesLocal(branches);saveLinksLocal(links);}
 // only a genuinely empty device pulls -- see build III notes) ──────
 let cloudSyncFailed=false;
 async function loadFromCloud(){
-  if(links.length||branches.length){saveToCloud();return false;}
+  if(links.length||branches.length||birthdays.length){saveToCloud();return false;}
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'load',id:SYNC_ROW_ID})});
@@ -209,9 +237,10 @@ async function loadFromCloud(){
     const data=await res.json();
     if(data&&data.state&&(Array.isArray(data.state.links)||Array.isArray(data.state.branches))){
       links=data.state.links||[];branches=data.state.branches||[];
+      birthdays=Array.isArray(data.state.birthdays)?data.state.birthdays:[]; // absent on pre-birthday cloud saves -- default empty, not an error
       migrateOrphanedLinks();
-      saveBranchesLocal(branches);saveLinksLocal(links);
-      renderAll();
+      saveBranchesLocal(branches);saveLinksLocal(links);saveBirthdaysLocal(birthdays);
+      renderAll();renderCanopy();
       return true;
     }
     return false;
@@ -220,11 +249,11 @@ async function loadFromCloud(){
 async function saveToCloud(){
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links}})});
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links,birthdays}})});
     cloudSyncFailed=!res.ok;
   }catch(err){cloudSyncFailed=true;}
 }
-function persist(){saveBranchesLocal(branches);saveLinksLocal(links);saveToCloud();}
+function persist(){saveBranchesLocal(branches);saveLinksLocal(links);saveBirthdaysLocal(birthdays);saveToCloud();}
 
 // ── Icon rendering ───────────────────────────────────────────────
 function iconUrl(icon,size,color){
@@ -418,7 +447,7 @@ document.getElementById('add-branch-btn').addEventListener('click',()=>{
 // ── Backup / restore (safety net independent of localStorage/cloud sync —
 // covers the case an update or a bad sync silently erases existing icons) ──
 document.getElementById('export-btn').addEventListener('click',()=>{
-  const data=JSON.stringify({branches,links},null,2);
+  const data=JSON.stringify({branches,links,birthdays},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -436,15 +465,64 @@ document.getElementById('import-file').addEventListener('change',async(e)=>{
     const data=JSON.parse(text);
     if(!Array.isArray(data.branches)||!Array.isArray(data.links))throw new Error('bad shape');
     branches=data.branches;links=data.links;
+    birthdays=Array.isArray(data.birthdays)?data.birthdays:[]; // older backups predate birthdays -- default empty, don't reject the whole file over it
     migrateOrphanedLinks(); // same safety net a normal load already gets
-    persist();renderAll();renderEditPane();
+    persist();renderAll();renderEditPane();renderCanopy();
   }catch(err){
     alert("Couldn't read that backup file.");
   }
   e.target.value='';
 });
 
+// ── Birthdays edit list ──────────────────────────────────────────
+function renderBirthdaysEditList(){
+  const wrap=document.getElementById('edit-birthdays');
+  if(!wrap)return;
+  const sorted=birthdays.slice().sort((a,b)=>(a.month-b.month)||(a.day-b.day));
+  wrap.innerHTML=sorted.map(b=>{
+    const mm=String(b.month).padStart(2,'0'),dd=String(b.day).padStart(2,'0');
+    // <input type=date> needs a full date to display anything -- year is
+    // thrown away again the moment it's re-saved (see BIRTHDAYS_KEY note).
+    return `
+    <div class="bday-row" data-id="${b.id}">
+      <input type="text" data-action="bday-name" data-id="${b.id}" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Nom">
+      <input type="date" data-action="bday-date" data-id="${b.id}" value="2000-${mm}-${dd}">
+      <button class="tiny-btn danger" data-action="bday-del" data-id="${b.id}">✕</button>
+    </div>`;
+  }).join('')||'<div style="font-size:.72rem;color:var(--ink3);padding:4px 0">Aucun anniversaire ajouté</div>';
+  wrap.querySelectorAll('[data-action=bday-name]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const b=birthdays.find(x=>x.id===el.dataset.id);if(!b)return;
+      b.name=el.value;persist();renderCanopy();
+    });
+  });
+  wrap.querySelectorAll('[data-action=bday-date]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const b=birthdays.find(x=>x.id===el.dataset.id);if(!b||!el.value)return;
+      const [,m,d]=el.value.split('-').map(Number); // year deliberately discarded
+      b.month=m;b.day=d;persist();renderBirthdaysEditList();renderCanopy();
+    });
+  });
+  wrap.querySelectorAll('[data-action=bday-del]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      birthdays=birthdays.filter(x=>x.id!==el.dataset.id);
+      persist();renderBirthdaysEditList();renderCanopy();
+    });
+  });
+}
+document.getElementById('add-bday-btn').addEventListener('click',()=>{
+  const nameEl=document.getElementById('new-bday-name');
+  const dateEl=document.getElementById('new-bday-date');
+  if(!dateEl.value)return; // name alone with no date isn't useful -- require a date
+  const [,m,d]=dateEl.value.split('-').map(Number);
+  birthdays.push({id:'bday_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    name:nameEl.value.trim()||'(sans nom)',month:m,day:d});
+  nameEl.value='';dateEl.value='';
+  persist();renderBirthdaysEditList();renderCanopy();
+});
+
 function renderEditPane(){
+  renderBirthdaysEditList();
   const wrap=document.getElementById('edit-branches');
   wrap.innerHTML=branches.map((branch,bi)=>{
     const branchLinks=links.filter(l=>l.branchId===branch.id);
@@ -620,6 +698,209 @@ async function runIconSearch(query){
   }
 }
 
+// ── Canopy greeting (build 10) ───────────────────────────────────
+// Main line: a French greeting that changes with the time of day.
+// Sub line (smaller, under it): any holiday recognized today (American,
+// Canadian, Québécois, or Jewish), plus any friend's birthday that's
+// today or coming up within a week. Purely client-side, no network call
+// -- Jewish holidays especially need one since their Gregorian dates
+// shift every year (lunisolar calendar); see JEWISH_HOLIDAYS below for
+// exactly how far that table currently reaches and how to extend it.
+
+function timeGreeting(d){
+  const h=d.getHours();
+  if(h>=5&&h<12)return 'Bonjour';
+  if(h>=12&&h<18)return 'Bon après-midi';
+  if(h>=18&&h<22)return 'Bonsoir';
+  return 'Bonne nuit';
+}
+
+// ── Date-rule helpers for floating (nth-weekday) holidays ─────────
+function nthWeekdayOfMonth(year,month,weekday,n){ // month 0-indexed, weekday 0=Sun..6=Sat
+  const d=new Date(year,month,1);
+  let count=0;
+  while(d.getMonth()===month){
+    if(d.getDay()===weekday){count++;if(count===n)return new Date(d);}
+    d.setDate(d.getDate()+1);
+  }
+  return null;
+}
+function lastWeekdayOfMonth(year,month,weekday){
+  const d=new Date(year,month+1,0); // last calendar day of month
+  while(d.getDay()!==weekday)d.setDate(d.getDate()-1);
+  return d;
+}
+function sameDate(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+
+// ── Fixed-date holidays (month is 1-indexed here, for readability) ──
+// solemn:true holidays get no exclamatory greeting -- shown by name only,
+// same treatment Yom Kippur and Tisha B'Av get below. Not every
+// recognized day is a "Happy X!" day, and guessing one for e.g.
+// Remembrance Day would be tone-deaf.
+const FIXED_HOLIDAYS=[
+  {month:1,day:1,name:"le jour de l'An",greeting:'Bonne année !'},
+  {month:6,day:19,name:'Juneteenth',greeting:'Bon Juneteenth !'},
+  {month:6,day:24,name:'la Fête nationale du Québec',greeting:'Bonne Saint-Jean !'},
+  {month:7,day:1,name:'la Fête du Canada',greeting:'Bonne fête du Canada !'},
+  {month:7,day:4,name:"l'Independence Day",greeting:"Bonne fête de l'indépendance !"},
+  {month:11,day:11,name:'le jour du Souvenir',greeting:null,solemn:true},
+  {month:12,day:25,name:'Noël',greeting:'Joyeux Noël !'},
+  {month:12,day:26,name:'le Boxing Day',greeting:'Bon Boxing Day !'},
+  {month:12,day:31,name:"la veille du Nouvel An",greeting:'Bonne veille du Nouvel An !'},
+];
+
+// ── Floating (nth-weekday-of-month) holidays, computed per year ────
+function floatingHolidaysForYear(year){
+  const out=[];
+  const push=(date,name,greeting,solemn)=>{if(date)out.push({date,name,greeting:greeting||null,solemn:!!solemn});};
+  push(nthWeekdayOfMonth(year,0,1,3),'Martin Luther King Jr. Day',null,true);           // Jan, 3rd Mon
+  const febThirdMon=nthWeekdayOfMonth(year,1,1,3);                                       // Feb, 3rd Mon
+  push(febThirdMon,"le Presidents' Day",null,true);            // US -- informational only
+  push(febThirdMon,'la fête de la Famille','Bonne fête de la Famille !'); // CA (not observed in Québec)
+  const lastMonMay=lastWeekdayOfMonth(year,4,1);                                         // last Monday of May
+  push(lastMonMay,'le Memorial Day',null,true);                 // US -- solemn
+  push(lastMonMay,'la fête de Victoria','Bonne fête de Victoria !'); // CA (excl. Québec)
+  push(lastMonMay,'la Journée nationale des patriotes','Bonne Journée des Patriotes !'); // Québec's own name for the same date
+  push(nthWeekdayOfMonth(year,8,1,1),'la fête du Travail','Bonne fête du Travail !');   // Sept, 1st Mon -- shared US/CA/QC date
+  const octSecondMon=nthWeekdayOfMonth(year,9,1,2);                                      // Oct, 2nd Mon
+  push(octSecondMon,"l'Action de grâce",'Joyeux Action de grâce !'); // Canada/Québec Thanksgiving
+  push(octSecondMon,'le Columbus Day',null,true);                // US -- informational only, contested naming, no invented greeting
+  push(nthWeekdayOfMonth(year,10,4,4),'le Thanksgiving',"Bon Thanksgiving !"); // Nov, 4th Thu -- US Thanksgiving
+  return out;
+}
+
+// ── Jewish holidays: hardcoded lookup table, NOT computed live ─────
+// Gregorian dates for Jewish holidays shift every year (lunisolar
+// calendar) -- correctly computing them requires real Hebrew-calendar
+// math, which is a lot of surface area for this feature. Sourced from
+// the URJ's published 5786-5790 holiday calendar (Sept 2025 - ~June
+// 2030): https://urj.org (search "URJ holiday calendar 5786-5790" if
+// that link ever moves) -- cross-checked against Hebcal for a couple of
+// individual dates. THIS TABLE CURRENTLY ONLY RUNS THROUGH SPRING 2030.
+// To extend it: search "hebcal holidays <year>-<year+1>" (hebcal.com
+// computes real Hebrew-calendar dates and is the standard reference),
+// and append more {y,m,d,y2,m2,d2,name,greeting,solemn} entries below in
+// the same shape. solemn:true (Yom Kippur, Tisha B'Av) gets no
+// exclamatory greeting, same rule as the solemn fixed/floating holidays
+// above -- these are fast/mourning days, not festive ones.
+const JEWISH_HOLIDAYS=[
+  // {y,m,d}-{y2,m2,d2} is an inclusive Gregorian date range (m is 1-indexed)
+  {y:2025,m:9,d:22, y2:2025,m2:9,d2:24, name:'Roch Hachana',greeting:'Chana Tova !'},
+  {y:2025,m:10,d:1, y2:2025,m2:10,d2:2, name:'Yom Kippour',greeting:null,solemn:true},
+  {y:2025,m:10,d:6, y2:2025,m2:10,d2:13,name:'Souccot',greeting:"'Hag Sameah !"},
+  {y:2025,m:10,d:13,y2:2025,m2:10,d2:14,name:'Chemini Atseret / Simhat Torah',greeting:"'Hag Sameah !"},
+  {y:2025,m:12,d:14,y2:2025,m2:12,d2:22,name:'Hanoucca',greeting:'Joyeuse Hanoucca !'},
+  {y:2026,m:2, d:1, y2:2026,m2:2, d2:2, name:'Tou Bichvat',greeting:'Bon Tou Bichvat !'},
+  {y:2026,m:3, d:2, y2:2026,m2:3, d2:3, name:'Pourim',greeting:'Joyeux Pourim !'},
+  {y:2026,m:4, d:1, y2:2026,m2:4, d2:8, name:'Pessah',greeting:"'Hag Pessah Sameah !"},
+  {y:2026,m:5, d:21,y2:2026,m2:5, d2:22,name:'Chavouot',greeting:"'Hag Sameah !"},
+  {y:2026,m:7, d:22,y2:2026,m2:7, d2:23,name:"Tisha b'Av",greeting:null,solemn:true},
+
+  {y:2026,m:9, d:11,y2:2026,m2:9, d2:13,name:'Roch Hachana',greeting:'Chana Tova !'},
+  {y:2026,m:9, d:20,y2:2026,m2:9, d2:21,name:'Yom Kippour',greeting:null,solemn:true},
+  {y:2026,m:9, d:25,y2:2026,m2:10,d2:2, name:'Souccot',greeting:"'Hag Sameah !"},
+  {y:2026,m:10,d:2, y2:2026,m2:10,d2:3, name:'Chemini Atseret / Simhat Torah',greeting:"'Hag Sameah !"},
+  {y:2026,m:12,d:4, y2:2026,m2:12,d2:12,name:'Hanoucca',greeting:'Joyeuse Hanoucca !'},
+  {y:2027,m:1, d:22,y2:2027,m2:1, d2:23,name:'Tou Bichvat',greeting:'Bon Tou Bichvat !'},
+  {y:2027,m:3, d:22,y2:2027,m2:3, d2:23,name:'Pourim',greeting:'Joyeux Pourim !'},
+  {y:2027,m:4, d:21,y2:2027,m2:4, d2:28,name:'Pessah',greeting:"'Hag Pessah Sameah !"},
+  {y:2027,m:6, d:10,y2:2027,m2:6, d2:11,name:'Chavouot',greeting:"'Hag Sameah !"},
+  {y:2027,m:8, d:11,y2:2027,m2:8, d2:12,name:"Tisha b'Av",greeting:null,solemn:true},
+
+  {y:2027,m:10,d:1, y2:2027,m2:10,d2:3, name:'Roch Hachana',greeting:'Chana Tova !'},
+  {y:2027,m:10,d:10,y2:2027,m2:10,d2:11,name:'Yom Kippour',greeting:null,solemn:true},
+  {y:2027,m:10,d:15,y2:2027,m2:10,d2:22,name:'Souccot',greeting:"'Hag Sameah !"},
+  {y:2027,m:10,d:22,y2:2027,m2:10,d2:23,name:'Chemini Atseret / Simhat Torah',greeting:"'Hag Sameah !"},
+  {y:2027,m:12,d:24,y2:2028,m2:1, d2:1, name:'Hanoucca',greeting:'Joyeuse Hanoucca !'},
+  {y:2028,m:2, d:11,y2:2028,m2:2, d2:12,name:'Tou Bichvat',greeting:'Bon Tou Bichvat !'},
+  {y:2028,m:3, d:11,y2:2028,m2:3, d2:12,name:'Pourim',greeting:'Joyeux Pourim !'},
+  {y:2028,m:4, d:10,y2:2028,m2:4, d2:17,name:'Pessah',greeting:"'Hag Pessah Sameah !"},
+  {y:2028,m:5, d:30,y2:2028,m2:5, d2:31,name:'Chavouot',greeting:"'Hag Sameah !"},
+  {y:2028,m:7, d:31,y2:2028,m2:8, d2:1, name:"Tisha b'Av",greeting:null,solemn:true},
+
+  {y:2028,m:9, d:20,y2:2028,m2:9, d2:22,name:'Roch Hachana',greeting:'Chana Tova !'},
+  {y:2028,m:9, d:29,y2:2028,m2:9, d2:30,name:'Yom Kippour',greeting:null,solemn:true},
+  {y:2028,m:10,d:4, y2:2028,m2:10,d2:11,name:'Souccot',greeting:"'Hag Sameah !"},
+  {y:2028,m:10,d:11,y2:2028,m2:10,d2:12,name:'Chemini Atseret / Simhat Torah',greeting:"'Hag Sameah !"},
+  {y:2028,m:12,d:12,y2:2028,m2:12,d2:20,name:'Hanoucca',greeting:'Joyeuse Hanoucca !'},
+  {y:2029,m:1, d:30,y2:2029,m2:1, d2:31,name:'Tou Bichvat',greeting:'Bon Tou Bichvat !'},
+  {y:2029,m:2, d:28,y2:2029,m2:3, d2:1, name:'Pourim',greeting:'Joyeux Pourim !'},
+  {y:2029,m:3, d:30,y2:2029,m2:4, d2:6, name:'Pessah',greeting:"'Hag Pessah Sameah !"},
+  {y:2029,m:5, d:19,y2:2029,m2:5, d2:20,name:'Chavouot',greeting:"'Hag Sameah !"},
+  {y:2029,m:7, d:21,y2:2029,m2:7, d2:22,name:"Tisha b'Av",greeting:null,solemn:true},
+
+  {y:2029,m:9, d:9, y2:2029,m2:9, d2:11,name:'Roch Hachana',greeting:'Chana Tova !'},
+  {y:2029,m:9, d:18,y2:2029,m2:9, d2:19,name:'Yom Kippour',greeting:null,solemn:true},
+  {y:2029,m:9, d:23,y2:2029,m2:9, d2:30,name:'Souccot',greeting:"'Hag Sameah !"},
+  {y:2029,m:9, d:30,y2:2029,m2:10,d2:1, name:'Chemini Atseret / Simhat Torah',greeting:"'Hag Sameah !"},
+  {y:2029,m:12,d:1, y2:2029,m2:12,d2:9, name:'Hanoucca',greeting:'Joyeuse Hanoucca !'},
+  {y:2030,m:1, d:18,y2:2030,m2:1, d2:19,name:'Tou Bichvat',greeting:'Bon Tou Bichvat !'},
+  {y:2030,m:3, d:18,y2:2030,m2:3, d2:19,name:'Pourim',greeting:'Joyeux Pourim !'},
+  {y:2030,m:4, d:17,y2:2030,m2:4, d2:24,name:'Pessah',greeting:"'Hag Pessah Sameah !"},
+  {y:2030,m:6, d:6, y2:2030,m2:6, d2:7, name:'Chavouot',greeting:"'Hag Sameah !"},
+  {y:2030,m:8, d:7, y2:2030,m2:8, d2:8, name:"Tisha b'Av",greeting:null,solemn:true},
+];
+
+function todaysHolidays(now){
+  const y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate();
+  const hits=[];
+  FIXED_HOLIDAYS.forEach(h=>{if(h.month===m&&h.day===d)hits.push(h);});
+  floatingHolidaysForYear(y).forEach(h=>{if(sameDate(h.date,now))hits.push(h);});
+  // A floating US/CA date can land on Dec 31/Jan 1 boundary in neither
+  // direction here, so no year-wraparound check is needed for those --
+  // but Jewish ranges do cross Gregorian year/month boundaries (e.g.
+  // Hanoucca 2027-28), so compare against actual Date objects, not
+  // separate y/m/d fields, to get inclusive ranges right either way.
+  const todayDate=new Date(y,m-1,d);
+  JEWISH_HOLIDAYS.forEach(h=>{
+    const start=new Date(h.y,h.m-1,h.d),end=new Date(h.y2,h.m2-1,h.d2);
+    if(todayDate>=start&&todayDate<=end)hits.push(h);
+  });
+  return hits;
+}
+
+function upcomingBirthdays(now,withinDays){
+  const y=now.getFullYear();
+  return birthdays.map(b=>{
+    let next=new Date(y,b.month-1,b.day);
+    next.setHours(0,0,0,0);
+    const todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    if(next<todayMid)next=new Date(y+1,b.month-1,b.day); // already passed this year -- look at next year's
+    const diffDays=Math.round((next-todayMid)/86400000);
+    return {...b,diffDays};
+  }).filter(b=>b.diffDays>=0&&b.diffDays<=withinDays).sort((a,b)=>a.diffDays-b.diffDays);
+}
+
+function renderCanopy(){
+  const now=new Date();
+  const mainEl=document.getElementById('canopy-main');
+  const subEl=document.getElementById('canopy-sub');
+  if(!mainEl||!subEl)return;
+  mainEl.textContent=timeGreeting(now);
+
+  const lines=[];
+  const holidays=todaysHolidays(now);
+  if(holidays.length){
+    lines.push(`<div class="cs-holiday">${holidays.map(h=>h.solemn?h.name:(h.greeting||h.name)).join(' · ')}</div>`);
+  }
+  const soonBdays=upcomingBirthdays(now,7);
+  const todayBdays=soonBdays.filter(b=>b.diffDays===0);
+  const laterBdays=soonBdays.filter(b=>b.diffDays>0);
+  if(todayBdays.length){
+    lines.push(`<div class="cs-bday">🎂 ${todayBdays.map(b=>`Bon anniversaire ${b.name} !`).join(' · ')}</div>`);
+  }
+  if(laterBdays.length){
+    lines.push(`<div class="cs-bday">${laterBdays.map(b=>`Anniversaire de ${b.name} dans ${b.diffDays} jour${b.diffDays>1?'s':''}`).join(' · ')}</div>`);
+  }
+  subEl.innerHTML=lines.join('');
+  reportHeight();
+}
+// Keep the greeting fresh if this page is left open across a time-of-day
+// boundary or midnight (birthdays/holidays flipping to a new day) --
+// checking once a minute is frequent enough for a greeting, cheap enough
+// not to matter.
+setInterval(renderCanopy,60000);
+
 // ── Height reporting + modal full-height requests ───────────────
 let lastReportedHeight=0;
 let modalOpenCount=0;
@@ -646,7 +927,7 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 // ── Context doc ──────────────────────────────────────────────────
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 8 — project-wide convention change).
-const BRANCHE_VERSION='9';
+const BRANCHE_VERSION='10';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -670,21 +951,34 @@ An icon-only link launcher visualized as a tree. Builds IV-VII are successive ro
 
 **Build VII** replaces that model entirely, based on an explicit correction: a leaf's baseline (unrotated) orientation is *along the branch itself* — not standing up from it — with its base anchored at the touch point and its body extending in the same direction the branch travels. The whole leaf then tilts 45° up or down *from that baseline*, alternating along the branch. Concretely: \`baselineRot\` is \`0\`° for a rightward-extending branch or \`180\`° for a leftward one (so the leaf points away from the trunk before any tilt), and the final rotation is \`baselineRot + (-45 or +45)\`, alternating by leaf index. This was verified arithmetically (not just asserted) against the actual rotation math before shipping — see the "tip offset" sanity check in this build's development notes if the angle ever needs re-deriving. Leftward and rightward branches end up on opposite alternation phases (one starts tip-up, the other starts tip-down) — this is a harmless byproduct of the trig, not a bug, since the request was for each branch to alternate cleanly along its own length, which both do.
 
-## Canopy heading (build 9 — replaced the build 8 baobab treatment)
+## Canopy heading (build 10 — replaced the build 9 star+"V" mark entirely)
 
-Verdure's requested page heading. **Build 8** tried a baobab-crown motif (sparse splayed CSS ticks flanking a "Verdure" wordmark) evoking the tree's own top; that didn't read well in practice ("looking terrible") and was replaced in build 9 with something much plainer: a single star (\`.canopy-star\`, drawn with \`clip-path\`, no SVG) with a small "V" centered inside it (\`.canopy-star-v\`). Sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, so it's still picked up automatically by the existing \`ResizeObserver\` on \`#app\` — no separate height-reporting wiring needed either way. Static, no JS generation required (the build 8 version needed a small \`renderCanopy()\` to build its ticks; this one doesn't).
+Verdure's requested page heading. **Build 8** tried a baobab-crown motif that didn't read well; **build 9** replaced it with a plain star holding a small "V". **Build 10** drops the icon/mark idea entirely: the canopy is now a French greeting that changes with time of day (\`#canopy-main\`, \`timeGreeting()\`), with a smaller line underneath (\`#canopy-sub\`) recognizing any American/Canadian/Québécois/Jewish holiday today and any friend's birthday today or within the next 7 days. Still sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, still picked up automatically by the existing \`ResizeObserver\` — but \`renderCanopy()\` now also calls \`reportHeight()\` explicitly itself (in addition to the ResizeObserver), since a subtext line appearing/disappearing changes \`#app\`'s height on a timer tick, not just on a user action the ResizeObserver would already be watching for.
+
+**Time-of-day greeting** (\`timeGreeting()\`): Bonjour (5:00–11:59), Bon après-midi (12:00–17:59), Bonsoir (18:00–21:59), Bonne nuit (22:00–4:59). Uses the browser's local time (\`Date.getHours()\`), not a timezone the person picks — same assumption Racine's calendar already makes.
+
+**Holiday recognition** (\`FIXED_HOLIDAYS\`, \`floatingHolidaysForYear()\`, \`JEWISH_HOLIDAYS\`): three separate lists by how their dates are determined:
+- Fixed calendar dates (New Year's, Canada Day, St-Jean, July 4th, Christmas, etc.) — a flat month/day list.
+- Floating "nth weekday of month" dates (MLK Day, Family Day/Presidents' Day, Victoria Day/Journée des patriotes/Memorial Day, Labour Day, the two different Thanksgivings, Columbus Day) — computed per-year via \`nthWeekdayOfMonth()\`/\`lastWeekdayOfMonth()\`, not hardcoded, since these shift every year by design.
+- Jewish holidays — a **hardcoded lookup table**, deliberately NOT computed live. Their Gregorian dates shift every year because the Hebrew calendar is lunisolar; correctly computing that live is real astronomical/calendrical math, out of scope for what this feature needed. Sourced from the URJ's published 5786–5790 holiday calendar (Gregorian Sept 2025 through ~June 2030), cross-checked against Hebcal for a few individual dates. **This table currently only reaches Spring 2030** — there's a comment directly above \`JEWISH_HOLIDAYS\` explaining exactly how to extend it (search "hebcal holidays \\<year\\>-\\<year+1\\>" and append more entries in the same \`{y,m,d,y2,m2,d2,name,greeting,solemn}\` shape). A future session should extend this proactively once the current range starts running low, not wait for it to silently go blank.
+
+**Not every recognized day gets an exclamatory greeting.** Yom Kippur, Tisha B'Av, Remembrance/Veterans Day, Memorial Day, MLK Day, Presidents' Day, and Columbus Day are all marked \`solemn:true\` and shown by name only in the subtext — inventing a cheerful "Happy X!" for a fast day or a memorial would be tone-deaf, and Columbus Day's naming is genuinely contested (Indigenous Peoples' Day in many places) so it gets neutral treatment rather than a pick. If more than one holiday lands on the same date (this happens: e.g. Victoria Day/Journée des patriotes/Memorial Day all share the last Monday of May), all of them show, joined by " · ".
+
+**Birthdays** (\`birthdays\` array, \`upcomingBirthdays()\`): added/edited/deleted from the same edit pane the knot already opens (a new "Anniversaires" section above the branches section — see Data model below). Deliberately store only month+day, no year — the greeting only ever needs "is it today" or "how many days away", never an age. Today's birthdays get "🎂 Bon anniversaire \\<name\\> !"; birthdays within the next 7 days (but not today) get a plainer "Anniversaire de \\<name\\> dans N jours" reminder line, both in the same subtext area as holidays.
+
+**Refresh timer**: \`setInterval(renderCanopy, 60000)\` — a person who leaves this page open across a time-of-day boundary, or past midnight into a new holiday/birthday, will see it update within a minute without needing to reload.
 
 ## Branch left/right balance (build 9)
 
 \`computeLayout()\` used to alternate each branch left/right by simple index parity (\`bi%2===0?'left':'right'\`). The trunk itself was always mathematically centered on \`centerX\`, but that alternation ignored how much each side actually weighed — an odd branch count, or one branch with far more links than another, reliably left one side visibly heavier, which read as the whole tree being off-center even though the trunk pixel wasn't. Fixed by tracking a running link-count weight per side and assigning each new branch to whichever side is currently lighter (ties still alternate by index, so the result stays fully deterministic — no measuring, no randomness, matching this file's existing convention). Only affects the desktop/centered path (\`sideMount:false\`) — mobile's side-mounted tree was never trying to be centered in the first place.
 
-## Zero visible chrome outside the edit pane (with one exception as of build 8)
+## Zero visible chrome outside the edit pane (with two exceptions, as of build 10)
 
-No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and (as of build 8, restyled in build 9) the canopy heading above. The knot at the base of the trunk is the only entry point to the edit pane, on both desktop and mobile.
+No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and the canopy heading above (now a text greeting rather than an icon, as of build 10). The knot at the base of the trunk is still the only entry point to the edit pane, on both desktop and mobile — the greeting text itself has no click behavior, deliberately, to keep that single-entry-point rule intact.
 
-## Export / Import (build 8)
+## Export / Import (build 8, extended build 10)
 
-Two text-link buttons in the edit pane's footer, above the Done button: **Export backup** downloads \`{branches, links}\` as \`branche-backup.json\`; **Import backup** reads a JSON file back in, validates both fields are arrays before replacing anything, runs the same \`migrateOrphanedLinks()\` safety net a normal load already gets, then persists and re-renders. Exists as a safety net independent of \`localStorage\`/cloud sync — specifically so an update that goes wrong (this has happened before, per the storage-key history below) doesn't mean re-building every icon from scratch. Same pattern Fleur and Racine already use for their own backups.
+Two text-link buttons in the edit pane's footer, above the Done button: **Export backup** downloads \`{branches, links, birthdays}\` as \`branche-backup.json\`; **Import backup** reads a JSON file back in, validates \`branches\`/\`links\` are arrays before replacing anything (an older backup predating birthdays is still accepted — \`birthdays\` just defaults to \`[]\` rather than rejecting the whole file), runs the same \`migrateOrphanedLinks()\` safety net a normal load already gets, then persists and re-renders. Same pattern Fleur and Racine already use for their own backups.
 
 ## Mobile (build VI — real redesign, not a restyle)
 
@@ -703,21 +997,26 @@ Height-boost requests (\`requestFullHeight\`/\`releaseFullHeight\`) are now refe
 ## Data model
 
 \`\`\`js
-branches = [{id, name}]
-links    = [{id, branchId, url, icon, leafColor, iconColor, name}]
+branches  = [{id, name}]
+links     = [{id, branchId, url, icon, leafColor, iconColor, name}]
+birthdays = [{id, name, month, day}]  // no year -- see Canopy heading section above
 \`\`\`
-\`name\` is optional on both. \`leafColor\`/\`iconColor\` default to \`${DEFAULT_LEAF_COLOR}\`/\`${DEFAULT_ICON_COLOR}\` when absent. \`branche_branches\`, \`branche_links\`, \`branche_sync_endpoint\` must never be renamed.
+\`name\` is optional on branches/links. \`leafColor\`/\`iconColor\` default to \`${DEFAULT_LEAF_COLOR}\`/\`${DEFAULT_ICON_COLOR}\` when absent. \`branche_branches\`, \`branche_links\`, \`branche_birthdays\`, \`branche_sync_endpoint\` must never be renamed.
 
 ## Cross-device sync
 
-Unchanged since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync).
+Unchanged since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync). As of build 10, the synced state also carries \`birthdays\` alongside \`branches\`/\`links\` in the same single JSON blob at row 3 — no change to \`sync.js\` was needed, since it already stores/returns an opaque \`state\` object per row rather than caring about its shape. A cloud save from before build 10 simply won't have a \`birthdays\` field; loading one defaults it to \`[]\` rather than erroring.
+
+
 
 ## Open questions
 
 - **Geometry has been fixed twice now based on actual visual feedback (build V, build VI) and should be close**, but sizes/spacing are still worth confirming against the preview file rather than assumed correct from reading the code.
 - **Mobile's maximized-view scale (0.85) is a first guess**, not yet confirmed against a real narrow screen.
 - **Branch and leaf reordering both use ▲▼ buttons only**, no drag, by deliberate choice since build IV.
-- **The tree metaphor itself may not be working (as of build 9)** — direct feedback was that it's "just looking terrible" and a different approach entirely might be tried next, separate from any individual geometry fix. Build 9 only did the specific fixes asked for (branch balance, canopy restyle); it did not attempt a broader redesign. If a future session is asked to "start over" on Branche's visual concept, that's a deliberate reset, not a sign every prior build's reasoning was wrong.
+- **The tree metaphor itself may not be working (as of build 9)** — direct feedback was that it's "just looking terrible" and a different approach entirely might be tried next, separate from any individual geometry fix. Build 9 only did the specific fixes asked for (branch balance, canopy restyle); it did not attempt a broader redesign. Build 10's canopy rework (star+"V" → greeting text) happened inside that same "may get redone entirely" heading — if a future session starts over on Branche's visual concept, the greeting logic itself (\`timeGreeting\`, holiday tables, birthdays) has no dependency on the tree/canopy markup and can move wholesale into whatever replaces it.
+- **\`JEWISH_HOLIDAYS\` only reaches Spring 2030** — extend it before then; see the comment directly above that table for how.
+- **Cross-device birthday sync (build 10) hasn't been confirmed against the real deployed \`sync.js\`/Supabase endpoint** — verified locally (add/edit/delete through the UI, correct canopy output) and the sync code itself is a direct, minimal extension of Branche's already-working \`branches\`/\`links\` sync (same request shape, same row), so risk is low, but the actual round-trip through the live endpoint wasn't testable from the sandbox this was built in (no network egress to it there).
 
 ## Working method for future sessions
 
@@ -734,6 +1033,7 @@ Keep this doc in sync every version. Never rename the storage keys. Branche stay
 // ── Init ─────────────────────────────────────────────────────────
 document.getElementById('doc-btn').addEventListener('click',downloadContextDoc);
 renderAll();
+renderCanopy();
 loadFromCloud();
 </script>
 </body>
