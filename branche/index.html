@@ -38,6 +38,14 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .knot{position:absolute;background:var(--knot);cursor:pointer;opacity:.92;
   border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
 .knot:hover{filter:brightness(1.2)}
+/* ── Second knot (build 11) -- birthdays editing, deliberately separate
+   from the main knot (branches editing). Same blob shape/material so it
+   reads as "another knot on the same trunk" rather than a bolted-on
+   button, just smaller and set slightly apart so the two are easy to
+   tell apart by touch/click target as well as by eye. ── */
+.knot-bday{position:absolute;background:var(--knot);cursor:pointer;opacity:.75;
+  border-radius:52% 48% 46% 54%/45% 55% 45% 55%}
+.knot-bday:hover{filter:brightness(1.2)}
 
 .leaf-anchor{position:absolute;width:0;height:0}
 .leaf-wrap{position:absolute;left:0;top:0;transform-origin:0 0}
@@ -74,10 +82,9 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   display:flex;flex-direction:column;gap:14px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
 .branch-block{border:1px solid var(--border);border-radius:10px;padding:10px}
-/* ── Birthdays (build 10) -- lives in the same edit pane as branches,
+/* ── Birthdays (build 10) -- separate modal/knot from branches (build 11),
    same visual language (tiny-btn, dashed add button, leaf-edit-row-style
    input rows) so it doesn't feel like a bolted-on second app. ── */
-.section-label{font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin:2px 0 6px}
 .bday-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
 .bday-row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:6px;padding:5px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
@@ -158,14 +165,6 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 <div class="modal hidden" id="edit-modal">
   <div class="modal-card">
     <h2>Edit Branche</h2>
-    <div class="section-label">Anniversaires</div>
-    <div id="edit-birthdays"></div>
-    <div class="add-bday-row">
-      <input type="text" id="new-bday-name" placeholder="Nom">
-      <input type="date" id="new-bday-date">
-      <button class="tiny-btn" id="add-bday-btn">+ Ajouter</button>
-    </div>
-    <div class="section-label" style="margin-top:14px">Branches</div>
     <div id="edit-branches"></div>
     <button class="add-branch-btn" id="add-branch-btn">+ Add branch</button>
     <div class="backup-row">
@@ -174,6 +173,19 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
       <input type="file" id="import-file" accept="application/json" style="display:none">
     </div>
     <div class="modal-actions"><button class="btn-done" id="close-edit">Done</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="birthdays-modal">
+  <div class="modal-card">
+    <h2>Birthdays</h2>
+    <div id="edit-birthdays"></div>
+    <div class="add-bday-row">
+      <input type="text" id="new-bday-name" placeholder="Name">
+      <input type="date" id="new-bday-date">
+      <button class="tiny-btn" id="add-bday-btn">+ Add</button>
+    </div>
+    <div class="modal-actions"><button class="btn-done" id="close-birthdays">Done</button></div>
   </div>
 </div>
 
@@ -329,7 +341,7 @@ function renderAll(){renderTree();renderMobileTree();}
 // at the given layout, and wires up click/knot handlers. Used for the
 // desktop tree, the small "minimized" mobile tree, and the full-size
 // "maximized" mobile overlay tree alike.
-function renderTreeInto(container,layout,onKnotClick){
+function renderTreeInto(container,layout,onKnotClick,onBdayKnotClick){
   let html=`<div class="trunk-el" style="left:${layout.centerX-layout.tw/2}px;top:0;width:${layout.tw}px;height:${layout.trunkHeight}px"></div>`;
 
   layout.branchLayouts.forEach(row=>{
@@ -368,6 +380,10 @@ function renderTreeInto(container,layout,onKnotClick){
   });
 
   html+=`<div class="knot" title="Edit Branche" style="left:${layout.centerX-layout.knotSize/2}px;top:${layout.knotY-layout.knotSize*.4}px;width:${layout.knotSize}px;height:${layout.knotSize*.8}px"></div>`;
+  const bdaySize=layout.knotSize*.6,
+        bdayX=layout.centerX+layout.knotSize*.55, // set apart to the side of the main knot, not stacked on it
+        bdayY=layout.knotY-layout.knotSize*.15;
+  html+=`<div class="knot-bday" title="Edit Birthdays" style="left:${bdayX}px;top:${bdayY}px;width:${bdaySize}px;height:${bdaySize*.8}px"></div>`;
 
   container.style.height=layout.trunkHeight+layout.knotSize/2+'px';
   container.innerHTML=html;
@@ -380,13 +396,15 @@ function renderTreeInto(container,layout,onKnotClick){
   });
   const knotEl=container.querySelector('.knot');
   if(knotEl)knotEl.addEventListener('click',onKnotClick||openEditPane);
+  const bdayKnotEl=container.querySelector('.knot-bday');
+  if(bdayKnotEl)bdayKnotEl.addEventListener('click',onBdayKnotClick||openBirthdaysPane);
 }
 
 function renderTree(){
   const container=document.getElementById('desktop-tree');
   const width=container.getBoundingClientRect().width||600;
   const layout=computeLayout(width,{scale:1,sideMount:false});
-  renderTreeInto(container,layout,openEditPane);
+  renderTreeInto(container,layout,openEditPane,openBirthdaysPane);
   reportHeight();
 }
 window.addEventListener('resize',()=>{renderTree();renderMobileTree();});
@@ -401,9 +419,9 @@ function renderMobileTree(){
   if(!container)return;
   const width=container.getBoundingClientRect().width||360;
   const layout=computeLayout(width,{scale:MOBILE_MINI_SCALE,sideMount:true});
-  renderTreeInto(container,layout,openMaximizedMobileTree);
+  renderTreeInto(container,layout,openMaximizedMobileTree,openMaximizedMobileTree);
   container.onclick=(e)=>{
-    if(!e.target.closest('.leaf-shape')&&!e.target.closest('.knot'))openMaximizedMobileTree();
+    if(!e.target.closest('.leaf-shape')&&!e.target.closest('.knot')&&!e.target.closest('.knot-bday'))openMaximizedMobileTree();
   };
 }
 function openMaximizedMobileTree(){
@@ -415,7 +433,7 @@ function renderMaximizedMobileTree(){
   const container=document.getElementById('mobile-maxi-tree');
   const width=container.getBoundingClientRect().width||360;
   const layout=computeLayout(width,{scale:.85,sideMount:true});
-  renderTreeInto(container,layout,openEditPane);
+  renderTreeInto(container,layout,openEditPane,openBirthdaysPane);
 }
 document.getElementById('close-mobile-maxi').addEventListener('click',()=>{
   document.getElementById('mobile-maxi-modal').classList.add('hidden');
@@ -443,6 +461,22 @@ document.getElementById('add-branch-btn').addEventListener('click',()=>{
   branches.push({id:'branch_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)});
   persist();renderEditPane();
 });
+
+// ── Birthdays pane (its own knot, separate from the branches edit pane) ──
+function openBirthdaysPane(){
+  renderBirthdaysEditList();
+  requestFullHeight();
+  document.getElementById('birthdays-modal').classList.remove('hidden');
+}
+function closeBirthdaysPane(){
+  document.getElementById('birthdays-modal').classList.add('hidden');
+  releaseFullHeight();
+  renderCanopy();
+  if(!document.getElementById('mobile-maxi-modal').classList.contains('hidden')){
+    renderMaximizedMobileTree(); // refresh without a duplicate height request
+  }
+}
+document.getElementById('close-birthdays').addEventListener('click',closeBirthdaysPane);
 
 // ── Backup / restore (safety net independent of localStorage/cloud sync —
 // covers the case an update or a bad sync silently erases existing icons) ──
@@ -485,11 +519,11 @@ function renderBirthdaysEditList(){
     // thrown away again the moment it's re-saved (see BIRTHDAYS_KEY note).
     return `
     <div class="bday-row" data-id="${b.id}">
-      <input type="text" data-action="bday-name" data-id="${b.id}" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Nom">
+      <input type="text" data-action="bday-name" data-id="${b.id}" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Name">
       <input type="date" data-action="bday-date" data-id="${b.id}" value="2000-${mm}-${dd}">
       <button class="tiny-btn danger" data-action="bday-del" data-id="${b.id}">✕</button>
     </div>`;
-  }).join('')||'<div style="font-size:.72rem;color:var(--ink3);padding:4px 0">Aucun anniversaire ajouté</div>';
+  }).join('')||'<div style="font-size:.72rem;color:var(--ink3);padding:4px 0">No birthdays added yet</div>';
   wrap.querySelectorAll('[data-action=bday-name]').forEach(el=>{
     el.addEventListener('input',()=>{
       const b=birthdays.find(x=>x.id===el.dataset.id);if(!b)return;
@@ -516,13 +550,12 @@ document.getElementById('add-bday-btn').addEventListener('click',()=>{
   if(!dateEl.value)return; // name alone with no date isn't useful -- require a date
   const [,m,d]=dateEl.value.split('-').map(Number);
   birthdays.push({id:'bday_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-    name:nameEl.value.trim()||'(sans nom)',month:m,day:d});
+    name:nameEl.value.trim()||'(no name)',month:m,day:d});
   nameEl.value='';dateEl.value='';
   persist();renderBirthdaysEditList();renderCanopy();
 });
 
 function renderEditPane(){
-  renderBirthdaysEditList();
   const wrap=document.getElementById('edit-branches');
   wrap.innerHTML=branches.map((branch,bi)=>{
     const branchLinks=links.filter(l=>l.branchId===branch.id);
@@ -859,16 +892,9 @@ function todaysHolidays(now){
   return hits;
 }
 
-function upcomingBirthdays(now,withinDays){
-  const y=now.getFullYear();
-  return birthdays.map(b=>{
-    let next=new Date(y,b.month-1,b.day);
-    next.setHours(0,0,0,0);
-    const todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    if(next<todayMid)next=new Date(y+1,b.month-1,b.day); // already passed this year -- look at next year's
-    const diffDays=Math.round((next-todayMid)/86400000);
-    return {...b,diffDays};
-  }).filter(b=>b.diffDays>=0&&b.diffDays<=withinDays).sort((a,b)=>a.diffDays-b.diffDays);
+function birthdaysToday(now){
+  const m=now.getMonth()+1,d=now.getDate();
+  return birthdays.filter(b=>b.month===m&&b.day===d);
 }
 
 function renderCanopy(){
@@ -883,14 +909,9 @@ function renderCanopy(){
   if(holidays.length){
     lines.push(`<div class="cs-holiday">${holidays.map(h=>h.solemn?h.name:(h.greeting||h.name)).join(' · ')}</div>`);
   }
-  const soonBdays=upcomingBirthdays(now,7);
-  const todayBdays=soonBdays.filter(b=>b.diffDays===0);
-  const laterBdays=soonBdays.filter(b=>b.diffDays>0);
+  const todayBdays=birthdaysToday(now);
   if(todayBdays.length){
-    lines.push(`<div class="cs-bday">🎂 ${todayBdays.map(b=>`Bon anniversaire ${b.name} !`).join(' · ')}</div>`);
-  }
-  if(laterBdays.length){
-    lines.push(`<div class="cs-bday">${laterBdays.map(b=>`Anniversaire de ${b.name} dans ${b.diffDays} jour${b.diffDays>1?'s':''}`).join(' · ')}</div>`);
+    lines.push(`<div class="cs-bday">${todayBdays.map(b=>`Bon anniversaire ${b.name} !`).join(' · ')}</div>`);
   }
   subEl.innerHTML=lines.join('');
   reportHeight();
@@ -927,7 +948,7 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 // ── Context doc ──────────────────────────────────────────────────
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 8 — project-wide convention change).
-const BRANCHE_VERSION='10';
+const BRANCHE_VERSION='11';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -951,9 +972,9 @@ An icon-only link launcher visualized as a tree. Builds IV-VII are successive ro
 
 **Build VII** replaces that model entirely, based on an explicit correction: a leaf's baseline (unrotated) orientation is *along the branch itself* — not standing up from it — with its base anchored at the touch point and its body extending in the same direction the branch travels. The whole leaf then tilts 45° up or down *from that baseline*, alternating along the branch. Concretely: \`baselineRot\` is \`0\`° for a rightward-extending branch or \`180\`° for a leftward one (so the leaf points away from the trunk before any tilt), and the final rotation is \`baselineRot + (-45 or +45)\`, alternating by leaf index. This was verified arithmetically (not just asserted) against the actual rotation math before shipping — see the "tip offset" sanity check in this build's development notes if the angle ever needs re-deriving. Leftward and rightward branches end up on opposite alternation phases (one starts tip-up, the other starts tip-down) — this is a harmless byproduct of the trig, not a bug, since the request was for each branch to alternate cleanly along its own length, which both do.
 
-## Canopy heading (build 10 — replaced the build 9 star+"V" mark entirely)
+## Canopy heading (build 10 — replaced the build 9 star+"V" mark entirely; build 11 revised birthdays)
 
-Verdure's requested page heading. **Build 8** tried a baobab-crown motif that didn't read well; **build 9** replaced it with a plain star holding a small "V". **Build 10** drops the icon/mark idea entirely: the canopy is now a French greeting that changes with time of day (\`#canopy-main\`, \`timeGreeting()\`), with a smaller line underneath (\`#canopy-sub\`) recognizing any American/Canadian/Québécois/Jewish holiday today and any friend's birthday today or within the next 7 days. Still sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, still picked up automatically by the existing \`ResizeObserver\` — but \`renderCanopy()\` now also calls \`reportHeight()\` explicitly itself (in addition to the ResizeObserver), since a subtext line appearing/disappearing changes \`#app\`'s height on a timer tick, not just on a user action the ResizeObserver would already be watching for.
+Verdure's requested page heading. **Build 8** tried a baobab-crown motif that didn't read well; **build 9** replaced it with a plain star holding a small "V". **Build 10** drops the icon/mark idea entirely: the canopy is now a French greeting that changes with time of day (\`#canopy-main\`, \`timeGreeting()\`), with a smaller line underneath (\`#canopy-sub\`) recognizing any American/Canadian/Québécois/Jewish holiday today and any friend's birthday today. Still sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, still picked up automatically by the existing \`ResizeObserver\` — but \`renderCanopy()\` now also calls \`reportHeight()\` explicitly itself (in addition to the ResizeObserver), since a subtext line appearing/disappearing changes \`#app\`'s height on a timer tick, not just on a user action the ResizeObserver would already be watching for.
 
 **Time-of-day greeting** (\`timeGreeting()\`): Bonjour (5:00–11:59), Bon après-midi (12:00–17:59), Bonsoir (18:00–21:59), Bonne nuit (22:00–4:59). Uses the browser's local time (\`Date.getHours()\`), not a timezone the person picks — same assumption Racine's calendar already makes.
 
@@ -964,17 +985,23 @@ Verdure's requested page heading. **Build 8** tried a baobab-crown motif that di
 
 **Not every recognized day gets an exclamatory greeting.** Yom Kippur, Tisha B'Av, Remembrance/Veterans Day, Memorial Day, MLK Day, Presidents' Day, and Columbus Day are all marked \`solemn:true\` and shown by name only in the subtext — inventing a cheerful "Happy X!" for a fast day or a memorial would be tone-deaf, and Columbus Day's naming is genuinely contested (Indigenous Peoples' Day in many places) so it gets neutral treatment rather than a pick. If more than one holiday lands on the same date (this happens: e.g. Victoria Day/Journée des patriotes/Memorial Day all share the last Monday of May), all of them show, joined by " · ".
 
-**Birthdays** (\`birthdays\` array, \`upcomingBirthdays()\`): added/edited/deleted from the same edit pane the knot already opens (a new "Anniversaires" section above the branches section — see Data model below). Deliberately store only month+day, no year — the greeting only ever needs "is it today" or "how many days away", never an age. Today's birthdays get "🎂 Bon anniversaire \\<name\\> !"; birthdays within the next 7 days (but not today) get a plainer "Anniversaire de \\<name\\> dans N jours" reminder line, both in the same subtext area as holidays.
+**Birthdays** (\`birthdays\` array, \`birthdaysToday()\`): **build 10 originally also showed an "N days away" advance reminder line and a 🎂 emoji — both were explicitly not asked for and were removed in build 11.** The only birthday behavior now is: if today is someone's birthday, show "Bon anniversaire \\<name\\> !" in the subtext, in French (matching the rest of the greeting/subtext area); nothing shows on any other day. Deliberately store only month+day, no year — the greeting only ever needs "is it today," never an age.
+
+**Editing** (build 11): birthdays get their **own knot** (\`.knot-bday\`, drawn just to the side of the main branches knot in \`renderTreeInto()\`) opening their **own modal** (\`#birthdays-modal\`, \`openBirthdaysPane()\`/\`closeBirthdaysPane()\`) — build 10 originally put a birthdays section inside the same edit pane the main knot opens, mixed in with branches; that's a different, unrelated kind of data and got its own entry point instead. **The editing UI itself (labels, placeholder text, buttons, the modal's \`<h2>\`) is English**, consistent with every other editing surface in this file (Fleur, Racine, Verdure, and Branche's own branches editor are all English) — only the *displayed greeting/subtext* is French, since that's specifically what was asked for; build 10 incorrectly carried French into the editing UI too, which nobody asked for.
 
 **Refresh timer**: \`setInterval(renderCanopy, 60000)\` — a person who leaves this page open across a time-of-day boundary, or past midnight into a new holiday/birthday, will see it update within a minute without needing to reload.
+
+## Two knots now, not one (build 11)
+
+The trunk has carried exactly one knot (branches/links editing) since build I. Build 11 adds a second, smaller one right next to it (\`.knot-bday\`, birthdays editing) rather than folding birthdays into the existing edit pane — they're unrelated data with no reason to share a modal just because they both live in Branche. Both knots use the same blob shape/material so it still reads as "knots on the trunk," not a bolted-on button; the birthday knot is drawn at 60% of the main knot's size and set apart to its side (see the comment above \`.knot-bday\` in the \`<style>\` block for the exact offset) so the two are easy to tell apart by touch/click target as well as by eye. On mobile, tapping either knot on the small "minimized" tree enlarges to the full-size overlay first (matching the existing single-knot behavior) — the actual open-birthdays / open-edit-pane action only fires from a knot tap inside that enlarged view.
 
 ## Branch left/right balance (build 9)
 
 \`computeLayout()\` used to alternate each branch left/right by simple index parity (\`bi%2===0?'left':'right'\`). The trunk itself was always mathematically centered on \`centerX\`, but that alternation ignored how much each side actually weighed — an odd branch count, or one branch with far more links than another, reliably left one side visibly heavier, which read as the whole tree being off-center even though the trunk pixel wasn't. Fixed by tracking a running link-count weight per side and assigning each new branch to whichever side is currently lighter (ties still alternate by index, so the result stays fully deterministic — no measuring, no randomness, matching this file's existing convention). Only affects the desktop/centered path (\`sideMount:false\`) — mobile's side-mounted tree was never trying to be centered in the first place.
 
-## Zero visible chrome outside the edit pane (with two exceptions, as of build 10)
+## Zero visible chrome outside the edit panes (with two exceptions, as of build 10)
 
-No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and the canopy heading above (now a text greeting rather than an icon, as of build 10). The knot at the base of the trunk is still the only entry point to the edit pane, on both desktop and mobile — the greeting text itself has no click behavior, deliberately, to keep that single-entry-point rule intact.
+No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and the canopy heading above (now a text greeting rather than an icon, as of build 10). As of build 11 there are **two** knots at the base of the trunk (branches/links editing, and birthdays editing — see "Two knots now, not one" above), each the sole entry point to its own modal — the greeting text itself has no click behavior, deliberately, to keep that entry-point-only-via-knot rule intact.
 
 ## Export / Import (build 8, extended build 10)
 
@@ -1017,6 +1044,7 @@ Unchanged since build III — push-only from a device with existing data, pull o
 - **The tree metaphor itself may not be working (as of build 9)** — direct feedback was that it's "just looking terrible" and a different approach entirely might be tried next, separate from any individual geometry fix. Build 9 only did the specific fixes asked for (branch balance, canopy restyle); it did not attempt a broader redesign. Build 10's canopy rework (star+"V" → greeting text) happened inside that same "may get redone entirely" heading — if a future session starts over on Branche's visual concept, the greeting logic itself (\`timeGreeting\`, holiday tables, birthdays) has no dependency on the tree/canopy markup and can move wholesale into whatever replaces it.
 - **\`JEWISH_HOLIDAYS\` only reaches Spring 2030** — extend it before then; see the comment directly above that table for how.
 - **Cross-device birthday sync (build 10) hasn't been confirmed against the real deployed \`sync.js\`/Supabase endpoint** — verified locally (add/edit/delete through the UI, correct canopy output) and the sync code itself is a direct, minimal extension of Branche's already-working \`branches\`/\`links\` sync (same request shape, same row), so risk is low, but the actual round-trip through the live endpoint wasn't testable from the sandbox this was built in (no network egress to it there).
+- **Build 10 shipped with things that weren't asked for** — an advance "N days away" birthday reminder, a 🎂 emoji, birthdays sharing the branches edit pane, and French text in the editing UI. All four were corrected in build 11 (see "Birthdays" and "Two knots now" above). Worth remembering as a general caution: when a feature request describes a specific, bounded behavior, don't round it up to a fuller version of the idea — build exactly what was asked, then offer the extension as a question rather than including it by default.
 
 ## Working method for future sessions
 
