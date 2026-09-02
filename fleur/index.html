@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 2</title>
+<title>Fleur · 3</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -25,11 +25,11 @@
   --ts:15px;
   /* time box raw colors (kept in sync with TBOX/TBOX_UI in JS, though
      unreferenced by any var(--x) in current CSS/JS as of Marigold Root) */
-  --today:#29352e;    --today-t:#c1cdc4;
-  --tmrw:#2f2b22;     --tmrw-t:#d1cab4;
-  --upco:#2f281f;     --upco-t:#d0c2b1;
-  --wait:#312626;     --wait-t:#d6c4c4;
-  --casu:#26242f;     --casu-t:#c7c3d3;
+  --today:#2d312f;    --today-t:#c5c9c6;
+  --tmrw:#2b2926;     --tmrw-t:#c8c5bd;
+  --upco:#2a2724;     --upco-t:#c6c1bb;
+  --wait:#2d2a2a;     --wait-t:#d0caca;
+  --casu:#28282b;     --casu-t:#cac8ce;
   /* day abbrevs */
 }
 html{height:auto}
@@ -742,7 +742,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_2_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_3_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -759,14 +759,25 @@ const KEY='fleur_2_v1',KDAY='fleur_marigold_day';
 // applyTheme() in particular is easy to miss since it's a separate copy
 // from :root and doesn't visibly break anything if it's left stale (the
 // CSS var just gets silently overwritten back to the old value on load).
+// Version 3: still too saturated after version 1 -- cut much harder this
+// time (~65% further reduction in HSL terms off version 1's already-lower
+// numbers, so roughly 12-16% saturation down to roughly 4-9%). This is
+// close to the edge of staying visually distinguishable box-to-box at all
+// -- if a future pass needs to go duller still, consider whether hue
+// alone can keep carrying the distinction at this lightness, or whether
+// the five boxes need a different differentiator entirely (an icon, a
+// left-edge stripe) rather than relying on ever-smaller saturation gaps.
+// TBOX_UI + CORK_FRAME + the dead :root vars updated together with this
+// pass too; applyTheme() doesn't need touching this time since it only
+// carries --accent, not any of the TBOX/CORK_FRAME colors.
 const TBOX={
-  today:   {label:'Today',    bg:'#29352e',txt:'#c1cdc4',shape:'sticky'},
-  tomorrow:{label:'Tomorrow', bg:'#2f2b22',txt:'#d1cab4',shape:'sticky'},
-  upcoming:{label:'Upcoming', bg:'#2f281f',txt:'#d0c2b1',shape:'sticky'},
-  wait:    {label:'Wait',     bg:'#312626',txt:'#d6c4c4',shape:'sticky'},
-  casual:  {label:'Casual',   bg:'#26242f',txt:'#c7c3d3',shape:'sticky'},
+  today:   {label:'Today',    bg:'#2d312f',txt:'#c5c9c6',shape:'sticky'},
+  tomorrow:{label:'Tomorrow', bg:'#2b2926',txt:'#c8c5bd',shape:'sticky'},
+  upcoming:{label:'Upcoming', bg:'#2a2724',txt:'#c6c1bb',shape:'sticky'},
+  wait:    {label:'Wait',     bg:'#2d2a2a',txt:'#d0caca',shape:'sticky'},
+  casual:  {label:'Casual',   bg:'#28282b',txt:'#cac8ce',shape:'sticky'},
 };
-const CORK_FRAME={today:'#43554a',tomorrow:'#514a39',upcoming:'#514339',wait:'#524040',casual:'#3f3b4d'};
+const CORK_FRAME={today:'#494f4b',tomorrow:'#494741',upcoming:'#494441',wait:'#4c4646',casual:'#424147'};
 // Version 1: desaturated alongside TBOX/CORK_FRAME/accent -- same hues,
 // pulled down to roughly the same saturation range as Racine/Branche's own
 // ambient palette (~17-20%), since these are the single most visually
@@ -892,7 +903,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -2017,11 +2028,11 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
 const TBOX_UI={
-  today:  {label:'Today',    bg:'#29352e',txt:'#c1cdc4'},
-  tomorrow:{label:'Tomorrow',bg:'#2f2b22',txt:'#d1cab4'},
-  upcoming:{label:'Upcoming',bg:'#2f281f',txt:'#d0c2b1'},
-  wait:   {label:'Wait',     bg:'#312626',txt:'#d6c4c4'},
-  casual: {label:'Casual',   bg:'#26242f',txt:'#c7c3d3'},
+  today:  {label:'Today',    bg:'#2d312f',txt:'#c5c9c6'},
+  tomorrow:{label:'Tomorrow',bg:'#2b2926',txt:'#c8c5bd'},
+  upcoming:{label:'Upcoming',bg:'#2a2724',txt:'#c6c1bb'},
+  wait:   {label:'Wait',     bg:'#2d2a2a',txt:'#d0caca'},
+  casual: {label:'Casual',   bg:'#28282b',txt:'#cac8ce'},
 };
 const REP_LABELS=[
   ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
@@ -2798,7 +2809,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'2',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'3',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
