@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build 17 -->
+<!-- Verdure — build 18 -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -55,7 +55,7 @@ html,body{background:#000}
 const APPS=[
   {id:'branche', label:'Branche', path:'branche/', height:'220px', version:'11'},
   {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'9'},
-  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'1'},
+  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'3'},
 ];
 
 const stack=document.getElementById('stack');
@@ -110,7 +110,7 @@ window.addEventListener('message', (e)=>{
 // NOT in the <title> tag, which stays plain "Verdure". Switched from Roman
 // numerals to plain numbers as of build 13 (project-wide convention change,
 // alongside Branche and Racine; Fleur keeps its own flower-name convention).
-const VERDURE_VERSION='17';
+const VERDURE_VERSION='18';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
