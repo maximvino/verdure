@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 1</title>
+<title>Fleur · 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -471,6 +471,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             <input class="fi" id="awu-time" type="time" style="flex:1;font-size:13px" oninput="syncWaitUntil()">
           </div>
           <input type="hidden" id="awu">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px">
+            <input type="checkbox" id="arwait"> Re-apply this wait time every time it repeats
+          </label>
         </div>
         <div class="em-sub" id="as-link"><input class="fi" id="alink" type="url" placeholder="https://…"></div>
         <div class="em-sub" id="as-rep">
@@ -666,6 +669,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <input class="fi" id="ewu-time" type="time" style="flex:1;font-size:13px" oninput="syncWaitUntilEdit()">
       </div>
       <input type="hidden" id="ewu">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px">
+        <input type="checkbox" id="erwait"> Re-apply this wait time every time it repeats
+      </label>
     </div>
 
     <!-- Link sub -->
@@ -736,7 +742,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_1_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_2_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -886,7 +892,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -951,7 +957,24 @@ function dayTrans(loadedOk){
   // below would happily persist that emptiness over real cloud/local data.
   // Just record today as "seen" without touching tasks, and skip save().
   if(newDay&&loadedOk===false){_day=t;localStorage.setItem(KDAY,t);chkTimeWaits();return;}
-  if(newDay){_day=t;localStorage.setItem(KDAY,t);completedToday=[];tasks.forEach(tk=>{if(tk.repeat&&shouldRep(tk)){tk.done=false;}});tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
+  if(newDay){_day=t;localStorage.setItem(KDAY,t);completedToday=[];tasks.forEach(tk=>{
+    if(tk.repeat&&shouldRep(tk)){
+      tk.done=false;
+      // Recurring wait: chkTimeWaits() (below) permanently clears waitingFor
+      // to '' the moment a wait fires -- that's correct for a one-off wait,
+      // but for a repeat task it meant the SECOND and every later occurrence
+      // silently lost its wait entirely (chkTimeWaits has nothing left to
+      // clear, so the task just sits wherever d2col() puts it, un-waited).
+      // repeatWaitTime is the persistent RULE ("always wait until this time
+      // when this recurs") -- just a "HH:MM" time-of-day, kept separate from
+      // waitUntil (the live, one-fire datetime chkTimeWaits() is allowed to
+      // null out). Rebuild a fresh waitUntil from *today's* date + that
+      // time every time shouldRep() says today is a real occurrence -- this
+      // must go through waitUntil, not waitingFor: waitUntil is the only
+      // field the live chkTimeWaits() actually auto-releases by clock time.
+      if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';tk.col='wait';}
+    }
+  });tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
   else{_day=t;}
   // Re-route date-based tasks.
   // For repeat tasks: if deadlineDate <= today, route normally (task has reached start date).
@@ -1080,16 +1103,20 @@ function fmtDate(dateStr,renderCol){
 }
 
 // ── Time waits ────────────────────────────────────────────────────
-function chkTimeWaits(){
-  const n=new Date(),ts=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;let chg=false;
-  tasks.forEach(t=>{
-    if(t.col!=='wait'||!t.waitingFor||t.waitTaskId)return;
-    const m=t.waitingFor.trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);if(!m)return;
-    let h=parseInt(m[1]),mn=parseInt(m[2]||'0');if(m[3]==='pm'&&h<12)h+=12;if(m[3]==='am'&&h===12)h=0;
-    if(ts>=`${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`){t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';t.waitingFor='';chg=true;}
-  });
-  if(chg){save();ra();}
-}
+// NOTE: an earlier, text-clock-format version of chkTimeWaits() used to
+// live here (parsing free-text waitingFor like "9pm" and auto-releasing
+// once the clock passed it). It was a genuinely dead duplicate -- a
+// second `function chkTimeWaits(){}` declared later in this file (see
+// below) silently wins for every call site in JS when two top-level
+// function declarations share a name, so that text-parsing version
+// never actually ran, ever. Removed rather than left in place, since a
+// dead function with real-looking logic right next to the live one is
+// exactly the kind of trap that leads to misdiagnosing bugs in this
+// area (this happened while building the recurring-wait feature -- see
+// the Wait system section of this doc). The live mechanism only
+// auto-releases via `waitUntil` (a real datetime); free-text
+// `waitingFor` is a manual label only and is never auto-cleared by time
+// passing -- see the actual chkTimeWaits() definition further down.
 
 // ── Natural language ──────────────────────────────────────────────
 const WDM={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
@@ -1557,7 +1584,7 @@ function addRepTask(){
   const name=document.getElementById('new-rep-name').value.trim();if(!name)return;
   const rep=document.getElementById('new-rep-type').value;
   const catId=document.getElementById('new-rep-cat').value;
-  pu('add');tasks.push({id:tid++,name,col:'today',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,done:false,repeat:rep,repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:catId?parseInt(catId):null,stickyColor:'',link:null,paletteColor:nxtP()});
+  pu('add');tasks.push({id:tid++,name,col:'today',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,repeatWaitTime:null,done:false,repeat:rep,repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:catId?parseInt(catId):null,stickyColor:'',link:null,paletteColor:nxtP()});
   document.getElementById('new-rep-name').value='';save();ra();renderRepPane();showU('Added');
 }
 function renderFull(col){document.getElementById(col==='casual'?'casu-row':'wait-row').innerHTML=`<div style="border-radius:14px;overflow:hidden">${corkHTML(col)}</div>`;}
@@ -1653,7 +1680,7 @@ function uncomplete(id){
   // Find task if still exists
   const t=tasks.find(t=>t.id==id);
   if(t){t.done=false;}else{// Re-add
-    tasks.push({id:entry.id,name:entry.name,col:'today',deadlineDate:today(),deadlineTime:null,waitingFor:'',waitTaskId:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:entry.categoryId||null,stickyColor:entry.color,paletteColor:''});
+    tasks.push({id:entry.id,name:entry.name,col:'today',deadlineDate:today(),deadlineTime:null,waitingFor:'',waitTaskId:null,repeatWaitTime:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:entry.categoryId||null,stickyColor:entry.color,paletteColor:''});
   }
   save();ra();
 }
@@ -1776,7 +1803,7 @@ function cboxKey(e,catId){
   const p=parseNL(val);const name=p?(p.name||val):val;const date=p?p.date:null;
   const cat=getCat(catId);const fDate=date||(cat?.defaultDate||null);
   const col=fDate?d2col(fDate,''):cat?.defaultWait?'wait':'casual';
-  pu('add');tasks.push({id:tid++,name,col,deadlineDate:fDate,deadlineTime:null,waitingFor:col==='wait'?cat?.defaultWait||'':'',waitTaskId:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:catId,stickyColor:'',paletteColor:cat?.color||nxtP()});
+  pu('add');tasks.push({id:tid++,name,col,deadlineDate:fDate,deadlineTime:null,waitingFor:col==='wait'?cat?.defaultWait||'':'',waitTaskId:null,repeatWaitTime:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:catId,stickyColor:'',paletteColor:cat?.color||nxtP()});
   e.target.value='';save();ra();showU('Added');
 }
 
@@ -1879,6 +1906,7 @@ function aemReset(){
   document.getElementById('aco').value='today';
   document.getElementById('ac').value='';
   document.getElementById('arep').value='';
+  if(document.getElementById('arwait'))document.getElementById('arwait').checked=false;
   document.getElementById('adc').style.display='none';
   document.querySelectorAll('[id^="as-"]').forEach(el=>el.classList.remove('open'));
 }
@@ -1892,6 +1920,7 @@ function addManual(){
   const repDays=rep==='custom'?getDays('add-days'):[];const repMonthDay=rep==='monthly-day'?parseInt(document.getElementById('amonthday')?.value||1):null;
   const repStart=document.getElementById('arep-start').value||null;
   const wait=document.getElementById('aw').value.trim()||(cat?.defaultWait||'');
+  const arwaitChecked=document.getElementById('arwait')?.checked;
   const waitTaskIdRaw=document.getElementById('awt')?.value;
   const waitTaskId=waitTaskIdRaw?parseInt(waitTaskIdRaw):null;
   const waitUntil=document.getElementById('awu')?.value||null;
@@ -1920,7 +1949,7 @@ function addManual(){
   }
   const color=getDot('add-cr');
   pu('add');
-  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:color,link,paletteColor:color?'':nxtP()});
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:color,link,paletteColor:color?'':nxtP()});
   // Reset
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';
   mkDots('add-cr','');aemReset();aemClose();save();ra();showU('Added');
@@ -2159,6 +2188,7 @@ function openTask(id){
   document.getElementById('ed').value=t.deadlineDate||'';
   document.getElementById('etime').value=t.deadlineTime||'';
   document.getElementById('ew').value=t.waitingFor||'';
+  const erwaitEl=document.getElementById('erwait');if(erwaitEl)erwaitEl.checked=!!t.repeatWaitTime;
   syncSelects();
   const ewtEl=document.getElementById('ewt');if(ewtEl)ewtEl.value=t.waitTaskId||'';
   const ewuEl=document.getElementById('ewu');if(ewuEl)ewuEl.value=t.waitUntil?t.waitUntil.slice(0,16):'';
@@ -2203,6 +2233,18 @@ function saveTask(){
   if(t.waitTaskId)t.waitingFor=''; // task-dep takes precedence over text
   const ewuVal=document.getElementById('ewu')?.value;
   t.waitUntil=ewuVal||null;
+  // Recurring wait: only meaningful for a real waitUntil datetime (not a
+  // task-dependency or a plain-text waitingFor label) on a task that also
+  // repeats. Stores only the TIME portion -- the date gets rebuilt fresh
+  // from *today* every time the repeat fires (see dayTrans()), which is
+  // the whole point: "every Sunday at 9pm", not "this one Sunday, once".
+  // This has to key off waitUntil specifically, not waitingFor: waitUntil
+  // is the only field the live chkTimeWaits() (further down this file)
+  // actually auto-releases by clock time. A free-text waitingFor label is
+  // never auto-cleared by time passing, no matter what it says -- see the
+  // note where the old, dead text-parsing chkTimeWaits() used to live.
+  const erwaitChecked=document.getElementById('erwait')?.checked;
+  t.repeatWaitTime=(erwaitChecked&&t.waitUntil&&!t.waitTaskId)?t.waitUntil.slice(11,16):null;
   t.link=document.getElementById('elink').value.trim()||null;
   t.repeat=document.getElementById('erep').value;t.repeatStart=document.getElementById('erep-start').value||null;
   t.repeatDays=t.repeat==='custom'?getDays('edit-days'):[];
@@ -2411,7 +2453,7 @@ Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal 
 
 That log was already known to be incomplete — a full alphabet cycle or more happened before Kalmia and was never reliably logged. This is itself part of why the project moved off name-picking entirely: Racine, Branche, and Verdure had already switched to plain numbers (1, 2, 3...) for exactly this reason (simpler, no risk of reuse/collision, no log to maintain), and Fleur now follows the same convention, per explicit project-wide instruction. Fleur keeps its own independent counter, just like the other three apps — not unified with theirs.
 
-**Current version: 1** (the first plain-numbered version, immediately following Marigold Root).
+**The plain-number convention began at version 1** (the first plain-numbered version, immediately following Marigold Root) — see "Current version" above for what it actually is now; that line is auto-interpolated from the live \`KEY\` constant so it can't go stale, this one is a fixed historical note about when the switch happened.
 
 **On every new version sent**:
 1. Bump the plain number.
@@ -2584,9 +2626,10 @@ Current call sites: \`corkAddKey\`, \`confirmDrop\` (handles both new-task creat
   col,                  // 'today'|'tomorrow'|'upcoming'|'wait'|'casual'
   deadlineDate,         // 'YYYY-MM-DD' or null
   deadlineTime,         // 'HH:MM' or null
-  waitingFor,           // string label
+  waitingFor,           // string label -- purely a manual, informational text tag. NOT auto-cleared by time passing, ever (see chkTimeWaits() note in Wait system section) -- only waitUntil is.
   waitTaskId,           // int or null
-  waitUntil,            // ISO datetime string or null
+  waitUntil,            // ISO datetime string or null -- the only field chkTimeWaits() auto-releases by clock time
+  repeatWaitTime,       // "HH:MM" string or null -- the RULE, not the live state: "rebuild waitUntil from today's date + this time every time shouldRep(tk) fires." Only meaningful alongside a real waitUntil (not waitTaskId) on a task that also has repeat set. See Wait system section.
   done,                 // bool
   urgent,               // bool — red thumbtack signifier
   repeat,               // ''|'daily'|'weekly'|'biweekly'|'MWF'|'TTS'|'weekdays'|'custom'|'monthly-start'|'monthly-mid'|'monthly-end'|'monthly-day'
@@ -2662,6 +2705,14 @@ A task is **blocked** when:
 **Time-only wait-until (fixed in Marigold Root)**: \`syncWaitUntil()\`/\`syncWaitUntilEdit()\` previously only defaulted a *date-only* pick to midnight — a *time-only* pick (very natural: "wait until 3pm" almost always means later today) produced an empty \`awu\`/\`ewu\` value and the wait silently never saved. Both functions now default to \`today()\` when only a time is given, and also backfill the visible date input so the UI doesn't look like nothing happened.
 
 **Today/Tomorrow + same-day wait incorrectly routing to Wait (fixed in Marigold Root)**: Today/Tomorrow tasks only ever get an explicit \`deadlineDate\` written if the date sub-panel is opened directly — the pill alone was always meant to be enough. \`addManual()\`'s and \`saveTask()\`'s wait-routing checks (\`if((wait...)&&!date)col='wait'\`) didn't know that, so a Today task with no separately-typed date that also had a same-day wait added looked "dateless" to that check and got moved into the Wait box outright, instead of staying in Today shown blocked/faded (the documented, intended behavior — see the comment directly above that check in both functions). Both functions now resolve Today→\`today()\`/Tomorrow→\`tomorrow()\` as an implied date *before* the wait-routing check runs, and \`addManual()\` persists that resolved date onto the new task rather than the possibly-empty raw field.
+
+**Recurring wait didn't survive past its first occurrence (fixed in version 2)**: a repeating task with a wait (e.g. "Take out the trash" every Sunday, wait until 9pm) only ever waited *once*.
+
+**Root cause was two-layered.** The obvious layer: the repeat engine (the \`shouldRep(tk)\`-gated block in \`dayTrans()\`) only ever reset \`done\` on a task's next occurrence — it never re-armed any wait state or routed the task back into \`col:'wait'\`, so the second and later occurrences just sat wherever \`d2col()\` put them, permanently un-waited. The less obvious layer, found while fixing the first one: **this file used to contain two separate \`function chkTimeWaits(){}\` declarations** — an old one (parsing free-text \`waitingFor\` clock strings like \`"9pm"\`) and a newer one (auto-releasing based on the real \`waitUntil\` datetime field). Two top-level function declarations sharing a name in JS silently resolve to whichever is later in source order for every call site — so the old text-parsing version was **completely dead code**, never running for any task, ever. It's been deleted (see the note left in its place, just above the real \`chkTimeWaits()\` definition further down) rather than left in place, since dead logic that looks live right next to the real thing is exactly what led to an initial wrong fix here (an earlier pass at this bug keyed the new recurring-wait field off \`waitingFor\`, which never actually auto-releases anything — only \`waitUntil\` does).
+
+Fixed with a new field, **\`repeatWaitTime\`** — a plain \`"HH:MM"\` time-of-day, the persistent *rule* ("rebuild the wait for this time, every time this recurs"), kept separate from \`waitUntil\` (the live, one-fire datetime \`chkTimeWaits()\` is allowed to null out). Set via a new "Re-apply this wait time every time it repeats" checkbox next to the \`waitUntil\` date/time sub-fields in both the Add-task (\`#arwait\`) and Edit-task (\`#erwait\`) modals — captured as just the time portion (\`waitUntil.slice(11,16)\`) when checked, and only meaningful alongside a real \`waitUntil\` (not a task-dependency). When \`shouldRep(tk)\` fires in \`dayTrans()\`'s new-day block (i.e. today is a real occurrence, not just any day), a task with \`repeatWaitTime\` set gets a fresh \`waitUntil\` rebuilt as \`\${today()}T\${repeatWaitTime}\`, \`waitingFor\` cleared, and \`col\` forced back to \`'wait'\`, in the same pass \`done\` already gets reset — this happens *before* the later re-routing \`forEach\` in \`dayTrans()\`, which already leaves \`col==='wait'\` tasks alone, so the re-arm sticks, and the real \`chkTimeWaits()\` naturally releases it again once that rebuilt \`waitUntil\` passes.
+
+**Left-unchecked edge case (deliberately NOT special-cased)**: if the wait fires and frees the task (say Sunday 9pm) but it's never checked off, it just sits in Today as a normal overdue item through the rest of the week — \`shouldRep\` is false on those days, so nothing re-touches it. It does **not** re-wait early, and it does **not** get force-completed or hidden. The *next* real occurrence (next Sunday) re-arms the wait normally regardless of whether last week's copy was ever finished, since the re-arm is keyed off \`shouldRep(tk)\` being true today, not off the previous cycle's completion state. This was a deliberate choice between two options (surfaced before writing any code): re-wait immediately, or sit open until the next real occurrence — the latter matches how a person actually thinks about a missed recurring chore ("I still owe last Sunday's trash, AND Sunday's coming up again"), and requires no extra state to implement since it falls straight out of \`shouldRep\`'s existing gating.
 
 ---
 
@@ -2747,7 +2798,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'1',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'2',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
