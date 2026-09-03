@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 3</title>
+<title>Fleur · 4</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -742,7 +742,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_3_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_4_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -903,7 +903,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -2733,11 +2733,12 @@ Fixed with a new field, **\`repeatWaitTime\`** — a plain \`"HH:MM"\` time-of-d
 \`importData(event)\` → **replaces everything**: parses JSON, calls \`ap()\` which overwrites \`tasks\`/\`cats\`/etc. wholesale. This is the original import path — destructive by design, used for restoring a full backup.
 
 \`mergeImportData(event)\` → **adds without replacing** (introduced in Marigold). Built for the workflow where the user hands a plain-English paragraph to an AI (e.g. Claude in a separate chat) and gets back a small \`.json\` file of new tasks to drop onto their existing board — the whole point is the user's current agenda must survive the import untouched.
-- Reads \`{ categories: [{name, color}], tasks: [{name, deadlineDate, deadlineTime, category, repeat, repeatDays, repeatStart, repeatMonthDay, waitingFor, waitUntil, urgent, link, notes}] }\`.
+- Reads \`{ categories: [{name, color}], tasks: [{name, deadlineDate, deadlineTime, category, repeat, repeatDays, repeatStart, repeatMonthDay, waitingFor, waitUntil, repeatWaitTime, urgent, link, notes}] }\`.
 - \`category\` is a **plain name string**, not a numeric id — the source paragraph has no way of knowing Fleur's internal category ids. Matched case-insensitively against existing categories first; if no match, a new category is created (using the given \`color\`, or the next palette color if omitted). A task can reference a category name that was never declared in the top-level \`categories[]\` array at all — it still gets created on the fly rather than silently dropping the task's category.
 - Every incoming task gets a **fresh id off the live \`tid\` counter** — this is what makes the merge safe; nothing can collide with a task already on the board.
 - \`col\` is derived the same way normal task creation derives it if not explicitly given: dated tasks route by date via \`d2col\`, a pure wait (waitingFor/waitUntil with no date) goes to Wait, everything else lands in Casual.
 - Existing categories' colors are never overwritten by an incoming file — only brand-new categories get the imported color.
+- **\`repeatWaitTime\` passthrough (fixed after version 2 shipped)**: the initial recurring-wait feature (see Wait system section) added \`repeatWaitTime\` to every other task-creation path but missed this one — a task brought in via merge-import with a repeat pattern and a wait could never re-arm past its first occurrence, silently behaving like a one-shot wait even though \`waitUntil\` was set. Fixed by accepting an optional \`repeatWaitTime\` ("HH:MM") on the incoming task JSON and writing it straight onto the created task, same as every other passthrough field here. Matches \`saveTask()\`'s own convention: only meaningful alongside a real \`waitUntil\`, though this function trusts the incoming file's value directly rather than cross-validating the pairing (same trust level every other field here already gets).
 - UI: the 🌱 transfer modal now has two distinct, clearly-labeled buttons — "➕ Add tasks (merge)" (calls \`mergeImportData\`) and "Import tasks (replace all)" (calls \`importData\`, with a warning line underneath since it wipes everything first).
 
 **Context doc download** (in AI pane): generates and downloads \`fleur-context.md\`. The version name/storage key in this doc are interpolated from the live \`KEY\` constant at download time (\`vkey=KEY.split('_')[1]\`), so they can never go stale — but the rest of this doc (header/UI/layout description) is still a hand-maintained snapshot and MUST be re-synced whenever the UI changes.
@@ -2809,7 +2810,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'3',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'4',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -2857,6 +2858,7 @@ function mergeImportData(e){
         const date=rawT.deadlineDate||null;
         const wait=rawT.waitingFor||'';
         const waitUntil=rawT.waitUntil||null;
+        const repeatWaitTime=rawT.repeatWaitTime||null; // "HH:MM" -- lets an imported recurring task re-arm its wait on later occurrences instead of behaving like a one-shot (see Wait system doc section)
         const rep=rawT.repeat||'';
         let col=rawT.col;
         if(!col){
@@ -2866,7 +2868,7 @@ function mergeImportData(e){
         }
         tasks.push({
           id:tid++,name:rawT.name,col,deadlineDate:date,deadlineTime:rawT.deadlineTime||null,
-          waitingFor:wait,waitTaskId:null,waitUntil,done:false,urgent:!!rawT.urgent,casuPin:false,
+          waitingFor:wait,waitTaskId:null,waitUntil,repeatWaitTime,done:false,urgent:!!rawT.urgent,casuPin:false,
           repeat:rep,repeatDays:rawT.repeatDays||[],repeatStart:rawT.repeatStart||null,
           repeatMonthDay:rawT.repeatMonthDay||null,categoryId:cat?cat.id:null,stickyColor:'',
           link:rawT.link||null,paletteColor:nxtP(),notes:rawT.notes||'',sortOrder:null,fadedUntil:null
