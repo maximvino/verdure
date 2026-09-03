@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 9 -->
+<!-- Branche — build 12 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +17,6 @@
   --border:rgba(224,198,150,.1);
   --border2:rgba(224,198,150,.18);
   --root:#7f9767;
-  --bark:#4d6b42;
   --knot:#2f2013;
   --danger:#c9705a;
   --font-h:'Lora',Georgia,serif;
@@ -26,54 +25,55 @@
 html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);overflow-x:hidden}
 #app{padding:20px 16px 30px;min-height:60px}
 
-/* ── Tree: fully deterministic, JS-computed absolute positions.
-   No SVG anywhere -- plain brown rectangles for trunk/branches, a CSS
-   "blob" for the knot, and a simple two-corner-radius CSS shape for
-   every leaf (all identical size), by explicit request after the
-   previous freeform/organic SVG version didn't render as intended and
-   couldn't be visually checked before deploying. ── */
-#desktop-tree{position:relative;max-width:900px;margin:0 auto}
-.trunk-el{position:absolute;background:var(--bark);opacity:.9}
-.branch-el{position:absolute;background:var(--bark);opacity:.9}
-.knot{position:absolute;background:var(--knot);cursor:pointer;opacity:.92;
-  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
-.knot:hover{filter:brightness(1.2)}
-/* ── Second knot (build 11) -- birthdays editing, deliberately separate
-   from the main knot (branches editing). Same blob shape/material so it
-   reads as "another knot on the same trunk" rather than a bolted-on
-   button, just smaller and set slightly apart so the two are easy to
-   tell apart by touch/click target as well as by eye. ── */
-.knot-bday{position:absolute;background:var(--knot);cursor:pointer;opacity:.75;
-  border-radius:52% 48% 46% 54%/45% 55% 45% 55%}
-.knot-bday:hover{filter:brightness(1.2)}
-
-.leaf-anchor{position:absolute;width:0;height:0}
-.leaf-wrap{position:absolute;left:0;top:0;transform-origin:0 0}
-.leaf-shape{position:absolute;cursor:pointer;opacity:.82;border-radius:50%}
-.leaf-icon-wrap{position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.leaf-icon-wrap img{width:65%;height:65%;object-fit:contain}
-
-#mobile-compact{display:none;padding:16px}
-@media (max-width:640px){#desktop-tree{display:none}#mobile-compact{display:block}}
-#mobile-tree{position:relative;cursor:pointer}
-.mobile-knot-btn{width:44px;height:44px;background:var(--knot);border:none;cursor:pointer;opacity:.9;
-  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
-.mobile-maxi-tree{position:relative;min-height:200px}
-
 /* ── Canopy heading: the page's one heading. Was a plain star+"V" mark
-   (build 9); replaced entirely (build 10) with a French greeting that
-   changes with the time of day, plus a smaller line underneath for any
-   holiday (American/Canadian/Québécois/Jewish) or friend's birthday that
-   falls on today. No icon/mark anymore -- text only, centered, sized to
-   read as a small heading rather than a header bar. ── */
-#canopy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px 4px;user-select:none;text-align:center}
+   (build 9), then a French time-of-day greeting (build 10). Build 12
+   adds punctuation to the greeting itself and tightens the gap before
+   the icon grid specifically -- both on explicit request. ── */
+#canopy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px 0;user-select:none;text-align:center}
 .canopy-main{font-family:var(--font-h);font-weight:500;font-size:1.3rem;color:var(--ink)}
 .canopy-sub{font-family:var(--font-b);font-size:.72rem;color:var(--ink2);line-height:1.5;max-width:280px}
 .canopy-sub:empty{display:none}
 .canopy-sub .cs-holiday{color:var(--ink2)}
 .canopy-sub .cs-bday{color:var(--root)}
 
-/* ── Edit pane (opened only via the knot) ── */
+/* ── Icon grid (build 12 — full replacement of the tree/branches/leaves
+   concept, by explicit request: "looks awful", "totally redone").
+   Deliberately minimal: a fixed-column CSS grid, bare icons, no backing
+   shape/leaf/branch of any kind behind them. GRID_COLS (JS constant,
+   currently 5) IS the number of columns on every screen size -- narrow
+   viewports shrink the CELL size via the media query below rather than
+   reflowing to fewer columns, specifically so a position in the
+   underlying `icons` array always means the same grid cell everywhere,
+   which is what makes the up/down/left/right move buttons in the edit
+   pane (see #edit-icons below) simple, deterministic index math instead
+   of something that has to account for a changing column count. ── */
+#icon-grid{display:grid;grid-template-columns:repeat(var(--grid-cols),1fr);
+  gap:18px 14px;max-width:520px;margin:6px auto 0;padding:4px 10px 20px;justify-items:center}
+#icon-grid:empty{padding:0;margin:0} /* zero icons yet -- no speculative empty grid box */
+.grid-icon{cursor:pointer;background:none;border:none;padding:4px;display:flex;align-items:center;justify-content:center;
+  width:100%;aspect-ratio:1;border-radius:10px}
+.grid-icon:hover{background:rgba(255,255,255,.06)}
+.grid-icon img{width:60%;height:60%;object-fit:contain}
+@media (max-width:480px){
+  #icon-grid{gap:12px 8px;max-width:340px;padding:4px 6px 16px}
+}
+
+/* ── Knot row: the tree's trunk used to be the anchor both knots sat on;
+   with no trunk anymore, they get their own small, always-present strip
+   below the grid instead. Same two knots as build 11 (branches/icons
+   editing, and birthdays editing, kept deliberately separate), same
+   blob shape/material, just relocated. Always rendered regardless of
+   whether any icons exist yet, since a knot is the ONLY entry point to
+   either edit pane -- see "Zero visible chrome" in the doc. ── */
+#knot-row{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0 10px}
+.knot{width:38px;height:30px;background:var(--knot);cursor:pointer;opacity:.92;border:none;padding:0;
+  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
+.knot:hover{filter:brightness(1.2)}
+.knot-bday{width:23px;height:18px;background:var(--knot);cursor:pointer;opacity:.75;border:none;padding:0;
+  border-radius:52% 48% 46% 54%/45% 55% 45% 55%}
+.knot-bday:hover{filter:brightness(1.2)}
+
+/* ── Edit pane (opened only via a knot) ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
   z-index:1000;padding:20px}
 .modal.hidden{display:none}
@@ -81,10 +81,35 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
   display:flex;flex-direction:column;gap:14px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
-.branch-block{border:1px solid var(--border);border-radius:10px;padding:10px}
-/* ── Birthdays (build 10) -- separate modal/knot from branches (build 11),
-   same visual language (tiny-btn, dashed add button, leaf-edit-row-style
-   input rows) so it doesn't feel like a bolted-on second app. ── */
+
+/* ── Icon edit rows (build 12) -- one per grid icon. More controls than
+   the old flat leaf-edit-row fit comfortably on one line (name, URL,
+   icon picker, color, delete, AND four position-move buttons), so this
+   wraps onto two lines: identity+link on top, icon/color/position/
+   delete on the bottom. ── */
+.icon-edit-row{border-top:1px solid var(--border);padding:8px 0;display:flex;flex-direction:column;gap:6px}
+.icon-edit-row .row1{display:flex;align-items:center;gap:8px}
+.icon-edit-row .row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.icon-edit-row img{width:24px;height:24px;object-fit:contain;flex-shrink:0}
+.icon-edit-row input[type=text]{width:90px;flex:none;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.icon-edit-row input[type=url]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.icon-edit-row input[type=color]{width:22px;height:22px;border:none;padding:0;border-radius:50%;cursor:pointer;background:none}
+.icon-edit-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.icon-edit-row input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
+.move-pad{display:inline-grid;grid-template-columns:repeat(3,18px);grid-template-rows:repeat(2,18px);gap:2px;margin-left:auto}
+.move-pad button{grid-column:auto}
+.tiny-btn{background:rgba(255,255,255,.06);border:none;color:var(--ink2);border-radius:5px;
+  font-size:11px;padding:3px 6px;cursor:pointer}
+.tiny-btn:hover{background:rgba(255,255,255,.12)}
+.tiny-btn:disabled{opacity:.25;cursor:default}
+.tiny-btn:disabled:hover{background:rgba(255,255,255,.06)}
+.tiny-btn.danger{color:var(--danger)}
+.add-icon-btn{background:none;border:1.5px dashed var(--root);color:var(--root);
+  border-radius:8px;padding:10px;font-size:.75rem;cursor:pointer;font-family:var(--font-b);width:100%;margin-top:4px}
+
+/* ── Birthdays (build 10, own modal since build 11) ── */
 .bday-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
 .bday-row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:6px;padding:5px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
@@ -92,27 +117,7 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   border-radius:6px;padding:4px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none;color-scheme:dark}
 .add-bday-row{display:flex;gap:8px;margin-top:8px}
 .add-bday-row input[type=text]{flex:1;min-width:0}
-.branch-block-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
-.branch-name-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:4px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.branch-block-hdr .moves{display:flex;gap:4px}
-.tiny-btn{background:rgba(255,255,255,.06);border:none;color:var(--ink2);border-radius:5px;
-  font-size:11px;padding:3px 6px;cursor:pointer}
-.tiny-btn:hover{background:rgba(255,255,255,.12)}
-.tiny-btn.danger{color:var(--danger)}
-.leaf-edit-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
-.leaf-edit-row img{width:24px;height:24px;object-fit:contain;flex-shrink:0}
-.leaf-edit-row input[type=url]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.leaf-edit-row input[type=color]{width:22px;height:22px;border:none;padding:0;border-radius:50%;cursor:pointer;background:none}
-.leaf-edit-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
-.leaf-edit-row input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
-.leaf-name-input{background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:5px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.add-leaf-btn,.add-branch-btn{background:none;border:1.5px dashed var(--root);color:var(--root);
-  border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;font-family:var(--font-b)}
-.add-leaf-btn{margin-top:8px;width:100%}
-.add-branch-btn{width:100%;padding:10px}
+
 /* Export/import backup -- a safety net independent of localStorage itself,
    same pattern Fleur and Racine already use for their own data. */
 .backup-row{display:flex;gap:14px;justify-content:center;padding:10px 0 2px}
@@ -124,7 +129,7 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
 
-/* ── Nested icon-search modal (opened from a leaf row's "icon" button) ── */
+/* ── Nested icon-search modal (opened from an icon row's "icon" button) ── */
 .icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;
   max-height:340px;overflow-y:auto;padding:4px}
 .icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
@@ -149,24 +154,19 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
     <div class="canopy-main" id="canopy-main"></div>
     <div class="canopy-sub" id="canopy-sub"></div>
   </div>
-  <div id="desktop-tree"></div>
-  <div id="mobile-compact"><div id="mobile-tree" title="Tap to view full size"></div></div>
-</div>
-<button id="doc-btn" title="Download Branche context doc"></button>
-
-<div class="modal hidden" id="mobile-maxi-modal">
-  <div class="modal-card" style="max-width:420px">
-    <h2>Branche</h2>
-    <div class="mobile-maxi-tree" id="mobile-maxi-tree"></div>
-    <div class="modal-actions"><button class="btn-done" id="close-mobile-maxi">Done</button></div>
+  <div id="icon-grid"></div>
+  <div id="knot-row">
+    <button class="knot" id="main-knot" title="Edit Branche"></button>
+    <button class="knot-bday" id="bday-knot" title="Edit Birthdays"></button>
   </div>
 </div>
+<button id="doc-btn" title="Download Branche context doc"></button>
 
 <div class="modal hidden" id="edit-modal">
   <div class="modal-card">
     <h2>Edit Branche</h2>
-    <div id="edit-branches"></div>
-    <button class="add-branch-btn" id="add-branch-btn">+ Add branch</button>
+    <div id="edit-icons"></div>
+    <button class="add-icon-btn" id="add-icon-btn">+ Add icon</button>
     <div class="backup-row">
       <button class="link-btn" id="export-btn">Export backup</button>
       <button class="link-btn" id="import-btn">Import backup</button>
@@ -201,58 +201,50 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 
 <script>
 // ── Storage ──────────────────────────────────────────────────────
-const BRANCHES_KEY='branche_branches';
-const LINKS_KEY='branche_links';
+const ICONS_KEY='branche_icons';
 const BIRTHDAYS_KEY='branche_birthdays';
 const SYNC_KEY='branche_sync_endpoint';
 const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
 const SYNC_ROW_ID=3;
-const DEFAULT_LEAF_COLOR='#7f9767';
 const DEFAULT_ICON_COLOR='#f3ead6';
+const GRID_COLS=5; // see #icon-grid comment in <style> for why this is fixed, not responsive
 
-function loadBranchesLocal(){try{return JSON.parse(localStorage.getItem(BRANCHES_KEY))||[];}catch(e){return [];}}
-function saveBranchesLocal(v){localStorage.setItem(BRANCHES_KEY,JSON.stringify(v));}
-function loadLinksLocal(){try{return JSON.parse(localStorage.getItem(LINKS_KEY))||[];}catch(e){return [];}}
-function saveLinksLocal(v){localStorage.setItem(LINKS_KEY,JSON.stringify(v));}
+function loadIconsLocal(){try{return JSON.parse(localStorage.getItem(ICONS_KEY))||[];}catch(e){return [];}}
+function saveIconsLocal(v){localStorage.setItem(ICONS_KEY,JSON.stringify(v));}
 // Birthdays: [{id, name, month(1-12), day}] -- deliberately no year stored.
-// The greeting only ever needs "is today someone's birthday" / "whose is
-// coming up", never an age -- keeping year out avoids ever having to ask
-// "do you mean they turn N or N+1" for a friend who didn't give a year.
+// The greeting only ever needs "is today someone's birthday", never an
+// age -- keeping year out avoids ever having to ask "do you mean they
+// turn N or N+1" for a friend who didn't give a year.
 function loadBirthdaysLocal(){try{return JSON.parse(localStorage.getItem(BIRTHDAYS_KEY))||[];}catch(e){return [];}}
 function saveBirthdaysLocal(v){localStorage.setItem(BIRTHDAYS_KEY,JSON.stringify(v));}
 function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
 
-let branches=loadBranchesLocal();
-let links=loadLinksLocal();
+// icons = [{id, url, icon, iconColor, name}] -- order in this array IS
+// the grid position (row-major, GRID_COLS per row). No grouping/category
+// concept anymore (that was "branches"); see the doc's Migration section
+// for how an old branches+links export gets flattened into this on import.
+let icons=loadIconsLocal();
 let birthdays=loadBirthdaysLocal();
-
-function migrateOrphanedLinks(){
-  const branchIds=new Set(branches.map(b=>b.id));
-  const orphans=links.filter(l=>!l.branchId||!branchIds.has(l.branchId));
-  if(!orphans.length)return false;
-  let home=branches[0];
-  if(!home){home={id:'branch_recovered_'+Date.now()};branches.push(home);}
-  orphans.forEach(l=>{l.branchId=home.id;});
-  return true;
-}
-if(migrateOrphanedLinks()){saveBranchesLocal(branches);saveLinksLocal(links);}
 
 // ── Cross-device sync (push-only from a device with existing data;
 // only a genuinely empty device pulls -- see build III notes) ──────
 let cloudSyncFailed=false;
 async function loadFromCloud(){
-  if(links.length||branches.length||birthdays.length){saveToCloud();return false;}
+  if(icons.length||birthdays.length){saveToCloud();return false;}
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'load',id:SYNC_ROW_ID})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    if(data&&data.state&&(Array.isArray(data.state.links)||Array.isArray(data.state.branches))){
-      links=data.state.links||[];branches=data.state.branches||[];
+    if(data&&data.state&&(Array.isArray(data.state.icons)||Array.isArray(data.state.links))){
+      // Array.isArray(...links) covers a cloud save from before build 12
+      // (branches+links shape) landing on a fresh device -- flatten it
+      // the same way importBackup() does rather than duplicating that
+      // logic; see flattenOldFormat() below.
+      icons=Array.isArray(data.state.icons)?data.state.icons:flattenOldFormat(data.state);
       birthdays=Array.isArray(data.state.birthdays)?data.state.birthdays:[]; // absent on pre-birthday cloud saves -- default empty, not an error
-      migrateOrphanedLinks();
-      saveBranchesLocal(branches);saveLinksLocal(links);saveBirthdaysLocal(birthdays);
-      renderAll();renderCanopy();
+      saveIconsLocal(icons);saveBirthdaysLocal(birthdays);
+      renderGrid();renderCanopy();
       return true;
     }
     return false;
@@ -261,11 +253,22 @@ async function loadFromCloud(){
 async function saveToCloud(){
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{branches,links,birthdays}})});
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{icons,birthdays}})});
     cloudSyncFailed=!res.ok;
   }catch(err){cloudSyncFailed=true;}
 }
-function persist(){saveBranchesLocal(branches);saveLinksLocal(links);saveBirthdaysLocal(birthdays);saveToCloud();}
+function persist(){saveIconsLocal(icons);saveBirthdaysLocal(birthdays);saveToCloud();}
+
+// Flattens a pre-build-12 {branches, links} shape into a flat icons array,
+// dropping branchId/leafColor (no grouping or backing-shape concept
+// anymore) and preserving links' original relative order as the new grid
+// order -- used by both importBackup() and the cloud-load fallback above,
+// so an old export or an old cloud save both land the same way: as
+// "uncategorized" icons, exactly as requested.
+function flattenOldFormat(data){
+  if(!Array.isArray(data.links))return [];
+  return data.links.map(l=>({id:l.id,url:l.url,icon:l.icon,iconColor:l.iconColor||DEFAULT_ICON_COLOR,name:l.name||''}));
+}
 
 // ── Icon rendering ───────────────────────────────────────────────
 function iconUrl(icon,size,color){
@@ -274,173 +277,25 @@ function iconUrl(icon,size,color){
   return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}&color=${c}`;
 }
 
-// ── Deterministic tree layout (no measuring, no randomness) ─────────
-// Parameterized by a `scale` (for mobile's mini/maxi sizes) and a
-// `sideMount` flag: desktop centers the trunk with branches alternating
-// left/right; sideMount pins the trunk near one edge with every branch
-// extending the same direction (the only side that has visible room).
-const TRUNK_WIDTH=64, BRANCH_THICKNESS=14, BRANCH_V_GAP=140, LEAF_SPACING=70,
-      LEAF_LENGTH=56, LEAF_WIDTH=44, ICON_SIZE_RATIO=.75, KNOT_SIZE=38,
-      KNOT_GAP_AFTER_LAST_BRANCH=64, BOTTOM_PAD=24, TOP_PAD=24, EDGE_MARGIN=10;
-
-function computeLayout(containerWidth,opts){
-  opts=opts||{};
-  const scale=opts.scale||1;
-  const sideMount=!!opts.sideMount;
-  const tw=TRUNK_WIDTH*scale, bt=BRANCH_THICKNESS*scale, bvg=BRANCH_V_GAP*scale,
-        ls=LEAF_SPACING*scale, ll=LEAF_LENGTH*scale, lw=LEAF_WIDTH*scale,
-        knotSize=KNOT_SIZE*scale, gap=KNOT_GAP_AFTER_LAST_BRANCH*scale,
-        bottomPad=BOTTOM_PAD*scale, topPad=TOP_PAD*scale, edgeMargin=EDGE_MARGIN*scale;
-  const stub=tw/2+16*scale;
-  const centerX=sideMount?(tw/2+edgeMargin):containerWidth/2;
-  let y=topPad;
-  // Branches used to alternate left/right by simple index parity
-  // (bi%2===0?'left':'right'). The trunk itself was always mathematically
-  // centered on centerX, but that alternation ignored how much each side
-  // actually weighed -- an odd branch count, or one branch with far more
-  // links than another, always left one side visibly heavier, which read
-  // as the whole tree being off-center even though the trunk wasn't.
-  // Assigning each branch to whichever side currently carries less total
-  // link weight keeps the silhouette actually balanced regardless of how
-  // many branches or links exist.
-  let leftWeight=0,rightWeight=0;
-  const branchLayouts=branches.map((branch,bi)=>{
-    const branchLinks=links.filter(l=>l.branchId===branch.id);
-    const weight=branchLinks.length||1; // an empty branch still has visual weight (its own stub)
-    let side;
-    if(sideMount)side='right';
-    else if(leftWeight<rightWeight)side='left';
-    else if(rightWeight<leftWeight)side='right';
-    else side=bi%2===0?'left':'right'; // tied: alternate, still deterministic
-    if(!sideMount){if(side==='left')leftWeight+=weight;else rightWeight+=weight;}
-    const dir=sideMount?1:(side==='left'?-1:1);
-    // Each leaf's BASE (attachment point) sits at stub + li*spacing; the
-    // branch's own rendered length ends exactly at the LAST leaf's base,
-    // not extending past it -- the leaf's own body may still reach
-    // further out once tilted, same as a real leaf tilts away from its
-    // twig, but the branch line itself stops where the leaves are.
-    const lastBaseOffset=stub+Math.max(branchLinks.length-1,0)*ls;
-    const leafLayouts=branchLinks.map((link,li)=>({
-      link,
-      x:centerX+dir*(stub+li*ls),
-      rotSign:li%2===0?1:-1
-    }));
-    const row={branch,side,dir,y,x0:centerX+dir*(tw/2),x1:centerX+dir*lastBaseOffset,leaves:leafLayouts};
-    y+=bvg;
-    return row;
-  });
-  const lastBranchY=branchLayouts.length?branchLayouts[branchLayouts.length-1].y:topPad;
-  const knotY=lastBranchY+gap;
-  const trunkHeight=knotY+knotSize/2+bottomPad;
-  return {centerX,trunkHeight,knotY,branchLayouts,scale,tw,bt,ll,lw,knotSize};
-}
-
-function renderAll(){renderTree();renderMobileTree();}
-
-// Shared renderer: builds the HTML for one tree instance into `container`
-// at the given layout, and wires up click/knot handlers. Used for the
-// desktop tree, the small "minimized" mobile tree, and the full-size
-// "maximized" mobile overlay tree alike.
-function renderTreeInto(container,layout,onKnotClick,onBdayKnotClick){
-  let html=`<div class="trunk-el" style="left:${layout.centerX-layout.tw/2}px;top:0;width:${layout.tw}px;height:${layout.trunkHeight}px"></div>`;
-
-  layout.branchLayouts.forEach(row=>{
-    const left=Math.min(row.x0,row.x1);
-    const w=Math.abs(row.x1-row.x0);
-    html+=`<div class="branch-el" style="left:${left}px;top:${row.y-layout.bt/2}px;width:${w}px;height:${layout.bt}px"></div>`;
-    // Baseline: a leaf lies flat pointing the SAME direction the branch
-    // extends (its base and tip both resting on the branch line). The
-    // only rotation applied from there is a ±45° tilt of the whole leaf
-    // around its BASE (the point actually touching the branch) -- tip
-    // lifting toward the sky (-45° from baseline) or dropping toward the
-    // ground (+45°), alternating leaf to leaf. Nothing else feeds into
-    // the angle: no separate "above/below attachment" concept, no
-    // per-side sign flip beyond the baseline direction itself.
-    const baselineRot=row.dir===1?0:180;
-    row.leaves.forEach(leafInfo=>{
-      const {link,x,rotSign}=leafInfo;
-      const leafColor=link.leafColor||DEFAULT_LEAF_COLOR;
-      const iconColor=link.iconColor||DEFAULT_ICON_COLOR;
-      const tilt=rotSign>0?-45:45; // -45 = tip up (sky), +45 = tip down (ground)
-      const rot=baselineRot+tilt;
-      const title=link.name?link.name:link.url;
-      const iconSize=layout.lw*ICON_SIZE_RATIO;
-      // Leaf-shape spans local x:[0, ll] (base at the anchor, extending
-      // outward along the baseline direction), centered on the branch
-      // line vertically (y:[-lw/2, +lw/2]) before rotation.
-      html+=`<div class="leaf-anchor" style="left:${x}px;top:${row.y}px">
-        <div class="leaf-wrap" style="transform:rotate(${rot}deg)">
-          <div class="leaf-shape" data-id="${link.id}" title="${title}" style="left:0px;top:${-layout.lw/2}px;width:${layout.ll}px;height:${layout.lw}px;background:${leafColor}"></div>
-          <div class="leaf-icon-wrap" title="${title}" style="left:${layout.ll/2-iconSize/2}px;top:${-iconSize/2}px;width:${iconSize}px;height:${iconSize}px;transform:rotate(${-rot}deg)">
-            <img src="${iconUrl(link.icon,32,iconColor)}" alt="" loading="lazy">
-          </div>
-        </div>
-      </div>`;
-    });
-  });
-
-  html+=`<div class="knot" title="Edit Branche" style="left:${layout.centerX-layout.knotSize/2}px;top:${layout.knotY-layout.knotSize*.4}px;width:${layout.knotSize}px;height:${layout.knotSize*.8}px"></div>`;
-  const bdaySize=layout.knotSize*.6,
-        bdayX=layout.centerX+layout.knotSize*.55, // set apart to the side of the main knot, not stacked on it
-        bdayY=layout.knotY-layout.knotSize*.15;
-  html+=`<div class="knot-bday" title="Edit Birthdays" style="left:${bdayX}px;top:${bdayY}px;width:${bdaySize}px;height:${bdaySize*.8}px"></div>`;
-
-  container.style.height=layout.trunkHeight+layout.knotSize/2+'px';
-  container.innerHTML=html;
-
-  container.querySelectorAll('.leaf-shape').forEach(el=>{
+// ── Icon grid (live view) ─────────────────────────────────────────
+function renderGrid(){
+  const grid=document.getElementById('icon-grid');
+  grid.style.setProperty('--grid-cols',GRID_COLS);
+  grid.innerHTML=icons.map(ic=>{
+    const title=ic.name?ic.name:ic.url;
+    return `<button class="grid-icon" data-id="${ic.id}" title="${title}">
+      <img src="${iconUrl(ic.icon,48,ic.iconColor)}" alt="" loading="lazy">
+    </button>`;
+  }).join('');
+  grid.querySelectorAll('.grid-icon').forEach(el=>{
     el.addEventListener('click',()=>{
-      const link=links.find(l=>l.id===el.getAttribute('data-id'));
-      if(link)window.open(link.url,'_blank','noopener');
+      const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
+      if(ic)window.open(ic.url,'_blank','noopener');
     });
   });
-  const knotEl=container.querySelector('.knot');
-  if(knotEl)knotEl.addEventListener('click',onKnotClick||openEditPane);
-  const bdayKnotEl=container.querySelector('.knot-bday');
-  if(bdayKnotEl)bdayKnotEl.addEventListener('click',onBdayKnotClick||openBirthdaysPane);
-}
-
-function renderTree(){
-  const container=document.getElementById('desktop-tree');
-  const width=container.getBoundingClientRect().width||600;
-  const layout=computeLayout(width,{scale:1,sideMount:false});
-  renderTreeInto(container,layout,openEditPane,openBirthdaysPane);
   reportHeight();
 }
-window.addEventListener('resize',()=>{renderTree();renderMobileTree();});
-
-// Mobile: trunk pinned to the left edge, every branch extending
-// rightward (the only direction with visible room), shown small by
-// default ("minimized") and tappable to view at full size in a
-// full-height overlay ("maximized") -- same knot, same editing.
-const MOBILE_MINI_SCALE=.42;
-function renderMobileTree(){
-  const container=document.getElementById('mobile-tree');
-  if(!container)return;
-  const width=container.getBoundingClientRect().width||360;
-  const layout=computeLayout(width,{scale:MOBILE_MINI_SCALE,sideMount:true});
-  renderTreeInto(container,layout,openMaximizedMobileTree,openMaximizedMobileTree);
-  container.onclick=(e)=>{
-    if(!e.target.closest('.leaf-shape')&&!e.target.closest('.knot')&&!e.target.closest('.knot-bday'))openMaximizedMobileTree();
-  };
-}
-function openMaximizedMobileTree(){
-  requestFullHeight();
-  document.getElementById('mobile-maxi-modal').classList.remove('hidden');
-  renderMaximizedMobileTree();
-}
-function renderMaximizedMobileTree(){
-  const container=document.getElementById('mobile-maxi-tree');
-  const width=container.getBoundingClientRect().width||360;
-  const layout=computeLayout(width,{scale:.85,sideMount:true});
-  renderTreeInto(container,layout,openEditPane,openBirthdaysPane);
-}
-document.getElementById('close-mobile-maxi').addEventListener('click',()=>{
-  document.getElementById('mobile-maxi-modal').classList.add('hidden');
-  releaseFullHeight();
-});
-
-
+window.addEventListener('resize',reportHeight); // cell size changes at the 480px breakpoint; grid stays GRID_COLS columns regardless, so no re-render is needed, just a height re-check
 
 // ── Edit pane (the ONLY place any controls beyond click-to-visit live) ──
 function openEditPane(){
@@ -451,18 +306,18 @@ function openEditPane(){
 function closeEditPane(){
   document.getElementById('edit-modal').classList.add('hidden');
   releaseFullHeight();
-  renderAll();
-  if(!document.getElementById('mobile-maxi-modal').classList.contains('hidden')){
-    renderMaximizedMobileTree(); // refresh without a duplicate height request
-  }
+  renderGrid();
 }
+document.getElementById('main-knot').addEventListener('click',openEditPane);
 document.getElementById('close-edit').addEventListener('click',closeEditPane);
-document.getElementById('add-branch-btn').addEventListener('click',()=>{
-  branches.push({id:'branch_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)});
-  persist();renderEditPane();
+document.getElementById('add-icon-btn').addEventListener('click',()=>{
+  openIconPicker(icon=>{
+    icons.push({id:'icon_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),url:'https://',icon,iconColor:DEFAULT_ICON_COLOR,name:''});
+    persist();renderEditPane();
+  });
 });
 
-// ── Birthdays pane (its own knot, separate from the branches edit pane) ──
+// ── Birthdays pane (its own knot, separate from the icons edit pane) ──
 function openBirthdaysPane(){
   renderBirthdaysEditList();
   requestFullHeight();
@@ -472,16 +327,14 @@ function closeBirthdaysPane(){
   document.getElementById('birthdays-modal').classList.add('hidden');
   releaseFullHeight();
   renderCanopy();
-  if(!document.getElementById('mobile-maxi-modal').classList.contains('hidden')){
-    renderMaximizedMobileTree(); // refresh without a duplicate height request
-  }
 }
+document.getElementById('bday-knot').addEventListener('click',openBirthdaysPane);
 document.getElementById('close-birthdays').addEventListener('click',closeBirthdaysPane);
 
 // ── Backup / restore (safety net independent of localStorage/cloud sync —
 // covers the case an update or a bad sync silently erases existing icons) ──
 document.getElementById('export-btn').addEventListener('click',()=>{
-  const data=JSON.stringify({branches,links,birthdays},null,2);
+  const data=JSON.stringify({icons,birthdays},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -497,11 +350,18 @@ document.getElementById('import-file').addEventListener('change',async(e)=>{
   try{
     const text=await file.text();
     const data=JSON.parse(text);
-    if(!Array.isArray(data.branches)||!Array.isArray(data.links))throw new Error('bad shape');
-    branches=data.branches;links=data.links;
+    if(Array.isArray(data.icons)){
+      icons=data.icons;
+    }else if(Array.isArray(data.links)){
+      // Pre-build-12 export (branches+links) -- flatten into flat,
+      // uncategorized icons rather than rejecting the file. This is
+      // exactly the path a backup made before this rewrite takes.
+      icons=flattenOldFormat(data);
+    }else{
+      throw new Error('bad shape');
+    }
     birthdays=Array.isArray(data.birthdays)?data.birthdays:[]; // older backups predate birthdays -- default empty, don't reject the whole file over it
-    migrateOrphanedLinks(); // same safety net a normal load already gets
-    persist();renderAll();renderEditPane();renderCanopy();
+    persist();renderGrid();renderEditPane();renderCanopy();
   }catch(err){
     alert("Couldn't read that backup file.");
   }
@@ -555,139 +415,91 @@ document.getElementById('add-bday-btn').addEventListener('click',()=>{
   persist();renderBirthdaysEditList();renderCanopy();
 });
 
+// ── Icons edit list ────────────────────────────────────────────────
+// Position controls: four buttons (left/right/up/down) per icon, each a
+// plain array-index swap against the neighbor in that direction --
+// left/right are ±1, up/down are ±GRID_COLS (see the #icon-grid comment
+// in <style> for why GRID_COLS is a fixed constant rather than something
+// derived from the viewport). Disabled/omitted at the array's edges
+// rather than wrapping around, same "no surprises" spirit as the old
+// branch/leaf ▲▼ reordering this replaces.
+function moveIcon(id,delta){
+  const i=icons.findIndex(x=>x.id===id);
+  const t=i+delta;
+  if(i<0||t<0||t>=icons.length)return;
+  [icons[i],icons[t]]=[icons[t],icons[i]];
+  persist();renderEditPane();renderGrid();
+}
+
 function renderEditPane(){
-  const wrap=document.getElementById('edit-branches');
-  wrap.innerHTML=branches.map((branch,bi)=>{
-    const branchLinks=links.filter(l=>l.branchId===branch.id);
-    const rows=branchLinks.map((link,li)=>`
-      <div class="leaf-edit-row" data-link-id="${link.id}">
-        <img src="${iconUrl(link.icon,24,link.iconColor)}" alt="">
-        <input type="text" class="leaf-name-input" data-id="${link.id}" placeholder="Name" value="${link.name?link.name.replace(/"/g,'&quot;'):''}" style="width:70px;flex:none">
-        <input type="url" class="link-url-input" data-id="${link.id}" value="${link.url}">
-        <button class="tiny-btn" data-action="change-icon" data-id="${link.id}" title="Change icon">icon</button>
-        <input type="color" data-action="leaf-color" data-id="${link.id}" value="${link.leafColor||DEFAULT_LEAF_COLOR}" title="Leaf color">
-        <input type="color" data-action="icon-color" data-id="${link.id}" value="${link.iconColor||DEFAULT_ICON_COLOR}" title="Icon color">
-        <button class="tiny-btn" data-action="leaf-up" data-id="${link.id}" ${li===0?'disabled':''}>▲</button>
-        <button class="tiny-btn" data-action="leaf-down" data-id="${link.id}" ${li===branchLinks.length-1?'disabled':''}>▼</button>
-        <button class="tiny-btn danger" data-action="delete-leaf" data-id="${link.id}">×</button>
-      </div>`).join('');
-    return `<div class="branch-block" data-branch-id="${branch.id}">
-      <div class="branch-block-hdr">
-        <input type="text" class="branch-name-input" data-id="${branch.id}" placeholder="Branch ${bi+1}" value="${branch.name?branch.name.replace(/"/g,'&quot;'):''}">
-        <div class="moves">
-          <button class="tiny-btn" data-action="branch-up" data-idx="${bi}">▲</button>
-          <button class="tiny-btn" data-action="branch-down" data-idx="${bi}">▼</button>
-          <button class="tiny-btn danger" data-action="delete-branch" data-id="${branch.id}">Delete branch</button>
+  const wrap=document.getElementById('edit-icons');
+  wrap.innerHTML=icons.map((ic,i)=>{
+    const row=Math.floor(i/GRID_COLS), col=i%GRID_COLS;
+    const canLeft=col>0, canRight=col<GRID_COLS-1&&i<icons.length-1,
+          canUp=i-GRID_COLS>=0, canDown=i+GRID_COLS<icons.length;
+    return `
+    <div class="icon-edit-row" data-id="${ic.id}">
+      <div class="row1">
+        <img src="${iconUrl(ic.icon,24,ic.iconColor)}" alt="">
+        <input type="text" data-action="icon-name" data-id="${ic.id}" placeholder="Name" value="${ic.name?ic.name.replace(/"/g,'&quot;'):''}">
+        <input type="url" data-action="icon-url" data-id="${ic.id}" value="${ic.url}">
+      </div>
+      <div class="row2">
+        <button class="tiny-btn" data-action="change-icon" data-id="${ic.id}" title="Change icon">icon</button>
+        <input type="color" data-action="icon-color" data-id="${ic.id}" value="${ic.iconColor||DEFAULT_ICON_COLOR}" title="Icon color">
+        <button class="tiny-btn danger" data-action="delete-icon" data-id="${ic.id}">delete</button>
+        <div class="move-pad">
+          <span></span><button class="tiny-btn" data-action="move-up" data-id="${ic.id}" ${canUp?'':'disabled'}>▲</button><span></span>
+          <button class="tiny-btn" data-action="move-left" data-id="${ic.id}" ${canLeft?'':'disabled'}>◀</button>
+          <button class="tiny-btn" data-action="move-down" data-id="${ic.id}" ${canDown?'':'disabled'}>▼</button>
+          <button class="tiny-btn" data-action="move-right" data-id="${ic.id}" ${canRight?'':'disabled'}>▶</button>
         </div>
       </div>
-      ${rows}
-      <button class="add-leaf-btn" data-action="add-leaf" data-branch="${branch.id}">+ Add leaf</button>
     </div>`;
-  }).join('')||'<div style="color:var(--ink3);font-size:.8rem;text-align:center">No branches yet.</div>';
+  }).join('')||'<div style="color:var(--ink3);font-size:.8rem;text-align:center">No icons yet.</div>';
 
-  wrap.querySelectorAll('.branch-name-input').forEach(el=>{
+  wrap.querySelectorAll('[data-action="icon-name"]').forEach(el=>{
     el.addEventListener('change',()=>{
-      const branch=branches.find(b=>b.id===el.getAttribute('data-id'));
-      if(branch){branch.name=el.value.trim();persist();}
+      const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
+      if(ic){ic.name=el.value.trim();persist();}
     });
   });
-  wrap.querySelectorAll('.leaf-name-input').forEach(el=>{
+  wrap.querySelectorAll('[data-action="icon-url"]').forEach(el=>{
     el.addEventListener('change',()=>{
-      const link=links.find(l=>l.id===el.getAttribute('data-id'));
-      if(link){link.name=el.value.trim();persist();}
-    });
-  });
-  wrap.querySelectorAll('.link-url-input').forEach(el=>{
-    el.addEventListener('change',()=>{
-      const link=links.find(l=>l.id===el.getAttribute('data-id'));
+      const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
       let v=el.value.trim();
       if(v&&!/^https?:\/\//i.test(v))v='https://'+v;
-      if(link){link.url=v;persist();}
-    });
-  });
-  wrap.querySelectorAll('[data-action="leaf-color"]').forEach(el=>{
-    el.addEventListener('input',()=>{
-      const link=links.find(l=>l.id===el.getAttribute('data-id'));
-      if(link){link.leafColor=el.value;persist();}
+      if(ic){ic.url=v;persist();}
     });
   });
   wrap.querySelectorAll('[data-action="icon-color"]').forEach(el=>{
     el.addEventListener('input',()=>{
-      const link=links.find(l=>l.id===el.getAttribute('data-id'));
-      if(link){link.iconColor=el.value;persist();renderEditPane();}
+      const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
+      if(ic){ic.iconColor=el.value;persist();renderEditPane();renderGrid();}
     });
   });
-  wrap.querySelectorAll('[data-action="leaf-up"],[data-action="leaf-down"]').forEach(el=>{
+  wrap.querySelectorAll('[data-action="delete-icon"]').forEach(el=>{
     el.addEventListener('click',()=>{
-      const dir=el.getAttribute('data-action')==='leaf-up'?-1:1;
-      moveLeafWithinBranch(el.getAttribute('data-id'),dir);
-    });
-  });
-  wrap.querySelectorAll('[data-action="delete-leaf"]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      links=links.filter(l=>l.id!==el.getAttribute('data-id'));
-      persist();renderEditPane();
-    });
-  });
-  wrap.querySelectorAll('[data-action="delete-branch"]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const id=el.getAttribute('data-id');
-      branches=branches.filter(b=>b.id!==id);
-      links=links.filter(l=>l.branchId!==id);
-      persist();renderEditPane();
-    });
-  });
-  wrap.querySelectorAll('[data-action="branch-up"],[data-action="branch-down"]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const idx=+el.getAttribute('data-idx');
-      const dir=el.getAttribute('data-action')==='branch-up'?-1:1;
-      const t=idx+dir;
-      if(t<0||t>=branches.length)return;
-      [branches[idx],branches[t]]=[branches[t],branches[idx]];
-      persist();renderEditPane();
-    });
-  });
-  wrap.querySelectorAll('[data-action="add-leaf"]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const branchId=el.getAttribute('data-branch');
-      openIconPicker(icon=>{
-        links.push({id:'link_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branchId,url:'https://',icon,
-          leafColor:DEFAULT_LEAF_COLOR,iconColor:DEFAULT_ICON_COLOR});
-        persist();renderEditPane();
-      });
+      icons=icons.filter(x=>x.id!==el.getAttribute('data-id'));
+      persist();renderEditPane();renderGrid();
     });
   });
   wrap.querySelectorAll('[data-action="change-icon"]').forEach(el=>{
     el.addEventListener('click',()=>{
       const id=el.getAttribute('data-id');
       openIconPicker(icon=>{
-        const link=links.find(l=>l.id===id);
-        if(link){link.icon=icon;persist();renderEditPane();}
+        const ic=icons.find(x=>x.id===id);
+        if(ic){ic.icon=icon;persist();renderEditPane();renderGrid();}
       });
     });
   });
+  wrap.querySelectorAll('[data-action="move-left"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),-1)));
+  wrap.querySelectorAll('[data-action="move-right"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),1)));
+  wrap.querySelectorAll('[data-action="move-up"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),-GRID_COLS)));
+  wrap.querySelectorAll('[data-action="move-down"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),GRID_COLS)));
 }
 
-// Reorders a leaf relative only to OTHER leaves on the same branch --
-// finds its neighbor within that branch's own subset, then swaps their
-// actual positions in the shared `links` array (which correctly changes
-// their relative order within the subset regardless of other branches'
-// links interleaved in between, since Array.filter preserves relative
-// order of matching items).
-function moveLeafWithinBranch(linkId,dir){
-  const link=links.find(l=>l.id===linkId);
-  if(!link)return;
-  const branchLinks=links.filter(l=>l.branchId===link.branchId);
-  const pos=branchLinks.indexOf(link);
-  const targetPos=pos+dir;
-  if(targetPos<0||targetPos>=branchLinks.length)return;
-  const targetLink=branchLinks[targetPos];
-  const i1=links.indexOf(link), i2=links.indexOf(targetLink);
-  [links[i1],links[i2]]=[links[i2],links[i1]];
-  persist();renderEditPane();
-}
-
-// ── Icon picker (nested modal, reused for both add-leaf and change-icon) ──
+// ── Icon picker (nested modal, reused for both add-icon and change-icon) ──
 let iconPickCallback=null, searchDebounce=null;
 function openIconPicker(onPick){
   iconPickCallback=onPick;
@@ -714,10 +526,10 @@ async function runIconSearch(query){
     const res=await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=64`);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    const icons=data.icons||[];
-    if(!icons.length){resultsEl.innerHTML='';statusEl.textContent='No icons found for "'+query+'"';return;}
+    const iconsFound=data.icons||[];
+    if(!iconsFound.length){resultsEl.innerHTML='';statusEl.textContent='No icons found for "'+query+'"';return;}
     statusEl.textContent='';
-    resultsEl.innerHTML=icons.map(id=>`<div class="res" data-icon="${id}"><img src="${iconUrl(id,40)}" loading="lazy" alt=""></div>`).join('');
+    resultsEl.innerHTML=iconsFound.map(id=>`<div class="res" data-icon="${id}"><img src="${iconUrl(id,40)}" loading="lazy" alt=""></div>`).join('');
     resultsEl.querySelectorAll('.res').forEach(el=>{
       el.addEventListener('click',()=>{
         const icon=el.getAttribute('data-icon');
@@ -731,21 +543,25 @@ async function runIconSearch(query){
   }
 }
 
-// ── Canopy greeting (build 10) ───────────────────────────────────
+// ── Canopy greeting (build 10; punctuation added build 12) ────────
 // Main line: a French greeting that changes with the time of day.
 // Sub line (smaller, under it): any holiday recognized today (American,
 // Canadian, Québécois, or Jewish), plus any friend's birthday that's
-// today or coming up within a week. Purely client-side, no network call
-// -- Jewish holidays especially need one since their Gregorian dates
-// shift every year (lunisolar calendar); see JEWISH_HOLIDAYS below for
-// exactly how far that table currently reaches and how to extend it.
+// today. Purely client-side, no network call -- Jewish holidays
+// especially need one since their Gregorian dates shift every year
+// (lunisolar calendar); see JEWISH_HOLIDAYS below for exactly how far
+// that table currently reaches and how to extend it.
 
 function timeGreeting(d){
+  // Non-breaking space (\u00A0) before "!" is correct French typography
+  // (French inserts a space before ! ? ; :, traditionally a thin one;
+  // \u00A0 is the closest a plain string can get without extra markup) --
+  // added in build 12 on explicit request for punctuation here.
   const h=d.getHours();
-  if(h>=5&&h<12)return 'Bonjour';
-  if(h>=12&&h<18)return 'Bon après-midi';
-  if(h>=18&&h<22)return 'Bonsoir';
-  return 'Bonne nuit';
+  if(h>=5&&h<12)return 'Bonjour\u00A0!';
+  if(h>=12&&h<18)return 'Bon après-midi\u00A0!';
+  if(h>=18&&h<22)return 'Bonsoir\u00A0!';
+  return 'Bonne nuit\u00A0!';
 }
 
 // ── Date-rule helpers for floating (nth-weekday) holidays ─────────
@@ -939,7 +755,7 @@ function requestFullHeight(){
 }
 function releaseFullHeight(){
   modalOpenCount=Math.max(0,modalOpenCount-1);
-  if(modalOpenCount>0)return; // a parent modal (e.g. the maximized mobile tree) is still open
+  if(modalOpenCount>0)return;
   try{window.parent.postMessage({type:'modal-close',id:'branche'},window.location.origin);}catch(e){}
   reportHeight();
 }
@@ -948,107 +764,87 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 // ── Context doc ──────────────────────────────────────────────────
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 8 — project-wide convention change).
-const BRANCHE_VERSION='11';
+const BRANCHE_VERSION='12';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
-Paste this at the start of a new Claude conversation when iterating on Branche. Generated live (tiny transparent button, bottom-right corner).
+Paste this at the start of a new Claude conversation, then upload the current \`index.html\` (Branche itself) if you're iterating on it. Generated live from the running page itself (the tiny invisible button in the bottom-right corner), so it reflects the build you're actually running.
 
 ## What this is
 
-An icon-only link launcher visualized as a tree. Builds IV-VII are successive rounds of fixes made after actually seeing each previous build rendered (via the preview-file workflow — see "Working method" below). Several of these were real logic bugs, not just taste adjustments — read the sections below before assuming something is just a style choice.
+A personal icon launcher: a flat grid of icons, each linking out to a site or tool, arranged by hand in the edit pane. Also carries Verdure's page heading (a French time-of-day greeting recognizing American/Canadian/Québécois/Jewish holidays and friends' birthdays) and its own birthday list, both unrelated to the icon grid itself but living in this file per Verdure's own doc.
 
-- **Colors**: trunk, branches, and knot are green-family (\`--bark\`), not brown — an earlier attempt used brown and it looked bad. Leaves default to green too (\`DEFAULT_LEAF_COLOR\`); both leaf fill and icon tint stay independently editable per link.
-- **Trunk and branches**: sharp rectangular edges (no border-radius at all — an earlier version rounded these, which wasn't wanted), straight lines only. Branches start exactly at the trunk's edge, not its center, so their independent \`opacity\` doesn't double-stack into a visible seam where they'd otherwise overlap. A branch's rendered length now ends exactly at its last leaf's attachment point, not extending past it with a dangling stub.
-- **Leaves (build VII — the actual geometry fix)**: a plain round ellipse (\`border-radius:50%\`, not a polygon — "round" means round, not more-sided-but-still-blocky). Each leaf's baseline orientation lies flat along the SAME direction its branch extends (base and tip both effectively resting on the branch line), and the only rotation applied is a ±45° tilt of that whole leaf around its base — tip lifting toward the sky or dropping toward the ground, alternating leaf to leaf along the branch. See the dedicated section below for exactly what was wrong before and why.
-- **Per-leaf color + naming**: leaf fill, icon recolor tint, and an optional name are independently editable per link; a branch can be named too. A leaf's name (or URL if unnamed) becomes its \`title\` — a hover tooltip, no permanently visible text on the tree.
-- **Leaf reordering**: ▲▼ per leaf in the edit pane, scoped to just that leaf's own branch.
+## Total redesign (build 12) — tree/branches/leaves are gone
 
-## The leaf-angle bug — full history, since it took multiple rounds to actually fix
+Builds I through 11 used a hand-drawn tree metaphor: a trunk, branches alternating left/right, leaf-shaped icon holders tilting off each branch. **This was explicitly scrapped** ("looks awful", "totally redone") in favor of a plain, flat, fixed-column icon grid (\`#icon-grid\`, \`GRID_COLS=5\`) — bare icons with **no backing shape of any kind** behind them (no leaf, no branch, no trunk), positioned by hand via move buttons in the edit pane rather than any organic/computed layout. This removed a large amount of code and an entire mobile-specific subsystem along with it:
 
-**Build IV** used a leaf shape with two opposite \`border-radius\` corners at 100%, which bakes in its own diagonal before any rotation is applied — an added ±45° could land anywhere depending on which diagonal it started from. It also had leaves attached only by a single tip-point with an "above/below the branch" concept that, combined with which side of the trunk a branch was on, produced four different effective lean directions instead of one clean alternation.
+- \`computeLayout()\`, \`renderTreeInto()\`, the left/right branch-balancing logic, and every tree-shape CSS class are gone.
+- The old mobile "minimized tree, tap to enlarge into a full-height overlay" system (\`renderMobileTree\`, \`openMaximizedMobileTree\`, \`renderMaximizedMobileTree\`, \`#mobile-maxi-modal\`) is gone entirely — a fixed-column CSS grid doesn't need a separate mobile layout pass the way a hand-computed tree did. Mobile just gets smaller grid cells via a \`480px\` media query; same \`GRID_COLS\`, same array-index math, same everything else. This is a meaningful simplification, not just a visual swap.
+- **Categories ("branches") are gone.** The grid is flat — every icon is a peer, there's no grouping concept anymore. An old branches+links export/cloud-save still imports correctly (see Migration below), just flattened into one uncategorized list.
 
-**Build VI** fixed the shape's built-in diagonal (switched to an unambiguous \`clip-path\` polygon) and added the missing \`transform-origin:0 0\` (without it, rotation pivots around the element's center, not its anchor point, so the "tip" never actually stayed touching the branch) — but kept a fundamentally wrong mental model: leaves standing up roughly perpendicular from a single touch-point, rotated ±45° from *vertical*.
+## Icon grid mechanics
 
-**Build VII** replaces that model entirely, based on an explicit correction: a leaf's baseline (unrotated) orientation is *along the branch itself* — not standing up from it — with its base anchored at the touch point and its body extending in the same direction the branch travels. The whole leaf then tilts 45° up or down *from that baseline*, alternating along the branch. Concretely: \`baselineRot\` is \`0\`° for a rightward-extending branch or \`180\`° for a leftward one (so the leaf points away from the trunk before any tilt), and the final rotation is \`baselineRot + (-45 or +45)\`, alternating by leaf index. This was verified arithmetically (not just asserted) against the actual rotation math before shipping — see the "tip offset" sanity check in this build's development notes if the angle ever needs re-deriving. Leftward and rightward branches end up on opposite alternation phases (one starts tip-up, the other starts tip-down) — this is a harmless byproduct of the trig, not a bug, since the request was for each branch to alternate cleanly along its own length, which both do.
+\`icons = [{id, url, icon, iconColor, name}]\` — a **flat array**, order-is-position: index \`i\` sits at grid row \`floor(i/GRID_COLS)\`, column \`i%GRID_COLS\`. \`GRID_COLS\` (currently 5) is a **fixed constant, not derived from viewport width** — narrow screens shrink the grid's cell size via a media query instead of reflowing to fewer columns, specifically so a given array index always lands in the same conceptual cell everywhere. That's what keeps the edit pane's move-buttons simple: left/right are \`±1\`, up/down are \`±GRID_COLS\`, plain array-swaps, no coordinate system or collision-detection needed anywhere.
 
-## Canopy heading (build 10 — replaced the build 9 star+"V" mark entirely; build 11 revised birthdays)
+**No live drag-and-drop** — deliberate, matching this file's existing convention (branches/leaves reordering was always button-based too, "no drag, by deliberate choice since build IV"). Each icon's edit row has a small 4-button move-pad (▲◀▼▶); a button is disabled rather than wrapping around when there's nowhere to go in that direction (matches the array's actual edges, not a fixed row/col boundary, so the disabled state is always accurate even on a partially-filled last row).
 
-Verdure's requested page heading. **Build 8** tried a baobab-crown motif that didn't read well; **build 9** replaced it with a plain star holding a small "V". **Build 10** drops the icon/mark idea entirely: the canopy is now a French greeting that changes with time of day (\`#canopy-main\`, \`timeGreeting()\`), with a smaller line underneath (\`#canopy-sub\`) recognizing any American/Canadian/Québécois/Jewish holiday today and any friend's birthday today. Still sits directly above \`#desktop-tree\`/\`#mobile-compact\` inside \`#app\`, still picked up automatically by the existing \`ResizeObserver\` — but \`renderCanopy()\` now also calls \`reportHeight()\` explicitly itself (in addition to the ResizeObserver), since a subtext line appearing/disappearing changes \`#app\`'s height on a timer tick, not just on a user action the ResizeObserver would already be watching for.
+**Zero visible chrome outside the edit panes.** No visible plus sign, label, or border around the grid itself — just bare icons on the page background, click-to-visit. \`#icon-grid:empty\` collapses to zero size when there are no icons yet, so an unconfigured install shows nothing but the greeting and the two knots (see below) — same "no speculative UI" principle the old tree followed.
 
-**Time-of-day greeting** (\`timeGreeting()\`): Bonjour (5:00–11:59), Bon après-midi (12:00–17:59), Bonsoir (18:00–21:59), Bonne nuit (22:00–4:59). Uses the browser's local time (\`Date.getHours()\`), not a timezone the person picks — same assumption Racine's calendar already makes.
+## Two knots, relocated (not redesigned)
 
-**Holiday recognition** (\`FIXED_HOLIDAYS\`, \`floatingHolidaysForYear()\`, \`JEWISH_HOLIDAYS\`): three separate lists by how their dates are determined:
-- Fixed calendar dates (New Year's, Canada Day, St-Jean, July 4th, Christmas, etc.) — a flat month/day list.
-- Floating "nth weekday of month" dates (MLK Day, Family Day/Presidents' Day, Victoria Day/Journée des patriotes/Memorial Day, Labour Day, the two different Thanksgivings, Columbus Day) — computed per-year via \`nthWeekdayOfMonth()\`/\`lastWeekdayOfMonth()\`, not hardcoded, since these shift every year by design.
-- Jewish holidays — a **hardcoded lookup table**, deliberately NOT computed live. Their Gregorian dates shift every year because the Hebrew calendar is lunisolar; correctly computing that live is real astronomical/calendrical math, out of scope for what this feature needed. Sourced from the URJ's published 5786–5790 holiday calendar (Gregorian Sept 2025 through ~June 2030), cross-checked against Hebcal for a few individual dates. **This table currently only reaches Spring 2030** — there's a comment directly above \`JEWISH_HOLIDAYS\` explaining exactly how to extend it (search "hebcal holidays \\<year\\>-\\<year+1\\>" and append more entries in the same \`{y,m,d,y2,m2,d2,name,greeting,solemn}\` shape). A future session should extend this proactively once the current range starts running low, not wait for it to silently go blank.
+Build 11 added a second, smaller knot for birthdays, positioned next to the main knot on the trunk. **There's no trunk anymore**, so build 12 gives both knots their own small, always-present strip below the grid (\`#knot-row\`) instead — same shapes, same colors, same separate-modals behavior (\`openEditPane\`/\`openBirthdaysPane\`), just relocated rather than redesigned. They're real \`<button>\` elements now rather than absolutely-positioned \`<div>\`s (there's no layout-engine coordinate math driving their position anymore, so plain flow layout is simpler and equally reliable).
 
-**Not every recognized day gets an exclamatory greeting.** Yom Kippur, Tisha B'Av, Remembrance/Veterans Day, Memorial Day, MLK Day, Presidents' Day, and Columbus Day are all marked \`solemn:true\` and shown by name only in the subtext — inventing a cheerful "Happy X!" for a fast day or a memorial would be tone-deaf, and Columbus Day's naming is genuinely contested (Indigenous Peoples' Day in many places) so it gets neutral treatment rather than a pick. If more than one holiday lands on the same date (this happens: e.g. Victoria Day/Journée des patriotes/Memorial Day all share the last Monday of May), all of them show, joined by " · ".
+## Migration from the old branches+links format
 
-**Birthdays** (\`birthdays\` array, \`birthdaysToday()\`): **build 10 originally also showed an "N days away" advance reminder line and a 🎂 emoji — both were explicitly not asked for and were removed in build 11.** The only birthday behavior now is: if today is someone's birthday, show "Bon anniversaire \\<name\\> !" in the subtext, in French (matching the rest of the greeting/subtext area); nothing shows on any other day. Deliberately store only month+day, no year — the greeting only ever needs "is it today," never an age.
+\`flattenOldFormat(data)\` takes a pre-build-12 \`{branches, links}\` shape and produces a flat \`icons\` array: each link's \`id\`/\`url\`/\`icon\`/\`iconColor\`/\`name\` carry over directly, \`branchId\` and \`leafColor\` are dropped (no grouping or backing-shape concept survives), and the original links' relative order becomes the new grid order — so an old export lands as one flat, "uncategorized" list, in the same relative order the icons used to appear in across all the old branches. This runs in two places: **Import backup** (an old \`branche-backup.json\`) and the **cloud-load fallback** (a device that pulls down a pre-build-12 cloud save). Both funnel through the same \`flattenOldFormat()\` rather than duplicating the mapping logic.
 
-**Editing** (build 11): birthdays get their **own knot** (\`.knot-bday\`, drawn just to the side of the main branches knot in \`renderTreeInto()\`) opening their **own modal** (\`#birthdays-modal\`, \`openBirthdaysPane()\`/\`closeBirthdaysPane()\`) — build 10 originally put a birthdays section inside the same edit pane the main knot opens, mixed in with branches; that's a different, unrelated kind of data and got its own entry point instead. **The editing UI itself (labels, placeholder text, buttons, the modal's \`<h2>\`) is English**, consistent with every other editing surface in this file (Fleur, Racine, Verdure, and Branche's own branches editor are all English) — only the *displayed greeting/subtext* is French, since that's specifically what was asked for; build 10 incorrectly carried French into the editing UI too, which nobody asked for.
+## Canopy heading — punctuation and spacing (build 12)
 
-**Refresh timer**: \`setInterval(renderCanopy, 60000)\` — a person who leaves this page open across a time-of-day boundary, or past midnight into a new holiday/birthday, will see it update within a minute without needing to reload.
+Two small, explicitly requested tweaks to the greeting itself (unrelated to the grid rewrite, but shipped in the same build): \`timeGreeting()\`'s four return values now end in \`\\u00A0!\` (a non-breaking space before the exclamation mark, correct French typography — French inserts a space before \`! ? ; :\`) instead of no punctuation at all; and \`#canopy\`'s bottom padding was cut and \`#icon-grid\` given a small explicit \`margin-top\` instead, so the gap between the greeting and the first row of icons is deliberately tighter than default block spacing would give it.
 
-## Two knots now, not one (build 11)
+## Icon color
 
-The trunk has carried exactly one knot (branches/links editing) since build I. Build 11 adds a second, smaller one right next to it (\`.knot-bday\`, birthdays editing) rather than folding birthdays into the existing edit pane — they're unrelated data with no reason to share a modal just because they both live in Branche. Both knots use the same blob shape/material so it still reads as "knots on the trunk," not a bolted-on button; the birthday knot is drawn at 60% of the main knot's size and set apart to its side (see the comment above \`.knot-bday\` in the \`<style>\` block for the exact offset) so the two are easy to tell apart by touch/click target as well as by eye. On mobile, tapping either knot on the small "minimized" tree enlarges to the full-size overlay first (matching the existing single-knot behavior) — the actual open-birthdays / open-edit-pane action only fires from a knot tap inside that enlarged view.
+Each icon keeps its own \`iconColor\` (a color picker in its edit row, same UI pattern as before) — tints the icon glyph itself via Iconify's \`?color=\` query param (\`iconUrl()\`). There is no second, backing-shape color anymore (the old \`leafColor\` is gone along with the leaf shape it used to fill) — "icons can still have their color changed" now means exactly one color knob per icon, not two.
 
-## Branch left/right balance (build 9)
+## Everything else (birthdays, greeting/holiday recognition, sync, height-reporting) is unchanged from build 11
 
-\`computeLayout()\` used to alternate each branch left/right by simple index parity (\`bi%2===0?'left':'right'\`). The trunk itself was always mathematically centered on \`centerX\`, but that alternation ignored how much each side actually weighed — an odd branch count, or one branch with far more links than another, reliably left one side visibly heavier, which read as the whole tree being off-center even though the trunk pixel wasn't. Fixed by tracking a running link-count weight per side and assigning each new branch to whichever side is currently lighter (ties still alternate by index, so the result stays fully deterministic — no measuring, no randomness, matching this file's existing convention). Only affects the desktop/centered path (\`sideMount:false\`) — mobile's side-mounted tree was never trying to be centered in the first place.
+See builds 10-11 history below for how those work — none of that logic depends on the tree/grid markup, so the rewrite didn't touch it beyond the punctuation/spacing tweak above.
 
-## Zero visible chrome outside the edit panes (with two exceptions, as of build 10)
+## Birthdays (build 10, own knot/modal since build 11)
 
-No visible button, plus sign, or label anywhere in the normal view — only the tree, its icons, hover tooltips from names, and the canopy heading above (now a text greeting rather than an icon, as of build 10). As of build 11 there are **two** knots at the base of the trunk (branches/links editing, and birthdays editing — see "Two knots now, not one" above), each the sole entry point to its own modal — the greeting text itself has no click behavior, deliberately, to keep that entry-point-only-via-knot rule intact.
+If today is a friend's birthday, "Bon anniversaire \\<name\\> !" shows in the canopy subtext, in French (matching the rest of the greeting/subtext area). Nothing shows on any other day — no advance "N days away" reminder (removed in build 11, wasn't asked for), no emoji (also removed in build 11). Stored as \`birthdays = [{id, name, month, day}]\`, deliberately no year — the greeting only ever needs "is it today," never an age. Editing lives in its own modal (\`#birthdays-modal\`, opened by \`#bday-knot\`), and that editing UI is English — only the *displayed* greeting/subtext is French, since that's specifically what was asked for.
 
-## Export / Import (build 8, extended build 10)
+## Holiday recognition
 
-Two text-link buttons in the edit pane's footer, above the Done button: **Export backup** downloads \`{branches, links, birthdays}\` as \`branche-backup.json\`; **Import backup** reads a JSON file back in, validates \`branches\`/\`links\` are arrays before replacing anything (an older backup predating birthdays is still accepted — \`birthdays\` just defaults to \`[]\` rather than rejecting the whole file), runs the same \`migrateOrphanedLinks()\` safety net a normal load already gets, then persists and re-renders. Same pattern Fleur and Racine already use for their own backups.
+Three separate lists by how their dates are determined:
+- Fixed calendar dates (New Year's, Canada Day, St-Jean, July 4th, Christmas, etc.) — a flat month/day list (\`FIXED_HOLIDAYS\`).
+- Floating "nth weekday of month" dates (MLK Day, Family Day/Presidents' Day, Victoria Day/Journée des patriotes/Memorial Day, Labour Day, the two different Thanksgivings, Columbus Day) — computed per-year via \`nthWeekdayOfMonth()\`/\`lastWeekdayOfMonth()\` (\`floatingHolidaysForYear()\`), not hardcoded, since these shift every year by design.
+- Jewish holidays (\`JEWISH_HOLIDAYS\`) — a **hardcoded lookup table**, deliberately NOT computed live (their Gregorian dates shift every year because the Hebrew calendar is lunisolar). Sourced from the URJ's published 5786–5790 holiday calendar (Gregorian Sept 2025 through ~June 2030). **This table currently only reaches Spring 2030** — there's a comment directly above \`JEWISH_HOLIDAYS\` explaining exactly how to extend it.
 
-## Mobile (build VI — real redesign, not a restyle)
-
-Earlier builds hid the tree entirely on mobile in favor of a flat list. As of build VI, mobile shows the **same tree**, just reoriented: the trunk is pinned near the left edge (\`sideMount:true\` in \`computeLayout()\`) and every branch extends rightward — alternating sides the way desktop does would run branches off the left edge of a narrow screen, so instead every branch shares the one direction that actually has room. The tree renders small by default ("minimized", \`MOBILE_MINI_SCALE\` = 0.42), and tapping anywhere on it (except an actual leaf or the knot) opens the same tree at a larger scale (0.85) in a full-height overlay ("maximized") — the knot is reachable and opens the normal edit pane from either the mini or maxi view. \`computeLayout()\` and \`renderTreeInto()\` are fully parameterized by \`{scale, sideMount}\` so desktop, mini-mobile, and maxi-mobile are three calls to the same code, not three separate implementations to keep in sync by hand.
-
-Height-boost requests (\`requestFullHeight\`/\`releaseFullHeight\`) are now reference-counted (\`modalOpenCount\`), specifically because tapping the knot from inside the maximized mobile tree opens a second modal (the edit pane) on top of the first — without counting, closing the inner modal would have released the height request while the outer maximized-tree modal was still supposed to be full-height.
-
-## Layout constants (tune these first if spacing/size looks off)
-
-\`TRUNK_WIDTH\`, \`BRANCH_THICKNESS\`, \`BRANCH_V_GAP\`, \`LEAF_SPACING\`, \`LEAF_LENGTH\`/\`LEAF_WIDTH\`, \`KNOT_SIZE\`, \`KNOT_GAP_AFTER_LAST_BRANCH\`, \`EDGE_MARGIN\` (mobile side-mount margin from the screen edge) — all named constants near the top of the script. \`MOBILE_MINI_SCALE\` (0.42) and the maximized view's 0.85 scale (currently inline in \`openMaximizedMobileTree\`) control the two mobile sizes.
-
-## Modal full-height requests
-
-\`requestFullHeight()\`/\`releaseFullHeight()\` ask Verdure for a temporary full-viewport iframe height while any modal is open, since Branche's normal iframe height only matches its own (possibly short) content. Reference-counted as of build VI (see Mobile section above). See Verdure's own context doc for the generic \`modal-open\`/\`modal-close\` protocol.
+Not every recognized day gets an exclamatory greeting: Yom Kippur, Tisha B'Av, Remembrance/Veterans Day, Memorial Day, MLK Day, Presidents' Day, and Columbus Day are all marked \`solemn:true\` and shown by name only.
 
 ## Data model
 
 \`\`\`js
-branches  = [{id, name}]
-links     = [{id, branchId, url, icon, leafColor, iconColor, name}]
-birthdays = [{id, name, month, day}]  // no year -- see Canopy heading section above
+icons     = [{id, url, icon, iconColor, name}]  // order IS grid position -- see Icon grid mechanics above
+birthdays = [{id, name, month, day}]            // no year -- see Birthdays above
 \`\`\`
-\`name\` is optional on branches/links. \`leafColor\`/\`iconColor\` default to \`${DEFAULT_LEAF_COLOR}\`/\`${DEFAULT_ICON_COLOR}\` when absent. \`branche_branches\`, \`branche_links\`, \`branche_birthdays\`, \`branche_sync_endpoint\` must never be renamed.
+\`name\` is optional on icons. \`iconColor\` defaults to \`${DEFAULT_ICON_COLOR}\` when absent. \`branche_icons\`, \`branche_birthdays\`, \`branche_sync_endpoint\` must never be renamed. (\`branche_branches\`/\`branche_links\`, the pre-build-12 keys, are retired — nothing reads them anymore; an old device's localStorage under those keys is simply never looked at again. If reviving old local data is ever needed, it has to go through \`flattenOldFormat()\` via the Import backup path, not a key rename.)
 
 ## Cross-device sync
 
-Unchanged since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync). As of build 10, the synced state also carries \`birthdays\` alongside \`branches\`/\`links\` in the same single JSON blob at row 3 — no change to \`sync.js\` was needed, since it already stores/returns an opaque \`state\` object per row rather than caring about its shape. A cloud save from before build 10 simply won't have a \`birthdays\` field; loading one defaults it to \`[]\` rather than erroring.
-
-
+Unchanged mechanism since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync). As of build 12, the synced state carries \`{icons, birthdays}\` instead of \`{branches, links, birthdays}\` — no change to \`sync.js\` was needed, since it already stores/returns an opaque \`state\` object per row rather than caring about its shape. A device pulling down a pre-build-12 cloud save gets it flattened via \`flattenOldFormat()\` automatically (see Migration above) rather than erroring.
 
 ## Open questions
 
-- **Geometry has been fixed twice now based on actual visual feedback (build V, build VI) and should be close**, but sizes/spacing are still worth confirming against the preview file rather than assumed correct from reading the code.
-- **Mobile's maximized-view scale (0.85) is a first guess**, not yet confirmed against a real narrow screen.
-- **Branch and leaf reordering both use ▲▼ buttons only**, no drag, by deliberate choice since build IV.
-- **The tree metaphor itself may not be working (as of build 9)** — direct feedback was that it's "just looking terrible" and a different approach entirely might be tried next, separate from any individual geometry fix. Build 9 only did the specific fixes asked for (branch balance, canopy restyle); it did not attempt a broader redesign. Build 10's canopy rework (star+"V" → greeting text) happened inside that same "may get redone entirely" heading — if a future session starts over on Branche's visual concept, the greeting logic itself (\`timeGreeting\`, holiday tables, birthdays) has no dependency on the tree/canopy markup and can move wholesale into whatever replaces it.
+- **\`GRID_COLS=5\` is a first guess**, not confirmed against how many icons actually get used day to day — easy to tune (one constant) if it turns out too cramped or too sparse.
 - **\`JEWISH_HOLIDAYS\` only reaches Spring 2030** — extend it before then; see the comment directly above that table for how.
-- **Cross-device birthday sync (build 10) hasn't been confirmed against the real deployed \`sync.js\`/Supabase endpoint** — verified locally (add/edit/delete through the UI, correct canopy output) and the sync code itself is a direct, minimal extension of Branche's already-working \`branches\`/\`links\` sync (same request shape, same row), so risk is low, but the actual round-trip through the live endpoint wasn't testable from the sandbox this was built in (no network egress to it there).
-- **Build 10 shipped with things that weren't asked for** — an advance "N days away" birthday reminder, a 🎂 emoji, birthdays sharing the branches edit pane, and French text in the editing UI. All four were corrected in build 11 (see "Birthdays" and "Two knots now" above). Worth remembering as a general caution: when a feature request describes a specific, bounded behavior, don't round it up to a fuller version of the idea — build exactly what was asked, then offer the extension as a question rather than including it by default.
+- **Cross-device sync (icons+birthdays) hasn't been confirmed against the real deployed \`sync.js\`/Supabase endpoint** from this sandbox (no network egress to it here) — the request shape is unchanged from build 11's already-working version, just a different \`state\` payload, so risk is low but unverified end-to-end.
+- **This is a full visual rewrite based on a single round of feedback ("looks awful")** — worth confirming the grid actually reads well in practice (icon size, \`GRID_COLS\` count, the knot row's placement) rather than assuming build 12 is the final word on it.
 
 ## Working method for future sessions
 
-Keep this doc in sync every version. Never rename the storage keys. Branche stays fully separate from Verdure/Fleur/Racine's own files. Versioning switched from Roman numerals to plain numbers as of build 8 (project-wide convention change, alongside Racine and Verdure; Fleur keeps its own flower-name convention).
+Keep this doc in sync every version. Never rename \`branche_icons\`/\`branche_birthdays\`/\`branche_sync_endpoint\`. Branche stays fully separate from Verdure/Fleur/Racine's own files. Versioning uses plain numbers (switched from Roman numerals as of build 8, a project-wide convention change alongside Racine and Verdure; Fleur keeps its own flower-name-turned-plain-number convention).
 `;
   const blob=new Blob([doc],{type:'text/markdown'});
   const url=URL.createObjectURL(blob);
@@ -1060,7 +856,7 @@ Keep this doc in sync every version. Never rename the storage keys. Branche stay
 
 // ── Init ─────────────────────────────────────────────────────────
 document.getElementById('doc-btn').addEventListener('click',downloadContextDoc);
-renderAll();
+renderGrid();
 renderCanopy();
 loadFromCloud();
 </script>
