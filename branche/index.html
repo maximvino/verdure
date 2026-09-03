@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 12 -->
+<!-- Branche — build 13 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -23,12 +23,9 @@
   --font-b:'DM Sans',sans-serif;
 }
 html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);overflow-x:hidden}
-#app{padding:20px 16px 30px;min-height:60px}
+#app{position:relative;padding:20px 16px 30px;min-height:60px}
 
-/* ── Canopy heading: the page's one heading. Was a plain star+"V" mark
-   (build 9), then a French time-of-day greeting (build 10). Build 12
-   adds punctuation to the greeting itself and tightens the gap before
-   the icon grid specifically -- both on explicit request. ── */
+/* ── Canopy heading ── */
 #canopy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px 0;user-select:none;text-align:center}
 .canopy-main{font-family:var(--font-h);font-weight:500;font-size:1.3rem;color:var(--ink)}
 .canopy-sub{font-family:var(--font-b);font-size:.72rem;color:var(--ink2);line-height:1.5;max-width:280px}
@@ -36,80 +33,88 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .canopy-sub .cs-holiday{color:var(--ink2)}
 .canopy-sub .cs-bday{color:var(--root)}
 
-/* ── Icon grid (build 12 — full replacement of the tree/branches/leaves
-   concept, by explicit request: "looks awful", "totally redone").
-   Deliberately minimal: a fixed-column CSS grid, bare icons, no backing
-   shape/leaf/branch of any kind behind them. GRID_COLS (JS constant,
-   currently 5) IS the number of columns on every screen size -- narrow
-   viewports shrink the CELL size via the media query below rather than
-   reflowing to fewer columns, specifically so a position in the
-   underlying `icons` array always means the same grid cell everywhere,
-   which is what makes the up/down/left/right move buttons in the edit
-   pane (see #edit-icons below) simple, deterministic index math instead
-   of something that has to account for a changing column count. ── */
-#icon-grid{display:grid;grid-template-columns:repeat(var(--grid-cols),1fr);
-  gap:18px 14px;max-width:520px;margin:6px auto 0;padding:4px 10px 20px;justify-items:center}
-#icon-grid:empty{padding:0;margin:0} /* zero icons yet -- no speculative empty grid box */
+/* ── Icon grid (build 12/13) -- bare icons, no backing shape, explicit
+   {col,row} placement now (build 13) rather than flat array order, so
+   the person can put an icon anywhere in the grid, not just next in
+   sequence. gridCols/gridRows are user-editable state (see edit pane),
+   not fixed constants anymore. ── */
+#icon-grid-wrap{max-width:560px;margin:6px auto 0}
+#icon-grid{display:grid;gap:18px 14px;padding:4px 10px 20px;justify-items:center}
+#icon-grid:empty{padding:0;margin:0}
 .grid-icon{cursor:pointer;background:none;border:none;padding:4px;display:flex;align-items:center;justify-content:center;
   width:100%;aspect-ratio:1;border-radius:10px}
 .grid-icon:hover{background:rgba(255,255,255,.06)}
 .grid-icon img{width:60%;height:60%;object-fit:contain}
+
+/* ── Mobile: collapsed by default (build 13) -- a small tap-to-expand
+   summary instead of the full grid, since a multi-row grid at full size
+   is a lot of vertical space to always show on a phone. Same GRID_COLS/
+   GRID_ROWS and same icons either way -- this only toggles visibility,
+   nothing about layout or data changes on mobile. ── */
+#grid-toggle{display:none;width:100%;max-width:340px;margin:6px auto 0;background:rgba(255,255,255,.05);
+  border:1px solid var(--border2);border-radius:10px;padding:10px;color:var(--ink2);font-family:var(--font-b);
+  font-size:.8rem;cursor:pointer;text-align:center}
 @media (max-width:480px){
-  #icon-grid{gap:12px 8px;max-width:340px;padding:4px 6px 16px}
+  #grid-toggle{display:block}
+  #icon-grid-wrap{display:none}
+  #icon-grid-wrap.expanded{display:block;max-width:340px}
+  #icon-grid.expanded-grid{gap:12px 8px;padding:4px 6px 16px}
 }
 
-/* ── Knot row: the tree's trunk used to be the anchor both knots sat on;
-   with no trunk anymore, they get their own small, always-present strip
-   below the grid instead. Same two knots as build 11 (branches/icons
-   editing, and birthdays editing, kept deliberately separate), same
-   blob shape/material, just relocated. Always rendered regardless of
-   whether any icons exist yet, since a knot is the ONLY entry point to
-   either edit pane -- see "Zero visible chrome" in the doc. ── */
-#knot-row{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0 10px}
-.knot{width:38px;height:30px;background:var(--knot);cursor:pointer;opacity:.92;border:none;padding:0;
-  border-radius:46% 54% 52% 48%/55% 45% 55% 45%}
-.knot:hover{filter:brightness(1.2)}
-.knot-bday{width:23px;height:18px;background:var(--knot);cursor:pointer;opacity:.75;border:none;padding:0;
-  border-radius:52% 48% 46% 54%/45% 55% 45% 55%}
-.knot-bday:hover{filter:brightness(1.2)}
+/* ── Knots → small corner buttons (build 13) -- there's no trunk to sit
+   on anymore (hasn't been since build 12), and the organic knot-blob
+   shape stopped making sense once it wasn't attached to bark. Plain
+   small buttons, tucked in the bottom-right of Branche's own content
+   area (not the page/viewport corner -- that's where the invisible
+   context-doc button already lives, see #doc-btn). ── */
+#corner-buttons{position:absolute;bottom:6px;right:10px;display:flex;gap:6px}
+.corner-btn{background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--ink2);
+  border-radius:6px;padding:5px 10px;font-family:var(--font-b);font-size:.68rem;cursor:pointer}
+.corner-btn:hover{background:rgba(255,255,255,.12);color:var(--ink)}
 
-/* ── Edit pane (opened only via a knot) ── */
+/* ── Edit pane ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
   z-index:1000;padding:20px}
 .modal.hidden{display:none}
 .modal-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px;
-  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);
   display:flex;flex-direction:column;gap:14px}
 .modal-card h2{font-family:var(--font-h);font-weight:500;font-size:1.1rem}
 
-/* ── Icon edit rows (build 12) -- one per grid icon. More controls than
-   the old flat leaf-edit-row fit comfortably on one line (name, URL,
-   icon picker, color, delete, AND four position-move buttons), so this
-   wraps onto two lines: identity+link on top, icon/color/position/
-   delete on the bottom. ── */
-.icon-edit-row{border-top:1px solid var(--border);padding:8px 0;display:flex;flex-direction:column;gap:6px}
+/* Grid-dimensions control, top of the edit pane */
+.grid-dims-row{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border2)}
+.grid-dims-row label{font-size:.78rem;color:var(--ink2)}
+.grid-dims-row input{width:70px;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:6px 8px;font-size:.85rem;color:var(--ink);font-family:var(--font-b);outline:none;text-align:center}
+.grid-dims-err{color:var(--danger);font-size:.72rem}
+
+/* ── Icon edit rows (build 13 -- redesigned: was 4 move-buttons + delete
+   + icon + color all crammed on one line, replaced with a single
+   position field ("A1") plus an inline error message when it's invalid
+   or already taken. Fewer, wider controls than build 12's row. ── */
+.icon-edit-row{border-top:1px solid var(--border);padding:10px 0;display:flex;flex-direction:column;gap:6px}
 .icon-edit-row .row1{display:flex;align-items:center;gap:8px}
-.icon-edit-row .row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.icon-edit-row img{width:24px;height:24px;object-fit:contain;flex-shrink:0}
-.icon-edit-row input[type=text]{width:90px;flex:none;background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.icon-edit-row input[type=url]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:5px 8px;font-size:.75rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.icon-edit-row input[type=color]{width:22px;height:22px;border:none;padding:0;border-radius:50%;cursor:pointer;background:none}
+.icon-edit-row .row2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.icon-edit-row img{width:26px;height:26px;object-fit:contain;flex-shrink:0}
+.icon-edit-row input[type=text]{background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:6px 9px;font-size:.8rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.icon-edit-row input.name-field{width:110px;flex:none}
+.icon-edit-row input[type=url]{flex:1;min-width:120px;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:6px 9px;font-size:.8rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.icon-edit-row input.pos-field{width:52px;flex:none;text-align:center;text-transform:uppercase}
+.icon-edit-row input.pos-field.err{border-color:var(--danger)}
+.icon-edit-row input[type=color]{width:24px;height:24px;border:none;padding:0;border-radius:50%;cursor:pointer;background:none;flex-shrink:0}
 .icon-edit-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
 .icon-edit-row input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
-.move-pad{display:inline-grid;grid-template-columns:repeat(3,18px);grid-template-rows:repeat(2,18px);gap:2px;margin-left:auto}
-.move-pad button{grid-column:auto}
+.pos-err-msg{color:var(--danger);font-size:.7rem;width:100%}
 .tiny-btn{background:rgba(255,255,255,.06);border:none;color:var(--ink2);border-radius:5px;
-  font-size:11px;padding:3px 6px;cursor:pointer}
+  font-size:11px;padding:4px 8px;cursor:pointer}
 .tiny-btn:hover{background:rgba(255,255,255,.12)}
-.tiny-btn:disabled{opacity:.25;cursor:default}
-.tiny-btn:disabled:hover{background:rgba(255,255,255,.06)}
 .tiny-btn.danger{color:var(--danger)}
 .add-icon-btn{background:none;border:1.5px dashed var(--root);color:var(--root);
   border-radius:8px;padding:10px;font-size:.75rem;cursor:pointer;font-family:var(--font-b);width:100%;margin-top:4px}
 
-/* ── Birthdays (build 10, own modal since build 11) ── */
+/* ── Birthdays ── */
 .bday-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
 .bday-row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:6px;padding:5px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
@@ -118,8 +123,6 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .add-bday-row{display:flex;gap:8px;margin-top:8px}
 .add-bday-row input[type=text]{flex:1;min-width:0}
 
-/* Export/import backup -- a safety net independent of localStorage itself,
-   same pattern Fleur and Racine already use for their own data. */
 .backup-row{display:flex;gap:14px;justify-content:center;padding:10px 0 2px}
 .link-btn{background:none;border:none;color:var(--root);font-family:var(--font-b);
   font-size:.72rem;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:2px}
@@ -129,7 +132,6 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
 
-/* ── Nested icon-search modal (opened from an icon row's "icon" button) ── */
 .icon-search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;
   max-height:340px;overflow-y:auto;padding:4px}
 .icon-search-results .res{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
@@ -137,11 +139,8 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .icon-search-results .res:hover{background:rgba(190,220,170,.22)}
 .icon-search-results .res img{width:65%;height:65%;object-fit:contain}
 .icon-search-status{color:var(--ink3);font-size:.72rem;text-align:center;padding:8px 0}
-.modal-card input[type=text]{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+.modal-card input[type=text].search-input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:8px;padding:9px 11px;font-size:.85rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.btn-primary{background:var(--root);color:var(--page);border:none;border-radius:8px;
-  padding:9px 16px;font-family:var(--font-b);font-weight:600;font-size:.8rem;cursor:pointer}
-.btn-primary:hover{filter:brightness(1.1)}
 #doc-btn{position:fixed;bottom:0;right:0;width:14px;height:14px;border:none;background:transparent;
   cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
 #doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
@@ -154,10 +153,11 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
     <div class="canopy-main" id="canopy-main"></div>
     <div class="canopy-sub" id="canopy-sub"></div>
   </div>
-  <div id="icon-grid"></div>
-  <div id="knot-row">
-    <button class="knot" id="main-knot" title="Edit Branche"></button>
-    <button class="knot-bday" id="bday-knot" title="Edit Birthdays"></button>
+  <button id="grid-toggle"></button>
+  <div id="icon-grid-wrap"><div id="icon-grid"></div></div>
+  <div id="corner-buttons">
+    <button class="corner-btn" id="main-knot">Edit</button>
+    <button class="corner-btn" id="bday-knot">Bdays</button>
   </div>
 </div>
 <button id="doc-btn" title="Download Branche context doc"></button>
@@ -165,6 +165,11 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 <div class="modal hidden" id="edit-modal">
   <div class="modal-card">
     <h2>Edit Branche</h2>
+    <div class="grid-dims-row">
+      <label for="grid-dims-input">Grid size (columns x rows)</label>
+      <input type="text" id="grid-dims-input" placeholder="5x4">
+      <span class="grid-dims-err" id="grid-dims-err"></span>
+    </div>
     <div id="edit-icons"></div>
     <button class="add-icon-btn" id="add-icon-btn">+ Add icon</button>
     <div class="backup-row">
@@ -192,7 +197,7 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 <div class="modal hidden" id="icon-pick-modal">
   <div class="modal-card">
     <h2>Choose an icon</h2>
-    <input type="text" id="icon-query" placeholder="Search (e.g. youtube)">
+    <input type="text" class="search-input" id="icon-query" placeholder="Search (e.g. youtube)">
     <div class="icon-search-status" id="icon-search-status"></div>
     <div class="icon-search-results" id="icon-search-results"></div>
     <div class="modal-actions"><button class="btn-done" id="close-icon-pick">Cancel</button></div>
@@ -202,50 +207,94 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 <script>
 // ── Storage ──────────────────────────────────────────────────────
 const ICONS_KEY='branche_icons';
+const GRID_DIMS_KEY='branche_grid_dims';
+const UPDATED_AT_KEY='branche_updated_at';
 const BIRTHDAYS_KEY='branche_birthdays';
 const SYNC_KEY='branche_sync_endpoint';
 const DEFAULT_SYNC='https://oldfleurplanner.netlify.app/api/sync';
 const SYNC_ROW_ID=3;
 const DEFAULT_ICON_COLOR='#f3ead6';
-const GRID_COLS=5; // see #icon-grid comment in <style> for why this is fixed, not responsive
+const DEFAULT_GRID_COLS=5, DEFAULT_GRID_ROWS=4;
+const MAX_GRID_COLS=26; // single-letter column labels only (A-Z) -- see coordLabel()
 
 function loadIconsLocal(){try{return JSON.parse(localStorage.getItem(ICONS_KEY))||[];}catch(e){return [];}}
 function saveIconsLocal(v){localStorage.setItem(ICONS_KEY,JSON.stringify(v));}
-// Birthdays: [{id, name, month(1-12), day}] -- deliberately no year stored.
-// The greeting only ever needs "is today someone's birthday", never an
-// age -- keeping year out avoids ever having to ask "do you mean they
-// turn N or N+1" for a friend who didn't give a year.
+function loadGridDimsLocal(){
+  try{
+    const d=JSON.parse(localStorage.getItem(GRID_DIMS_KEY));
+    if(d&&Number.isInteger(d.cols)&&Number.isInteger(d.rows))return d;
+  }catch(e){}
+  return {cols:DEFAULT_GRID_COLS,rows:DEFAULT_GRID_ROWS};
+}
+function saveGridDimsLocal(){localStorage.setItem(GRID_DIMS_KEY,JSON.stringify({cols:gridCols,rows:gridRows}));}
+function loadUpdatedAtLocal(){return parseInt(localStorage.getItem(UPDATED_AT_KEY)||'0',10);}
+function saveUpdatedAtLocal(v){localStorage.setItem(UPDATED_AT_KEY,String(v));}
 function loadBirthdaysLocal(){try{return JSON.parse(localStorage.getItem(BIRTHDAYS_KEY))||[];}catch(e){return [];}}
 function saveBirthdaysLocal(v){localStorage.setItem(BIRTHDAYS_KEY,JSON.stringify(v));}
 function loadSyncEndpoint(){return localStorage.getItem(SYNC_KEY)||DEFAULT_SYNC;}
 
-// icons = [{id, url, icon, iconColor, name}] -- order in this array IS
-// the grid position (row-major, GRID_COLS per row). No grouping/category
-// concept anymore (that was "branches"); see the doc's Migration section
-// for how an old branches+links export gets flattened into this on import.
+// icons = [{id, url, icon, iconColor, name, col, row}] -- col/row are
+// explicit 0-indexed grid coordinates (build 13; was flat-array order in
+// build 12). gridCols/gridRows are now user-editable state, not a fixed
+// constant -- see "Grid size" control in the edit pane.
 let icons=loadIconsLocal();
+const _dims=loadGridDimsLocal();
+let gridCols=_dims.cols, gridRows=_dims.rows;
 let birthdays=loadBirthdaysLocal();
+let localUpdatedAt=loadUpdatedAtLocal();
 
-// ── Cross-device sync (push-only from a device with existing data;
-// only a genuinely empty device pulls -- see build III notes) ──────
+// ── Cross-device sync (build 13 rewrite — see doc for why) ─────────
+// Build 12's loadFromCloud() only ever pulled from the cloud into a
+// device with NO existing data (`if(icons.length||birthdays.length)
+// {saveToCloud();return false;}`), and pushed otherwise. That meant any
+// device that already had icons -- which, after the very first use, is
+// every device -- never looked at the cloud again; it only ever
+// overwrote it. Two devices that both had data could drift forever,
+// each clobbering the other's changes on its own next save, which is
+// exactly the "changes don't always show up on the other computer"
+// symptom this was built to fix. Replaced with real (if simple)
+// last-write-wins reconciliation: every save stamps `updatedAt`
+// (Date.now()), and loadFromCloud() ALWAYS fetches the remote state and
+// compares timestamps, adopting whichever side is actually newer,
+// regardless of which device has data already.
+//
+// This is still not true multi-device merge (a genuine simultaneous
+// edit on two devices before either syncs will have one side's changes
+// lost, not merged) -- for one person's own icons/birthdays across a
+// couple of their own devices, last-write-wins is the standard,
+// reasonable tradeoff; it just needs to actually run on every load,
+// which it now does, plus periodically and whenever the tab regains
+// focus (see setInterval/visibilitychange below), so a device left open
+// picks up another device's changes without needing a manual reload.
 let cloudSyncFailed=false;
 async function loadFromCloud(){
-  if(icons.length||birthdays.length){saveToCloud();return false;}
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'load',id:SYNC_ROW_ID})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    if(data&&data.state&&(Array.isArray(data.state.icons)||Array.isArray(data.state.links))){
-      // Array.isArray(...links) covers a cloud save from before build 12
-      // (branches+links shape) landing on a fresh device -- flatten it
-      // the same way importBackup() does rather than duplicating that
-      // logic; see flattenOldFormat() below.
-      icons=Array.isArray(data.state.icons)?data.state.icons:flattenOldFormat(data.state);
-      birthdays=Array.isArray(data.state.birthdays)?data.state.birthdays:[]; // absent on pre-birthday cloud saves -- default empty, not an error
-      saveIconsLocal(icons);saveBirthdaysLocal(birthdays);
+    if(!data||!data.state){
+      // No cloud row yet at all -- push local up if there's anything to push.
+      if(icons.length||birthdays.length)saveToCloud();
+      return false;
+    }
+    const remoteUpdatedAt=data.state.updatedAt||0; // 0 covers a pre-build-13 cloud save with no timestamp -- local always wins against that, which is fine, it's stale by definition
+    if(remoteUpdatedAt>localUpdatedAt){
+      // Array.isArray(...links) covers a genuinely old (pre-build-12)
+      // branches+links cloud save; Array.isArray(...icons) with no
+      // col/row on its entries covers a build-12 cloud save (flat order,
+      // no coordinates yet) -- both get normalized the same way an
+      // import would, via normalizeIncomingIcons().
+      icons=normalizeIncomingIcons(data.state);
+      birthdays=Array.isArray(data.state.birthdays)?data.state.birthdays:[];
+      gridCols=Number.isInteger(data.state.gridCols)?data.state.gridCols:DEFAULT_GRID_COLS;
+      gridRows=Number.isInteger(data.state.gridRows)?data.state.gridRows:DEFAULT_GRID_ROWS;
+      localUpdatedAt=remoteUpdatedAt;
+      saveIconsLocal(icons);saveBirthdaysLocal(birthdays);saveGridDimsLocal();saveUpdatedAtLocal(localUpdatedAt);
       renderGrid();renderCanopy();
       return true;
+    }else if(remoteUpdatedAt<localUpdatedAt){
+      saveToCloud(); // local is newer -- push so the cloud (and other devices) catch up
     }
     return false;
   }catch(err){cloudSyncFailed=true;return false;}
@@ -253,22 +302,73 @@ async function loadFromCloud(){
 async function saveToCloud(){
   try{
     const res=await fetch(loadSyncEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{icons,birthdays}})});
+      body:JSON.stringify({action:'save',id:SYNC_ROW_ID,state:{icons,birthdays,gridCols,gridRows,updatedAt:localUpdatedAt}})});
     cloudSyncFailed=!res.ok;
   }catch(err){cloudSyncFailed=true;}
 }
-function persist(){saveIconsLocal(icons);saveBirthdaysLocal(birthdays);saveToCloud();}
-
-// Flattens a pre-build-12 {branches, links} shape into a flat icons array,
-// dropping branchId/leafColor (no grouping or backing-shape concept
-// anymore) and preserving links' original relative order as the new grid
-// order -- used by both importBackup() and the cloud-load fallback above,
-// so an old export or an old cloud save both land the same way: as
-// "uncategorized" icons, exactly as requested.
-function flattenOldFormat(data){
-  if(!Array.isArray(data.links))return [];
-  return data.links.map(l=>({id:l.id,url:l.url,icon:l.icon,iconColor:l.iconColor||DEFAULT_ICON_COLOR,name:l.name||''}));
+function persist(){
+  localUpdatedAt=Date.now();
+  saveIconsLocal(icons);saveBirthdaysLocal(birthdays);saveGridDimsLocal();saveUpdatedAtLocal(localUpdatedAt);
+  saveToCloud();
 }
+// Catch another device's changes without requiring a manual reload:
+// re-check on a timer, and immediately whenever this tab becomes visible
+// again (the common real case: edit on phone, switch back to laptop tab).
+setInterval(loadFromCloud,30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadFromCloud();});
+
+// Normalizes ANY incoming icons shape (old branches+links, build-12 flat
+// array with no col/row, or a genuinely current col/row array) into a
+// valid current-shape array, auto-placing anything that arrives without
+// a usable position. Shared by the cloud-load path above and both
+// import paths below, so there's exactly one place that does this
+// mapping rather than three slightly-different copies of it.
+function normalizeIncomingIcons(data){
+  let raw;
+  if(Array.isArray(data.icons)){
+    raw=data.icons.map(ic=>({id:ic.id,url:ic.url,icon:ic.icon,iconColor:ic.iconColor||DEFAULT_ICON_COLOR,name:ic.name||'',col:ic.col,row:ic.row}));
+  }else if(Array.isArray(data.links)){
+    // Pre-build-12 shape -- branchId/leafColor dropped (no grouping or
+    // backing-shape concept survives); links' relative order across all
+    // the old branches becomes the auto-placement order below.
+    raw=data.links.map(l=>({id:l.id,url:l.url,icon:l.icon,iconColor:l.iconColor||DEFAULT_ICON_COLOR,name:l.name||'',col:undefined,row:undefined}));
+  }else{
+    return [];
+  }
+  const placed=[];
+  raw.forEach(ic=>{
+    const hasValidPos=Number.isInteger(ic.col)&&Number.isInteger(ic.row)&&
+      ic.col>=0&&ic.col<gridCols&&ic.row>=0&&ic.row<gridRows&&
+      !placed.some(p=>p.col===ic.col&&p.row===ic.row);
+    if(hasValidPos){
+      placed.push(ic);
+    }else{
+      const free=firstFreeCell(placed);
+      if(free)placed.push({...ic,col:free.col,row:free.row});
+      // if the grid is completely full, anything left over is silently
+      // dropped rather than crashing the import -- edge case worth
+      // knowing about if a huge old icon set hits a small grid, but not
+      // worth a modal/alert for what should be a rare situation
+    }
+  });
+  return placed;
+}
+function firstFreeCell(against){
+  for(let r=0;r<gridRows;r++){
+    for(let c=0;c<gridCols;c++){
+      if(!against.some(p=>p.col===c&&p.row===r))return {col:c,row:r};
+    }
+  }
+  return null;
+}
+
+// ── Coordinate parsing/formatting ("A1", "F3") ─────────────────────
+function parseCoord(str){
+  const m=(str||'').trim().toUpperCase().match(/^([A-Z])(\d+)$/);
+  if(!m)return null;
+  return {col:m[1].charCodeAt(0)-65,row:parseInt(m[2],10)-1};
+}
+function coordLabel(col,row){return String.fromCharCode(65+col)+(row+1);}
 
 // ── Icon rendering ───────────────────────────────────────────────
 function iconUrl(icon,size,color){
@@ -280,10 +380,10 @@ function iconUrl(icon,size,color){
 // ── Icon grid (live view) ─────────────────────────────────────────
 function renderGrid(){
   const grid=document.getElementById('icon-grid');
-  grid.style.setProperty('--grid-cols',GRID_COLS);
+  grid.style.gridTemplateColumns=`repeat(${gridCols},1fr)`;
   grid.innerHTML=icons.map(ic=>{
     const title=ic.name?ic.name:ic.url;
-    return `<button class="grid-icon" data-id="${ic.id}" title="${title}">
+    return `<button class="grid-icon" data-id="${ic.id}" title="${title}" style="grid-column:${ic.col+1};grid-row:${ic.row+1}">
       <img src="${iconUrl(ic.icon,48,ic.iconColor)}" alt="" loading="lazy">
     </button>`;
   }).join('');
@@ -293,11 +393,26 @@ function renderGrid(){
       if(ic)window.open(ic.url,'_blank','noopener');
     });
   });
+  document.getElementById('grid-toggle').textContent=icons.length?`Icons (${icons.length}) ▾`:'';
+  document.getElementById('grid-toggle').style.display=icons.length?'':'none';
   reportHeight();
 }
-window.addEventListener('resize',reportHeight); // cell size changes at the 480px breakpoint; grid stays GRID_COLS columns regardless, so no re-render is needed, just a height re-check
+window.addEventListener('resize',reportHeight);
 
-// ── Edit pane (the ONLY place any controls beyond click-to-visit live) ──
+// Mobile collapse (build 13) -- collapsed by default, a tap expands the
+// same grid inline. Resets to collapsed on every load; not persisted,
+// since "did I leave it open last time" isn't something worth
+// remembering across visits.
+document.getElementById('grid-toggle').addEventListener('click',()=>{
+  const wrap=document.getElementById('icon-grid-wrap');
+  const grid=document.getElementById('icon-grid');
+  const nowExpanded=wrap.classList.toggle('expanded');
+  grid.classList.toggle('expanded-grid',nowExpanded);
+  document.getElementById('grid-toggle').textContent=nowExpanded?'▴':`Icons (${icons.length}) ▾`;
+  reportHeight();
+});
+
+// ── Edit pane ──────────────────────────────────────────────────────
 function openEditPane(){
   renderEditPane();
   requestFullHeight();
@@ -311,13 +426,37 @@ function closeEditPane(){
 document.getElementById('main-knot').addEventListener('click',openEditPane);
 document.getElementById('close-edit').addEventListener('click',closeEditPane);
 document.getElementById('add-icon-btn').addEventListener('click',()=>{
+  const free=firstFreeCell(icons);
+  if(!free){alert('The grid is full — resize it (top of this pane) or remove an icon first.');return;}
   openIconPicker(icon=>{
-    icons.push({id:'icon_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),url:'https://',icon,iconColor:DEFAULT_ICON_COLOR,name:''});
+    icons.push({id:'icon_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),url:'https://',icon,iconColor:DEFAULT_ICON_COLOR,name:'',col:free.col,row:free.row});
     persist();renderEditPane();
   });
 });
 
-// ── Birthdays pane (its own knot, separate from the icons edit pane) ──
+// Grid-dimensions control -- validates that shrinking never silently
+// strands an existing icon outside the new bounds; growing is always
+// safe (nothing already placed can become invalid) so only the shrink
+// direction needs the stranded-icon check.
+document.getElementById('grid-dims-input').addEventListener('change',e=>{
+  const errEl=document.getElementById('grid-dims-err');
+  errEl.textContent='';
+  const m=e.target.value.trim().match(/^(\d+)\s*[xX]\s*(\d+)$/);
+  if(!m){errEl.textContent='Use the format 5x4 (columns x rows).';e.target.value=`${gridCols}x${gridRows}`;return;}
+  const newCols=parseInt(m[1],10), newRows=parseInt(m[2],10);
+  if(newCols<1||newRows<1){errEl.textContent='Needs at least 1 column and 1 row.';e.target.value=`${gridCols}x${gridRows}`;return;}
+  if(newCols>MAX_GRID_COLS){errEl.textContent=`${MAX_GRID_COLS} columns max (single-letter labels, A–Z).`;e.target.value=`${gridCols}x${gridRows}`;return;}
+  const stranded=icons.find(ic=>ic.col>=newCols||ic.row>=newRows);
+  if(stranded){
+    errEl.textContent=`Can't shrink to ${newCols}x${newRows} — "${stranded.name||stranded.url}" is at ${coordLabel(stranded.col,stranded.row)}, which no longer fits. Move or remove it first.`;
+    e.target.value=`${gridCols}x${gridRows}`;
+    return;
+  }
+  gridCols=newCols;gridRows=newRows;
+  persist();renderGrid();renderEditPane();
+});
+
+// ── Birthdays pane ──────────────────────────────────────────────────
 function openBirthdaysPane(){
   renderBirthdaysEditList();
   requestFullHeight();
@@ -331,10 +470,9 @@ function closeBirthdaysPane(){
 document.getElementById('bday-knot').addEventListener('click',openBirthdaysPane);
 document.getElementById('close-birthdays').addEventListener('click',closeBirthdaysPane);
 
-// ── Backup / restore (safety net independent of localStorage/cloud sync —
-// covers the case an update or a bad sync silently erases existing icons) ──
+// ── Backup / restore ────────────────────────────────────────────────
 document.getElementById('export-btn').addEventListener('click',()=>{
-  const data=JSON.stringify({icons,birthdays},null,2);
+  const data=JSON.stringify({icons,birthdays,gridCols,gridRows},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -350,17 +488,12 @@ document.getElementById('import-file').addEventListener('change',async(e)=>{
   try{
     const text=await file.text();
     const data=JSON.parse(text);
-    if(Array.isArray(data.icons)){
-      icons=data.icons;
-    }else if(Array.isArray(data.links)){
-      // Pre-build-12 export (branches+links) -- flatten into flat,
-      // uncategorized icons rather than rejecting the file. This is
-      // exactly the path a backup made before this rewrite takes.
-      icons=flattenOldFormat(data);
-    }else{
-      throw new Error('bad shape');
+    if(Number.isInteger(data.gridCols)&&Number.isInteger(data.gridRows)){
+      gridCols=data.gridCols;gridRows=data.gridRows;
     }
-    birthdays=Array.isArray(data.birthdays)?data.birthdays:[]; // older backups predate birthdays -- default empty, don't reject the whole file over it
+    icons=normalizeIncomingIcons(data); // handles old branches+links, build-12 flat arrays, and current col/row arrays all the same way
+    if(!icons.length&&!Array.isArray(data.icons)&&!Array.isArray(data.links))throw new Error('bad shape');
+    birthdays=Array.isArray(data.birthdays)?data.birthdays:[];
     persist();renderGrid();renderEditPane();renderCanopy();
   }catch(err){
     alert("Couldn't read that backup file.");
@@ -375,8 +508,6 @@ function renderBirthdaysEditList(){
   const sorted=birthdays.slice().sort((a,b)=>(a.month-b.month)||(a.day-b.day));
   wrap.innerHTML=sorted.map(b=>{
     const mm=String(b.month).padStart(2,'0'),dd=String(b.day).padStart(2,'0');
-    // <input type=date> needs a full date to display anything -- year is
-    // thrown away again the moment it's re-saved (see BIRTHDAYS_KEY note).
     return `
     <div class="bday-row" data-id="${b.id}">
       <input type="text" data-action="bday-name" data-id="${b.id}" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Name">
@@ -393,7 +524,7 @@ function renderBirthdaysEditList(){
   wrap.querySelectorAll('[data-action=bday-date]').forEach(el=>{
     el.addEventListener('change',()=>{
       const b=birthdays.find(x=>x.id===el.dataset.id);if(!b||!el.value)return;
-      const [,m,d]=el.value.split('-').map(Number); // year deliberately discarded
+      const [,m,d]=el.value.split('-').map(Number);
       b.month=m;b.day=d;persist();renderBirthdaysEditList();renderCanopy();
     });
   });
@@ -407,7 +538,7 @@ function renderBirthdaysEditList(){
 document.getElementById('add-bday-btn').addEventListener('click',()=>{
   const nameEl=document.getElementById('new-bday-name');
   const dateEl=document.getElementById('new-bday-date');
-  if(!dateEl.value)return; // name alone with no date isn't useful -- require a date
+  if(!dateEl.value)return;
   const [,m,d]=dateEl.value.split('-').map(Number);
   birthdays.push({id:'bday_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
     name:nameEl.value.trim()||'(no name)',month:m,day:d});
@@ -415,48 +546,31 @@ document.getElementById('add-bday-btn').addEventListener('click',()=>{
   persist();renderBirthdaysEditList();renderCanopy();
 });
 
-// ── Icons edit list ────────────────────────────────────────────────
-// Position controls: four buttons (left/right/up/down) per icon, each a
-// plain array-index swap against the neighbor in that direction --
-// left/right are ±1, up/down are ±GRID_COLS (see the #icon-grid comment
-// in <style> for why GRID_COLS is a fixed constant rather than something
-// derived from the viewport). Disabled/omitted at the array's edges
-// rather than wrapping around, same "no surprises" spirit as the old
-// branch/leaf ▲▼ reordering this replaces.
-function moveIcon(id,delta){
-  const i=icons.findIndex(x=>x.id===id);
-  const t=i+delta;
-  if(i<0||t<0||t>=icons.length)return;
-  [icons[i],icons[t]]=[icons[t],icons[i]];
-  persist();renderEditPane();renderGrid();
-}
-
+// ── Icons edit list (build 13 redesign) ─────────────────────────────
+// Replaces build 12's four move-buttons-per-icon with a single position
+// field the person types a coordinate into directly ("A1", "F3") --
+// validated on change against the current grid bounds and against every
+// OTHER icon's position, with the specific, requested "that spot is
+// taken" message rather than silently overwriting or rejecting.
 function renderEditPane(){
+  document.getElementById('grid-dims-input').value=`${gridCols}x${gridRows}`;
+  document.getElementById('grid-dims-err').textContent='';
   const wrap=document.getElementById('edit-icons');
-  wrap.innerHTML=icons.map((ic,i)=>{
-    const row=Math.floor(i/GRID_COLS), col=i%GRID_COLS;
-    const canLeft=col>0, canRight=col<GRID_COLS-1&&i<icons.length-1,
-          canUp=i-GRID_COLS>=0, canDown=i+GRID_COLS<icons.length;
-    return `
+  wrap.innerHTML=icons.map(ic=>`
     <div class="icon-edit-row" data-id="${ic.id}">
       <div class="row1">
-        <img src="${iconUrl(ic.icon,24,ic.iconColor)}" alt="">
-        <input type="text" data-action="icon-name" data-id="${ic.id}" placeholder="Name" value="${ic.name?ic.name.replace(/"/g,'&quot;'):''}">
+        <img src="${iconUrl(ic.icon,26,ic.iconColor)}" alt="">
+        <input type="text" class="name-field" data-action="icon-name" data-id="${ic.id}" placeholder="Name" value="${ic.name?ic.name.replace(/"/g,'&quot;'):''}">
         <input type="url" data-action="icon-url" data-id="${ic.id}" value="${ic.url}">
       </div>
       <div class="row2">
         <button class="tiny-btn" data-action="change-icon" data-id="${ic.id}" title="Change icon">icon</button>
         <input type="color" data-action="icon-color" data-id="${ic.id}" value="${ic.iconColor||DEFAULT_ICON_COLOR}" title="Icon color">
+        <input type="text" class="pos-field" data-action="icon-pos" data-id="${ic.id}" value="${coordLabel(ic.col,ic.row)}" maxlength="4">
         <button class="tiny-btn danger" data-action="delete-icon" data-id="${ic.id}">delete</button>
-        <div class="move-pad">
-          <span></span><button class="tiny-btn" data-action="move-up" data-id="${ic.id}" ${canUp?'':'disabled'}>▲</button><span></span>
-          <button class="tiny-btn" data-action="move-left" data-id="${ic.id}" ${canLeft?'':'disabled'}>◀</button>
-          <button class="tiny-btn" data-action="move-down" data-id="${ic.id}" ${canDown?'':'disabled'}>▼</button>
-          <button class="tiny-btn" data-action="move-right" data-id="${ic.id}" ${canRight?'':'disabled'}>▶</button>
-        </div>
+        <span class="pos-err-msg" data-err-for="${ic.id}"></span>
       </div>
-    </div>`;
-  }).join('')||'<div style="color:var(--ink3);font-size:.8rem;text-align:center">No icons yet.</div>';
+    </div>`).join('')||'<div style="color:var(--ink3);font-size:.8rem;text-align:center">No icons yet.</div>';
 
   wrap.querySelectorAll('[data-action="icon-name"]').forEach(el=>{
     el.addEventListener('change',()=>{
@@ -469,7 +583,7 @@ function renderEditPane(){
       const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
       let v=el.value.trim();
       if(v&&!/^https?:\/\//i.test(v))v='https://'+v;
-      if(ic){ic.url=v;persist();}
+      if(ic){ic.url=v;el.value=v;persist();}
     });
   });
   wrap.querySelectorAll('[data-action="icon-color"]').forEach(el=>{
@@ -493,10 +607,31 @@ function renderEditPane(){
       });
     });
   });
-  wrap.querySelectorAll('[data-action="move-left"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),-1)));
-  wrap.querySelectorAll('[data-action="move-right"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),1)));
-  wrap.querySelectorAll('[data-action="move-up"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),-GRID_COLS)));
-  wrap.querySelectorAll('[data-action="move-down"]').forEach(el=>el.addEventListener('click',()=>moveIcon(el.getAttribute('data-id'),GRID_COLS)));
+  wrap.querySelectorAll('[data-action="icon-pos"]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const id=el.getAttribute('data-id');
+      const ic=icons.find(x=>x.id===id);
+      const errEl=wrap.querySelector(`[data-err-for="${id}"]`);
+      el.classList.remove('err');errEl.textContent='';
+      const coord=parseCoord(el.value);
+      if(!coord){
+        errEl.textContent='Use a column letter + row number, like A1.';
+        el.classList.add('err');el.value=coordLabel(ic.col,ic.row);return;
+      }
+      if(coord.col>=gridCols||coord.row>=gridRows){
+        errEl.textContent=`Outside the current ${gridCols}x${gridRows} grid.`;
+        el.classList.add('err');el.value=coordLabel(ic.col,ic.row);return;
+      }
+      const occupant=icons.find(x=>x.id!==id&&x.col===coord.col&&x.row===coord.row);
+      if(occupant){
+        errEl.textContent='That spot is taken.';
+        el.classList.add('err');el.value=coordLabel(ic.col,ic.row);return;
+      }
+      ic.col=coord.col;ic.row=coord.row;
+      el.value=coordLabel(ic.col,ic.row);
+      persist();renderGrid();
+    });
+  });
 }
 
 // ── Icon picker (nested modal, reused for both add-icon and change-icon) ──
@@ -543,20 +678,8 @@ async function runIconSearch(query){
   }
 }
 
-// ── Canopy greeting (build 10; punctuation added build 12) ────────
-// Main line: a French greeting that changes with the time of day.
-// Sub line (smaller, under it): any holiday recognized today (American,
-// Canadian, Québécois, or Jewish), plus any friend's birthday that's
-// today. Purely client-side, no network call -- Jewish holidays
-// especially need one since their Gregorian dates shift every year
-// (lunisolar calendar); see JEWISH_HOLIDAYS below for exactly how far
-// that table currently reaches and how to extend it.
-
+// ── Canopy greeting ─────────────────────────────────────────────
 function timeGreeting(d){
-  // Non-breaking space (\u00A0) before "!" is correct French typography
-  // (French inserts a space before ! ? ; :, traditionally a thin one;
-  // \u00A0 is the closest a plain string can get without extra markup) --
-  // added in build 12 on explicit request for punctuation here.
   const h=d.getHours();
   if(h>=5&&h<12)return 'Bonjour\u00A0!';
   if(h>=12&&h<18)return 'Bon après-midi\u00A0!';
@@ -564,8 +687,7 @@ function timeGreeting(d){
   return 'Bonne nuit\u00A0!';
 }
 
-// ── Date-rule helpers for floating (nth-weekday) holidays ─────────
-function nthWeekdayOfMonth(year,month,weekday,n){ // month 0-indexed, weekday 0=Sun..6=Sat
+function nthWeekdayOfMonth(year,month,weekday,n){
   const d=new Date(year,month,1);
   let count=0;
   while(d.getMonth()===month){
@@ -575,17 +697,12 @@ function nthWeekdayOfMonth(year,month,weekday,n){ // month 0-indexed, weekday 0=
   return null;
 }
 function lastWeekdayOfMonth(year,month,weekday){
-  const d=new Date(year,month+1,0); // last calendar day of month
+  const d=new Date(year,month+1,0);
   while(d.getDay()!==weekday)d.setDate(d.getDate()-1);
   return d;
 }
 function sameDate(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
 
-// ── Fixed-date holidays (month is 1-indexed here, for readability) ──
-// solemn:true holidays get no exclamatory greeting -- shown by name only,
-// same treatment Yom Kippur and Tisha B'Av get below. Not every
-// recognized day is a "Happy X!" day, and guessing one for e.g.
-// Remembrance Day would be tone-deaf.
 const FIXED_HOLIDAYS=[
   {month:1,day:1,name:"le jour de l'An",greeting:'Bonne année !'},
   {month:6,day:19,name:'Juneteenth',greeting:'Bon Juneteenth !'},
@@ -598,42 +715,26 @@ const FIXED_HOLIDAYS=[
   {month:12,day:31,name:"la veille du Nouvel An",greeting:'Bonne veille du Nouvel An !'},
 ];
 
-// ── Floating (nth-weekday-of-month) holidays, computed per year ────
 function floatingHolidaysForYear(year){
   const out=[];
   const push=(date,name,greeting,solemn)=>{if(date)out.push({date,name,greeting:greeting||null,solemn:!!solemn});};
-  push(nthWeekdayOfMonth(year,0,1,3),'Martin Luther King Jr. Day',null,true);           // Jan, 3rd Mon
-  const febThirdMon=nthWeekdayOfMonth(year,1,1,3);                                       // Feb, 3rd Mon
-  push(febThirdMon,"le Presidents' Day",null,true);            // US -- informational only
-  push(febThirdMon,'la fête de la Famille','Bonne fête de la Famille !'); // CA (not observed in Québec)
-  const lastMonMay=lastWeekdayOfMonth(year,4,1);                                         // last Monday of May
-  push(lastMonMay,'le Memorial Day',null,true);                 // US -- solemn
-  push(lastMonMay,'la fête de Victoria','Bonne fête de Victoria !'); // CA (excl. Québec)
-  push(lastMonMay,'la Journée nationale des patriotes','Bonne Journée des Patriotes !'); // Québec's own name for the same date
-  push(nthWeekdayOfMonth(year,8,1,1),'la fête du Travail','Bonne fête du Travail !');   // Sept, 1st Mon -- shared US/CA/QC date
-  const octSecondMon=nthWeekdayOfMonth(year,9,1,2);                                      // Oct, 2nd Mon
-  push(octSecondMon,"l'Action de grâce",'Joyeux Action de grâce !'); // Canada/Québec Thanksgiving
-  push(octSecondMon,'le Columbus Day',null,true);                // US -- informational only, contested naming, no invented greeting
-  push(nthWeekdayOfMonth(year,10,4,4),'le Thanksgiving',"Bon Thanksgiving !"); // Nov, 4th Thu -- US Thanksgiving
+  push(nthWeekdayOfMonth(year,0,1,3),'Martin Luther King Jr. Day',null,true);
+  const febThirdMon=nthWeekdayOfMonth(year,1,1,3);
+  push(febThirdMon,"le Presidents' Day",null,true);
+  push(febThirdMon,'la fête de la Famille','Bonne fête de la Famille !');
+  const lastMonMay=lastWeekdayOfMonth(year,4,1);
+  push(lastMonMay,'le Memorial Day',null,true);
+  push(lastMonMay,'la fête de Victoria','Bonne fête de Victoria !');
+  push(lastMonMay,'la Journée nationale des patriotes','Bonne Journée des Patriotes !');
+  push(nthWeekdayOfMonth(year,8,1,1),'la fête du Travail','Bonne fête du Travail !');
+  const octSecondMon=nthWeekdayOfMonth(year,9,1,2);
+  push(octSecondMon,"l'Action de grâce",'Joyeux Action de grâce !');
+  push(octSecondMon,'le Columbus Day',null,true);
+  push(nthWeekdayOfMonth(year,10,4,4),'le Thanksgiving',"Bon Thanksgiving !");
   return out;
 }
 
-// ── Jewish holidays: hardcoded lookup table, NOT computed live ─────
-// Gregorian dates for Jewish holidays shift every year (lunisolar
-// calendar) -- correctly computing them requires real Hebrew-calendar
-// math, which is a lot of surface area for this feature. Sourced from
-// the URJ's published 5786-5790 holiday calendar (Sept 2025 - ~June
-// 2030): https://urj.org (search "URJ holiday calendar 5786-5790" if
-// that link ever moves) -- cross-checked against Hebcal for a couple of
-// individual dates. THIS TABLE CURRENTLY ONLY RUNS THROUGH SPRING 2030.
-// To extend it: search "hebcal holidays <year>-<year+1>" (hebcal.com
-// computes real Hebrew-calendar dates and is the standard reference),
-// and append more {y,m,d,y2,m2,d2,name,greeting,solemn} entries below in
-// the same shape. solemn:true (Yom Kippur, Tisha B'Av) gets no
-// exclamatory greeting, same rule as the solemn fixed/floating holidays
-// above -- these are fast/mourning days, not festive ones.
 const JEWISH_HOLIDAYS=[
-  // {y,m,d}-{y2,m2,d2} is an inclusive Gregorian date range (m is 1-indexed)
   {y:2025,m:9,d:22, y2:2025,m2:9,d2:24, name:'Roch Hachana',greeting:'Chana Tova !'},
   {y:2025,m:10,d:1, y2:2025,m2:10,d2:2, name:'Yom Kippour',greeting:null,solemn:true},
   {y:2025,m:10,d:6, y2:2025,m2:10,d2:13,name:'Souccot',greeting:"'Hag Sameah !"},
@@ -644,7 +745,6 @@ const JEWISH_HOLIDAYS=[
   {y:2026,m:4, d:1, y2:2026,m2:4, d2:8, name:'Pessah',greeting:"'Hag Pessah Sameah !"},
   {y:2026,m:5, d:21,y2:2026,m2:5, d2:22,name:'Chavouot',greeting:"'Hag Sameah !"},
   {y:2026,m:7, d:22,y2:2026,m2:7, d2:23,name:"Tisha b'Av",greeting:null,solemn:true},
-
   {y:2026,m:9, d:11,y2:2026,m2:9, d2:13,name:'Roch Hachana',greeting:'Chana Tova !'},
   {y:2026,m:9, d:20,y2:2026,m2:9, d2:21,name:'Yom Kippour',greeting:null,solemn:true},
   {y:2026,m:9, d:25,y2:2026,m2:10,d2:2, name:'Souccot',greeting:"'Hag Sameah !"},
@@ -655,7 +755,6 @@ const JEWISH_HOLIDAYS=[
   {y:2027,m:4, d:21,y2:2027,m2:4, d2:28,name:'Pessah',greeting:"'Hag Pessah Sameah !"},
   {y:2027,m:6, d:10,y2:2027,m2:6, d2:11,name:'Chavouot',greeting:"'Hag Sameah !"},
   {y:2027,m:8, d:11,y2:2027,m2:8, d2:12,name:"Tisha b'Av",greeting:null,solemn:true},
-
   {y:2027,m:10,d:1, y2:2027,m2:10,d2:3, name:'Roch Hachana',greeting:'Chana Tova !'},
   {y:2027,m:10,d:10,y2:2027,m2:10,d2:11,name:'Yom Kippour',greeting:null,solemn:true},
   {y:2027,m:10,d:15,y2:2027,m2:10,d2:22,name:'Souccot',greeting:"'Hag Sameah !"},
@@ -666,7 +765,6 @@ const JEWISH_HOLIDAYS=[
   {y:2028,m:4, d:10,y2:2028,m2:4, d2:17,name:'Pessah',greeting:"'Hag Pessah Sameah !"},
   {y:2028,m:5, d:30,y2:2028,m2:5, d2:31,name:'Chavouot',greeting:"'Hag Sameah !"},
   {y:2028,m:7, d:31,y2:2028,m2:8, d2:1, name:"Tisha b'Av",greeting:null,solemn:true},
-
   {y:2028,m:9, d:20,y2:2028,m2:9, d2:22,name:'Roch Hachana',greeting:'Chana Tova !'},
   {y:2028,m:9, d:29,y2:2028,m2:9, d2:30,name:'Yom Kippour',greeting:null,solemn:true},
   {y:2028,m:10,d:4, y2:2028,m2:10,d2:11,name:'Souccot',greeting:"'Hag Sameah !"},
@@ -677,7 +775,6 @@ const JEWISH_HOLIDAYS=[
   {y:2029,m:3, d:30,y2:2029,m2:4, d2:6, name:'Pessah',greeting:"'Hag Pessah Sameah !"},
   {y:2029,m:5, d:19,y2:2029,m2:5, d2:20,name:'Chavouot',greeting:"'Hag Sameah !"},
   {y:2029,m:7, d:21,y2:2029,m2:7, d2:22,name:"Tisha b'Av",greeting:null,solemn:true},
-
   {y:2029,m:9, d:9, y2:2029,m2:9, d2:11,name:'Roch Hachana',greeting:'Chana Tova !'},
   {y:2029,m:9, d:18,y2:2029,m2:9, d2:19,name:'Yom Kippour',greeting:null,solemn:true},
   {y:2029,m:9, d:23,y2:2029,m2:9, d2:30,name:'Souccot',greeting:"'Hag Sameah !"},
@@ -695,11 +792,6 @@ function todaysHolidays(now){
   const hits=[];
   FIXED_HOLIDAYS.forEach(h=>{if(h.month===m&&h.day===d)hits.push(h);});
   floatingHolidaysForYear(y).forEach(h=>{if(sameDate(h.date,now))hits.push(h);});
-  // A floating US/CA date can land on Dec 31/Jan 1 boundary in neither
-  // direction here, so no year-wraparound check is needed for those --
-  // but Jewish ranges do cross Gregorian year/month boundaries (e.g.
-  // Hanoucca 2027-28), so compare against actual Date objects, not
-  // separate y/m/d fields, to get inclusive ranges right either way.
   const todayDate=new Date(y,m-1,d);
   JEWISH_HOLIDAYS.forEach(h=>{
     const start=new Date(h.y,h.m-1,h.d),end=new Date(h.y2,h.m2-1,h.d2);
@@ -719,7 +811,6 @@ function renderCanopy(){
   const subEl=document.getElementById('canopy-sub');
   if(!mainEl||!subEl)return;
   mainEl.textContent=timeGreeting(now);
-
   const lines=[];
   const holidays=todaysHolidays(now);
   if(holidays.length){
@@ -732,10 +823,6 @@ function renderCanopy(){
   subEl.innerHTML=lines.join('');
   reportHeight();
 }
-// Keep the greeting fresh if this page is left open across a time-of-day
-// boundary or midnight (birthdays/holidays flipping to a new day) --
-// checking once a minute is frequent enough for a greeting, cheap enough
-// not to matter.
 setInterval(renderCanopy,60000);
 
 // ── Height reporting + modal full-height requests ───────────────
@@ -762,9 +849,7 @@ function releaseFullHeight(){
 if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getElementById('app'));}
 
 // ── Context doc ──────────────────────────────────────────────────
-// Version bumps to the next plain number on every version of this file sent
-// (switched from Roman numerals as of build 8 — project-wide convention change).
-const BRANCHE_VERSION='12';
+const BRANCHE_VERSION='13';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -772,79 +857,82 @@ Paste this at the start of a new Claude conversation, then upload the current \`
 
 ## What this is
 
-A personal icon launcher: a flat grid of icons, each linking out to a site or tool, arranged by hand in the edit pane. Also carries Verdure's page heading (a French time-of-day greeting recognizing American/Canadian/Québécois/Jewish holidays and friends' birthdays) and its own birthday list, both unrelated to the icon grid itself but living in this file per Verdure's own doc.
+A personal icon launcher: a grid of icons at explicit, hand-placed positions, each linking out to a site or tool. Also carries Verdure's page heading (a French time-of-day greeting recognizing American/Canadian/Québécois/Jewish holidays and friends' birthdays) and its own birthday list, both unrelated to the icon grid itself but living in this file per Verdure's own doc.
 
-## Total redesign (build 12) — tree/branches/leaves are gone
+## Build 13 — three real problems fixed in one pass
 
-Builds I through 11 used a hand-drawn tree metaphor: a trunk, branches alternating left/right, leaf-shaped icon holders tilting off each branch. **This was explicitly scrapped** ("looks awful", "totally redone") in favor of a plain, flat, fixed-column icon grid (\`#icon-grid\`, \`GRID_COLS=5\`) — bare icons with **no backing shape of any kind** behind them (no leaf, no branch, no trunk), positioned by hand via move buttons in the edit pane rather than any organic/computed layout. This removed a large amount of code and an entire mobile-specific subsystem along with it:
+**1. Cross-device sync was silently one-directional.** Build 12's \`loadFromCloud()\` only ever pulled from the cloud into a device with NO existing data at all (\`if(icons.length||birthdays.length){saveToCloud();return false;}\`) — meaning any device that already had icons, which after first use is every device, never looked at the cloud again; it only ever overwrote it. Two devices that both had data could drift forever, each clobbering the other's changes the next time either one saved. This is exactly the reported symptom ("changes don't always show up on the other computer").
 
-- \`computeLayout()\`, \`renderTreeInto()\`, the left/right branch-balancing logic, and every tree-shape CSS class are gone.
-- The old mobile "minimized tree, tap to enlarge into a full-height overlay" system (\`renderMobileTree\`, \`openMaximizedMobileTree\`, \`renderMaximizedMobileTree\`, \`#mobile-maxi-modal\`) is gone entirely — a fixed-column CSS grid doesn't need a separate mobile layout pass the way a hand-computed tree did. Mobile just gets smaller grid cells via a \`480px\` media query; same \`GRID_COLS\`, same array-index math, same everything else. This is a meaningful simplification, not just a visual swap.
-- **Categories ("branches") are gone.** The grid is flat — every icon is a peer, there's no grouping concept anymore. An old branches+links export/cloud-save still imports correctly (see Migration below), just flattened into one uncategorized list.
+Fixed with real (if simple) last-write-wins reconciliation: every \`persist()\` stamps \`updatedAt=Date.now()\`, and \`loadFromCloud()\` now **always** fetches the remote state and compares timestamps, adopting whichever side is actually newer — regardless of which device already has data. Also now runs on a 30-second timer and on \`visibilitychange\` (tab regaining focus), not just on page load, so a device left open picks up another device's edits without needing a manual reload. **This is still not true simultaneous-edit merging** — if both devices genuinely edit between syncs, one side's changes are still lost, not merged — but for one person's own data across their own devices, last-write-wins is the standard, reasonable tradeoff, and the important part is that it now actually runs symmetrically on every device instead of only running in one direction.
 
-## Icon grid mechanics
+**2. The two knots didn't make sense as knots anymore.** They were tree-bark-colored organic blobs, unattached to anything (no trunk since build 12). Replaced with plain small buttons (\`#corner-buttons\`, labeled "Edit" and "Bdays"), positioned in the bottom-right corner of Branche's own content area — not the page/viewport corner, which is where the invisible context-doc button already lives (\`#doc-btn\`, unrelated, unaffected).
 
-\`icons = [{id, url, icon, iconColor, name}]\` — a **flat array**, order-is-position: index \`i\` sits at grid row \`floor(i/GRID_COLS)\`, column \`i%GRID_COLS\`. \`GRID_COLS\` (currently 5) is a **fixed constant, not derived from viewport width** — narrow screens shrink the grid's cell size via a media query instead of reflowing to fewer columns, specifically so a given array index always lands in the same conceptual cell everywhere. That's what keeps the edit pane's move-buttons simple: left/right are \`±1\`, up/down are \`±GRID_COLS\`, plain array-swaps, no coordinate system or collision-detection needed anywhere.
+**3. The edit pane was genuinely hard to use.** Build 12 crammed 4 move-buttons (▲◀▼▶) plus delete, icon-picker, and color-picker onto one line per icon inside a 560px-wide modal — too many small controls competing for space, which is almost certainly why editing a URL felt broken (the URL field was simply being starved of width by everything else in that row, not actually non-functional). Fixed by widening the modal (560px → 680px, 88vh → 90vh) and replacing the four move-buttons with a single position field per icon (see Icon grid mechanics below) — fewer, wider controls per row.
 
-**No live drag-and-drop** — deliberate, matching this file's existing convention (branches/leaves reordering was always button-based too, "no drag, by deliberate choice since build IV"). Each icon's edit row has a small 4-button move-pad (▲◀▼▶); a button is disabled rather than wrapping around when there's nowhere to go in that direction (matches the array's actual edges, not a fixed row/col boundary, so the disabled state is always accurate even on a partially-filled last row).
+## Icon grid mechanics (build 13 — replaces build 12's flat-array-order model)
 
-**Zero visible chrome outside the edit panes.** No visible plus sign, label, or border around the grid itself — just bare icons on the page background, click-to-visit. \`#icon-grid:empty\` collapses to zero size when there are no icons yet, so an unconfigured install shows nothing but the greeting and the two knots (see below) — same "no speculative UI" principle the old tree followed.
+\`icons = [{id, url, icon, iconColor, name, col, row}]\` — **explicit 0-indexed coordinates now**, not array order. \`gridCols\`/\`gridRows\` are user-editable state (a "5x4"-style text field at the top of the edit pane), not a fixed constant. Positions are entered/edited as a spreadsheet-style label — column letter (A, B, C…) + row number (1, 2, 3…) — via \`parseCoord()\`/\`coordLabel()\`. Column letters are single-character only, so \`MAX_GRID_COLS=26\`; documented at the constant and enforced on the grid-size input.
 
-## Two knots, relocated (not redesigned)
+**Placing an icon**: type a coordinate like \`A1\` or \`F3\` into that icon's position field in the edit pane. On change, it's validated against the *current* grid bounds and against every other icon's position — if the target cell already holds a different icon, the field shows **"That spot is taken."** and reverts to the icon's previous position rather than silently swapping or overwriting anything (this was explicitly requested, not an assumption). A genuinely malformed entry ("xyz", "12", empty) gets "Use a column letter + row number, like A1." instead of silently failing.
 
-Build 11 added a second, smaller knot for birthdays, positioned next to the main knot on the trunk. **There's no trunk anymore**, so build 12 gives both knots their own small, always-present strip below the grid (\`#knot-row\`) instead — same shapes, same colors, same separate-modals behavior (\`openEditPane\`/\`openBirthdaysPane\`), just relocated rather than redesigned. They're real \`<button>\` elements now rather than absolutely-positioned \`<div>\`s (there's no layout-engine coordinate math driving their position anymore, so plain flow layout is simpler and equally reliable).
+**Resizing the grid**: the "5x4" field at the top of the edit pane. Growing is always safe (nothing already placed can become invalid). Shrinking is validated — if any existing icon would fall outside the new dimensions, the resize is rejected with a specific message naming the icon and its position, rather than silently stranding or deleting it. \`gridCols\`/\`gridRows\` are synced/exported alongside \`icons\`/\`birthdays\`.
 
-## Migration from the old branches+links format
+**Adding a new icon** auto-places it in the first free cell (row-major scan, \`firstFreeCell()\`) rather than requiring a position up front — the person can then retype its position if they want it somewhere specific. If the grid is completely full, an alert says so rather than the click silently doing nothing.
 
-\`flattenOldFormat(data)\` takes a pre-build-12 \`{branches, links}\` shape and produces a flat \`icons\` array: each link's \`id\`/\`url\`/\`icon\`/\`iconColor\`/\`name\` carry over directly, \`branchId\` and \`leafColor\` are dropped (no grouping or backing-shape concept survives), and the original links' relative order becomes the new grid order — so an old export lands as one flat, "uncategorized" list, in the same relative order the icons used to appear in across all the old branches. This runs in two places: **Import backup** (an old \`branche-backup.json\`) and the **cloud-load fallback** (a device that pulls down a pre-build-12 cloud save). Both funnel through the same \`flattenOldFormat()\` rather than duplicating the mapping logic.
+**No live drag-and-drop** — deliberate, matching this file's pre-build-13 convention (branch/leaf reordering was always button-based; this just swaps buttons for a text field, not the no-drag philosophy itself).
 
-## Canopy heading — punctuation and spacing (build 12)
+## Migration — three possible incoming shapes, one function
 
-Two small, explicitly requested tweaks to the greeting itself (unrelated to the grid rewrite, but shipped in the same build): \`timeGreeting()\`'s four return values now end in \`\\u00A0!\` (a non-breaking space before the exclamation mark, correct French typography — French inserts a space before \`! ? ; :\`) instead of no punctuation at all; and \`#canopy\`'s bottom padding was cut and \`#icon-grid\` given a small explicit \`margin-top\` instead, so the gap between the greeting and the first row of icons is deliberately tighter than default block spacing would give it.
+\`normalizeIncomingIcons(data)\` is the single place that turns *any* prior format into a valid current \`{col,row}\` array, used identically by **Import backup**, the **cloud-load path**, and available for any future format changes to route through the same way rather than duplicating the mapping logic three times:
+- **Pre-build-12** (\`{branches, links}\`): \`branchId\`/\`leafColor\` dropped (no grouping/backing-shape concept survives), links' relative order across all the old branches becomes the auto-placement scan order.
+- **Build 12** (\`{icons: [...]}\`, flat array, no \`col\`/\`row\`): same auto-placement scan, in the array's existing order.
+- **Build 13+** (\`{icons: [...]}\` with real \`col\`/\`row\`): used directly, UNLESS a given position is out of the *current* grid's bounds or collides with another icon already placed earlier in the scan — in which case that one icon falls back to auto-placement rather than the whole import failing.
 
-## Icon color
+If the grid is too small to fit everything being imported, remaining icons are silently dropped rather than erroring — worth knowing about if a large icon set ever hits a small grid, but not treated as importer-breaking.
 
-Each icon keeps its own \`iconColor\` (a color picker in its edit row, same UI pattern as before) — tints the icon glyph itself via Iconify's \`?color=\` query param (\`iconUrl()\`). There is no second, backing-shape color anymore (the old \`leafColor\` is gone along with the leaf shape it used to fill) — "icons can still have their color changed" now means exactly one color knob per icon, not two.
+## Two knots, now corner buttons (not redesigned again, just restyled+repositioned)
 
-## Everything else (birthdays, greeting/holiday recognition, sync, height-reporting) is unchanged from build 11
+Build 11 gave birthdays their own knot next to the main one; build 12 moved both off the (now-gone) trunk to a centered row below the grid; build 13 restyles them as plain small text-label buttons (\`.corner-btn\`) and right-aligns them to the bottom-right of \`#app\` (\`position:absolute\`, since \`#app\` is \`position:relative\`). Same separate-modals behavior throughout (\`openEditPane\`/\`openBirthdaysPane\`) — only the visual treatment and position have changed across these three builds, never the underlying behavior.
 
-See builds 10-11 history below for how those work — none of that logic depends on the tree/grid markup, so the rewrite didn't touch it beyond the punctuation/spacing tweak above.
+## Mobile: collapsed by default (build 13)
 
-## Birthdays (build 10, own knot/modal since build 11)
+A multi-row grid at full size is a lot of permanent vertical space on a phone. \`#grid-toggle\` (a small "Icons (N) ▾" button, mobile-only via the existing \`480px\` media query) hides \`#icon-grid-wrap\` by default and reveals the *same* grid inline on tap — no separate mobile layout, no data difference, purely a CSS/JS visibility toggle. Resets to collapsed on every reload; not persisted, since "was it open last time" isn't worth remembering across visits. Desktop is unaffected (\`#grid-toggle{display:none}\` outside the media query).
 
-If today is a friend's birthday, "Bon anniversaire \\<name\\> !" shows in the canopy subtext, in French (matching the rest of the greeting/subtext area). Nothing shows on any other day — no advance "N days away" reminder (removed in build 11, wasn't asked for), no emoji (also removed in build 11). Stored as \`birthdays = [{id, name, month, day}]\`, deliberately no year — the greeting only ever needs "is it today," never an age. Editing lives in its own modal (\`#birthdays-modal\`, opened by \`#bday-knot\`), and that editing UI is English — only the *displayed* greeting/subtext is French, since that's specifically what was asked for.
+## Canopy heading — punctuation and spacing (build 12, unchanged in 13)
 
-## Holiday recognition
+\`timeGreeting()\`'s four return values end in \`\\u00A0!\` (non-breaking space before the exclamation mark — correct French typography). \`#canopy\`'s bottom padding was cut and the grid given a small explicit \`margin-top\` instead, so the gap between the greeting and the icon grid is deliberately tighter than default block spacing.
 
-Three separate lists by how their dates are determined:
-- Fixed calendar dates (New Year's, Canada Day, St-Jean, July 4th, Christmas, etc.) — a flat month/day list (\`FIXED_HOLIDAYS\`).
-- Floating "nth weekday of month" dates (MLK Day, Family Day/Presidents' Day, Victoria Day/Journée des patriotes/Memorial Day, Labour Day, the two different Thanksgivings, Columbus Day) — computed per-year via \`nthWeekdayOfMonth()\`/\`lastWeekdayOfMonth()\` (\`floatingHolidaysForYear()\`), not hardcoded, since these shift every year by design.
-- Jewish holidays (\`JEWISH_HOLIDAYS\`) — a **hardcoded lookup table**, deliberately NOT computed live (their Gregorian dates shift every year because the Hebrew calendar is lunisolar). Sourced from the URJ's published 5786–5790 holiday calendar (Gregorian Sept 2025 through ~June 2030). **This table currently only reaches Spring 2030** — there's a comment directly above \`JEWISH_HOLIDAYS\` explaining exactly how to extend it.
+## Birthdays, holiday recognition — unchanged from build 11/12
 
-Not every recognized day gets an exclamatory greeting: Yom Kippur, Tisha B'Av, Remembrance/Veterans Day, Memorial Day, MLK Day, Presidents' Day, and Columbus Day are all marked \`solemn:true\` and shown by name only.
+See prior build history below for the mechanics; none of it depends on the icon grid or knot markup, so none of it needed to change in this pass beyond what's already noted above.
+
+**Birthdays**: \`birthdays = [{id, name, month, day}]\`, no year. Same-day only — "Bon anniversaire \\<name\\> !" in French, no advance reminder, no emoji (both removed build 11, weren't asked for). Own modal (\`#birthdays-modal\`, opened by \`#bday-knot\`), editing UI in English, displayed greeting text in French.
+
+**Holidays**: \`FIXED_HOLIDAYS\` (flat month/day list), \`floatingHolidaysForYear()\` (nth-weekday-of-month rules, computed per year), \`JEWISH_HOLIDAYS\` (hardcoded lookup table — Gregorian dates shift yearly on the lunisolar Hebrew calendar, correctly computing that live was out of scope; sourced from URJ's 5786–5790 calendar, **currently only reaches Spring 2030**, extend via "hebcal holidays \\<year\\>-\\<year+1\\>" — see the comment above \`JEWISH_HOLIDAYS\`). \`solemn:true\` holidays (Yom Kippur, Tisha B'Av, Remembrance/Veterans/Memorial Day, MLK Day, Presidents' Day, Columbus Day) show by name only, no invented "Happy X!".
 
 ## Data model
 
 \`\`\`js
-icons     = [{id, url, icon, iconColor, name}]  // order IS grid position -- see Icon grid mechanics above
-birthdays = [{id, name, month, day}]            // no year -- see Birthdays above
+icons     = [{id, url, icon, iconColor, name, col, row}]  // col/row: 0-indexed; "A1" in the UI = col:0, row:0
+gridCols, gridRows                                        // user-editable, synced/exported alongside icons
+birthdays = [{id, name, month, day}]                      // no year
 \`\`\`
-\`name\` is optional on icons. \`iconColor\` defaults to \`${DEFAULT_ICON_COLOR}\` when absent. \`branche_icons\`, \`branche_birthdays\`, \`branche_sync_endpoint\` must never be renamed. (\`branche_branches\`/\`branche_links\`, the pre-build-12 keys, are retired — nothing reads them anymore; an old device's localStorage under those keys is simply never looked at again. If reviving old local data is ever needed, it has to go through \`flattenOldFormat()\` via the Import backup path, not a key rename.)
+\`branche_icons\`, \`branche_grid_dims\`, \`branche_updated_at\`, \`branche_birthdays\`, \`branche_sync_endpoint\` must never be renamed. (\`branche_branches\`/\`branche_links\`, retired since build 12, remain untouched/unread — reviving old local data still has to go through \`normalizeIncomingIcons()\` via Import backup, not a key rename.)
 
 ## Cross-device sync
 
-Unchanged mechanism since build III — push-only from a device with existing data, pull only into a genuinely empty device (no real conflict resolution; fine for one person with a few devices, not true live multi-device sync). As of build 12, the synced state carries \`{icons, birthdays}\` instead of \`{branches, links, birthdays}\` — no change to \`sync.js\` was needed, since it already stores/returns an opaque \`state\` object per row rather than caring about its shape. A device pulling down a pre-build-12 cloud save gets it flattened via \`flattenOldFormat()\` automatically (see Migration above) rather than erroring.
+See "three real problems fixed" above for the build-13 rewrite. Payload is \`{icons, birthdays, gridCols, gridRows, updatedAt}\` at the same Supabase row (id 3) — no change to \`sync.js\` itself, it already stores/returns an opaque \`state\` blob per row.
 
 ## Open questions
 
-- **\`GRID_COLS=5\` is a first guess**, not confirmed against how many icons actually get used day to day — easy to tune (one constant) if it turns out too cramped or too sparse.
-- **\`JEWISH_HOLIDAYS\` only reaches Spring 2030** — extend it before then; see the comment directly above that table for how.
-- **Cross-device sync (icons+birthdays) hasn't been confirmed against the real deployed \`sync.js\`/Supabase endpoint** from this sandbox (no network egress to it here) — the request shape is unchanged from build 11's already-working version, just a different \`state\` payload, so risk is low but unverified end-to-end.
-- **This is a full visual rewrite based on a single round of feedback ("looks awful")** — worth confirming the grid actually reads well in practice (icon size, \`GRID_COLS\` count, the knot row's placement) rather than assuming build 12 is the final word on it.
+- **The sync fix is a real, tested-in-isolation improvement, but the actual cross-device round-trip against the live \`sync.js\`/Supabase endpoint hasn't been confirmed** from this sandbox (no network egress to it here). The reconciliation logic itself (timestamp comparison, always-fetch) was verified directly; what wasn't verified is the live endpoint's actual round-trip behavior under real concurrent use.
+- **\`GRID_COLS\`/\`GRID_ROWS\` default to 5x4** — a first guess, easy to change via the edit pane itself now (no code edit needed for the *value*; the *default* for a brand-new install is set by \`DEFAULT_GRID_COLS\`/\`DEFAULT_GRID_ROWS\` near the top).
+- **\`JEWISH_HOLIDAYS\` only reaches Spring 2030** — extend it before then.
+- **This is the second major visual pass in two builds** (build 12: tree → grid; build 13: grid mechanics + sync + knots) based on direct usability feedback each time — worth continuing to treat as "confirm it actually works well in practice" rather than assuming build 13 is final.
 
 ## Working method for future sessions
 
-Keep this doc in sync every version. Never rename \`branche_icons\`/\`branche_birthdays\`/\`branche_sync_endpoint\`. Branche stays fully separate from Verdure/Fleur/Racine's own files. Versioning uses plain numbers (switched from Roman numerals as of build 8, a project-wide convention change alongside Racine and Verdure; Fleur keeps its own flower-name-turned-plain-number convention).
+Keep this doc in sync every version. Never rename \`branche_icons\`/\`branche_grid_dims\`/\`branche_updated_at\`/\`branche_birthdays\`/\`branche_sync_endpoint\`. Branche stays fully separate from Verdure/Fleur/Racine's own files. Versioning uses plain numbers (switched from Roman numerals as of build 8, a project-wide convention change alongside Racine and Verdure; Fleur keeps its own flower-name-turned-plain-number convention).
 `;
   const blob=new Blob([doc],{type:'text/markdown'});
   const url=URL.createObjectURL(blob);
