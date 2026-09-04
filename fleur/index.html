@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 4</title>
+<title>Fleur · 5</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -171,10 +171,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 
 /* ── Badges ── */
 .badge{font-size:10px;padding:1px 6px;border-radius:99px;font-weight:500;font-family:var(--font-b);color:inherit;opacity:.8}
-.badge-wait{background:rgba(100,15,15,.55);color:#f5c8c8;border:1px solid rgba(200,60,60,.25)}
-.badge-tmrw{background:rgba(90,65,5,.55);color:#f0e0a0;border:1px solid rgba(200,160,40,.2)}
-.badge-upco{background:rgba(90,45,0,.55);color:#f5d4a8;border:1px solid rgba(200,110,30,.2)}
-.badge-today{background:rgba(15,70,30,.55);color:#c8e6d0;border:1px solid rgba(40,160,70,.2)}
+.badge-wait{background:rgba(74,40,40,.55);color:#e8d5d5;border:1px solid rgba(158,102,102,.25)}
+.badge-tmrw{background:rgba(64,54,31,.55);color:#d8d2b8;border:1px solid rgba(152,136,88,.2)}
+.badge-upco{background:rgba(63,45,27,.55);color:#ded1bf;border:1px solid rgba(149,113,81,.2)}
+.badge-today{background:rgba(32,54,37,.55);color:#d1ddd4;border:1px solid rgba(76,124,88,.2)}
 .badge-rep{background:rgba(255,255,255,.1)}
 .badge-time{background:rgba(255,255,255,.12)}
 
@@ -742,7 +742,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_4_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_5_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -903,7 +903,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1286,11 +1286,11 @@ function snHTML(task,inCat){
 
 // ── Cork grain ──────────────────────────────────────────────────────
 const CORK_GFX={
-  today:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28218%2C172%2C80%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28218%2C172%2C80%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  tomorrow:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28195%2C130%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28195%2C130%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  upcoming:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28130%2C148%2C210%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28130%2C148%2C210%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  wait:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28130%2C175%2C120%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28130%2C175%2C120%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  casual:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28210%2C120%2C90%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28210%2C120%2C90%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  today:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28177%2C158%2C121%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28177%2C158%2C121%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  tomorrow:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28176%2C149%2C159%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28176%2C149%2C159%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  upcoming:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28154%2C161%2C186%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28154%2C161%2C186%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  wait:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28140%2C158%2C136%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28140%2C158%2C136%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  casual:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28174%2C138%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28174%2C138%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3C%2Fsvg%3E)',
 };
 function corkHTML(col){
   const cs=colStyles[col]||TBOX[col];const isMin=colMin[col]||false;
@@ -2715,6 +2715,8 @@ A task is **blocked** when:
 
 **Time-only wait-until (fixed in Marigold Root)**: \`syncWaitUntil()\`/\`syncWaitUntilEdit()\` previously only defaulted a *date-only* pick to midnight — a *time-only* pick (very natural: "wait until 3pm" almost always means later today) produced an empty \`awu\`/\`ewu\` value and the wait silently never saved. Both functions now default to \`today()\` when only a time is given, and also backfill the visible date input so the UI doesn't look like nothing happened.
 
+**CORK_GFX glyph-pattern textures and time-box badges (fixed after version 3 shipped)**: both desaturation passes above only ever touched \`TBOX\`/\`TBOX_UI\`/\`CORK_FRAME\`/the dead \`:root\` vars/\`applyTheme()\` — all plain hex strings. \`CORK_GFX\`, the repeating glyph-pattern texture layered over every cork board's background, stores its colors as \`rgba(...)\` values **inside a base64/URL-encoded SVG data URI**, not a plain hex code — so neither pass ever found or touched it, and it kept rendering at its original, much higher saturation the whole time, sitting visually on top of the now-duller \`TBOX\` background underneath. This was the actual cause of the colors still looking "the same oversaturated" after two rounds of hex-value edits: the fix was in a completely different, non-hex place. The four \`.badge-wait\`/\`.badge-tmrw\`/\`.badge-upco\`/\`.badge-today\` date-pill colors were separately un-desaturated \`rgba()\` values too, fixed in the same pass. If TBOX colors are ever revisited again, grep for \`rgba(\` and data-URI-embedded colors too, not just hex strings — this file has at least two color systems that don't share a common format.
+
 **Today/Tomorrow + same-day wait incorrectly routing to Wait (fixed in Marigold Root)**: Today/Tomorrow tasks only ever get an explicit \`deadlineDate\` written if the date sub-panel is opened directly — the pill alone was always meant to be enough. \`addManual()\`'s and \`saveTask()\`'s wait-routing checks (\`if((wait...)&&!date)col='wait'\`) didn't know that, so a Today task with no separately-typed date that also had a same-day wait added looked "dateless" to that check and got moved into the Wait box outright, instead of staying in Today shown blocked/faded (the documented, intended behavior — see the comment directly above that check in both functions). Both functions now resolve Today→\`today()\`/Tomorrow→\`tomorrow()\` as an implied date *before* the wait-routing check runs, and \`addManual()\` persists that resolved date onto the new task rather than the possibly-empty raw field.
 
 **Recurring wait didn't survive past its first occurrence (fixed in version 2)**: a repeating task with a wait (e.g. "Take out the trash" every Sunday, wait until 9pm) only ever waited *once*.
@@ -2810,7 +2812,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'4',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'5',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
