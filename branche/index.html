@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 14 -->
+<!-- Branche — build 15 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -701,7 +701,7 @@ function timeGreeting(d){
   return 'Bonne nuit';
 }
 function mainGreeting(d){
-  return `${timeGreeting(d)}, ${frenchDate(d)}.`;
+  return `${timeGreeting(d)}, nous sommes ${frenchDate(d)}.`;
 }
 
 function nthWeekdayOfMonth(year,month,weekday,n){
@@ -871,7 +871,7 @@ function releaseFullHeight(){
 if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getElementById('app'));}
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='14';
+const BRANCHE_VERSION='15';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -889,7 +889,7 @@ Paste this at the start of a new Claude conversation, then upload the current \`
 
 **Default grid is 10x3 now** (\`DEFAULT_GRID_COLS\`/\`DEFAULT_GRID_ROWS\`, was 5x4), sized/gapped specifically to fill the 1160px column at a comfortable icon size without cramping — see \`#icon-grid\`'s \`gap\`/padding in \`<style>\` if this ever needs re-tuning for a different column count.
 
-**Greeting: no exclamation point, followed by the fully-written-out French date.** \`mainGreeting()\` now produces e.g. "Bonjour, le premier septembre." instead of "Bonjour !" — \`frenchDate()\`/\`FR_DAYS\`/\`FR_MONTHS\` spell every day 1-31 out in French (with the correct "premier" ordinal for the 1st, cardinal numbers otherwise, "vingt et un"/"trente et un" using "et" rather than a hyphen per standard French orthography). This is scoped to the *main* greeting line only — individual holiday greetings ("Joyeux Noël !" etc.) deliberately keep their own exclamation points, since those are separate, specifically-requested nuanced phrases, not the "greeting + date" line this instruction was about.
+**Greeting: no exclamation point, followed by the fully-written-out French date, worded as an actual sentence.** \`mainGreeting()\` produces e.g. "Bonjour, nous sommes le premier septembre." — the first version shipped as "Bonjour, le premier septembre.", which reads as a sentence fragment, not a sentence ("Hello, the first of September" isn't grammatical in English either); "nous sommes le [date]" ("we are the [date]", the standard idiomatic French way to state today's date) fixes that. \`frenchDate()\`/\`FR_DAYS\`/\`FR_MONTHS\` spell every day 1-31 out in French (with the correct "premier" ordinal for the 1st, cardinal numbers otherwise, "vingt et un"/"trente et un" using "et" rather than a hyphen per standard French orthography). This is scoped to the *main* greeting line only — individual holiday greetings ("Joyeux Noël !" etc.) deliberately keep their own exclamation points, since those are separate, specifically-requested nuanced phrases, not the "greeting + date" line this instruction was about.
 
 ## Icon grid mechanics (unchanged from build 13 except the editing UI)
 
