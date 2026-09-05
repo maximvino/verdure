@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 6</title>
+<title>Fleur · 7</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -25,11 +25,11 @@
   --ts:15px;
   /* time box raw colors (kept in sync with TBOX/TBOX_UI in JS, though
      unreferenced by any var(--x) in current CSS/JS as of Marigold Root) */
-  --today:#2d312f;    --today-t:#c5c9c6;
-  --tmrw:#2b2926;     --tmrw-t:#c8c5bd;
-  --upco:#2a2724;     --upco-t:#c6c1bb;
-  --wait:#2d2a2a;     --wait-t:#d0caca;
-  --casu:#28282b;     --casu-t:#cac8ce;
+  --today:#2d332b;    --today-t:#c5cbc3;
+  --tmrw:#292d24;     --tmrw-t:#c3ccb9;
+  --upco:#282c22;     --upco-t:#c2cab7;
+  --wait:#2c2e29;     --wait-t:#cfd2c8;
+  --casu:#272c28;     --casu-t:#c6d0c8;
   /* day abbrevs */
 }
 html{height:auto}
@@ -171,10 +171,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 
 /* ── Badges ── */
 .badge{font-size:10px;padding:1px 6px;border-radius:99px;font-weight:500;font-family:var(--font-b);color:inherit;opacity:.8}
-.badge-wait{background:rgba(74,40,40,.55);color:#e8d5d5;border:1px solid rgba(158,102,102,.25)}
-.badge-tmrw{background:rgba(64,54,31,.55);color:#d8d2b8;border:1px solid rgba(152,136,88,.2)}
-.badge-upco{background:rgba(63,45,27,.55);color:#ded1bf;border:1px solid rgba(149,113,81,.2)}
-.badge-today{background:rgba(32,54,37,.55);color:#d1ddd4;border:1px solid rgba(76,124,88,.2)}
+.badge-wait{background:rgba(61,70,44,.55);color:#e1e6d7;border:1px solid rgba(139,157,102,.25)}
+.badge-tmrw{background:rgba(48,58,37,.55);color:#c8d4bc;border:1px solid rgba(121,146,94,.2)}
+.badge-upco{background:rgba(46,55,35,.55);color:#d0d9c4;border:1px solid rgba(119,140,90,.2)}
+.badge-today{background:rgba(38,52,34,.55);color:#d2e0ce;border:1px solid rgba(88,122,78,.2)}
 .badge-rep{background:rgba(255,255,255,.1)}
 .badge-time{background:rgba(255,255,255,.12)}
 
@@ -742,7 +742,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_6_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_7_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -771,13 +771,13 @@ const KEY='fleur_6_v1',KDAY='fleur_marigold_day';
 // pass too; applyTheme() doesn't need touching this time since it only
 // carries --accent, not any of the TBOX/CORK_FRAME colors.
 const TBOX={
-  today:   {label:'Today',    bg:'#2d312f',txt:'#c5c9c6',shape:'sticky'},
-  tomorrow:{label:'Tomorrow', bg:'#2b2926',txt:'#c8c5bd',shape:'sticky'},
-  upcoming:{label:'Upcoming', bg:'#2a2724',txt:'#c6c1bb',shape:'sticky'},
-  wait:    {label:'Wait',     bg:'#2d2a2a',txt:'#d0caca',shape:'sticky'},
-  casual:  {label:'Casual',   bg:'#28282b',txt:'#cac8ce',shape:'sticky'},
+  today:   {label:'Today',    bg:'#2d332b',txt:'#c5cbc3',shape:'sticky'},
+  tomorrow:{label:'Tomorrow', bg:'#292d24',txt:'#c3ccb9',shape:'sticky'},
+  upcoming:{label:'Upcoming', bg:'#282c22',txt:'#c2cab7',shape:'sticky'},
+  wait:    {label:'Wait',     bg:'#2c2e29',txt:'#cfd2c8',shape:'sticky'},
+  casual:  {label:'Casual',   bg:'#272c28',txt:'#c6d0c8',shape:'sticky'},
 };
-const CORK_FRAME={today:'#494f4b',tomorrow:'#494741',upcoming:'#494441',wait:'#4c4646',casual:'#424147'};
+const CORK_FRAME={today:'#495147',tomorrow:'#454c3e',upcoming:'#464c3e',wait:'#4b4e44',casual:'#3f4940'};
 // Version 1: desaturated alongside TBOX/CORK_FRAME/accent -- same hues,
 // pulled down to roughly the same saturation range as Racine/Branche's own
 // ambient palette (~17-20%), since these are the single most visually
@@ -915,7 +915,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1298,11 +1298,11 @@ function snHTML(task,inCat){
 
 // ── Cork grain ──────────────────────────────────────────────────────
 const CORK_GFX={
-  today:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28177%2C158%2C121%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28177%2C158%2C121%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  tomorrow:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28176%2C149%2C159%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28176%2C149%2C159%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  upcoming:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28154%2C161%2C186%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28154%2C161%2C186%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  wait:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28140%2C158%2C136%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28140%2C158%2C136%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  casual:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28174%2C138%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28174%2C138%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  today:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C172%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C172%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  tomorrow:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28142%2C183%2C161%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28142%2C183%2C161%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  upcoming:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C189%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C189%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  wait:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28139%2C167%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28139%2C167%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3C%2Fsvg%3E)',
+  casual:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28155%2C173%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28155%2C173%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3C%2Fsvg%3E)',
 };
 function corkHTML(col){
   const cs=colStyles[col]||TBOX[col];const isMin=colMin[col]||false;
@@ -2040,11 +2040,11 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
 const TBOX_UI={
-  today:  {label:'Today',    bg:'#2d312f',txt:'#c5c9c6'},
-  tomorrow:{label:'Tomorrow',bg:'#2b2926',txt:'#c8c5bd'},
-  upcoming:{label:'Upcoming',bg:'#2a2724',txt:'#c6c1bb'},
-  wait:   {label:'Wait',     bg:'#2d2a2a',txt:'#d0caca'},
-  casual: {label:'Casual',   bg:'#28282b',txt:'#cac8ce'},
+  today:  {label:'Today',    bg:'#2d332b',txt:'#c5cbc3'},
+  tomorrow:{label:'Tomorrow',bg:'#292d24',txt:'#c3ccb9'},
+  upcoming:{label:'Upcoming',bg:'#282c22',txt:'#c2cab7'},
+  wait:   {label:'Wait',     bg:'#2c2e29',txt:'#cfd2c8'},
+  casual: {label:'Casual',   bg:'#272c28',txt:'#c6d0c8'},
 };
 const REP_LABELS=[
   ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
@@ -2729,6 +2729,10 @@ A task is **blocked** when:
 
 **CORK_GFX glyph-pattern textures and time-box badges (fixed after version 3 shipped)**: both desaturation passes above only ever touched \`TBOX\`/\`TBOX_UI\`/\`CORK_FRAME\`/the dead \`:root\` vars/\`applyTheme()\` — all plain hex strings. \`CORK_GFX\`, the repeating glyph-pattern texture layered over every cork board's background, stores its colors as \`rgba(...)\` values **inside a base64/URL-encoded SVG data URI**, not a plain hex code — so neither pass ever found or touched it, and it kept rendering at its original, much higher saturation the whole time, sitting visually on top of the now-duller \`TBOX\` background underneath. This was the actual cause of the colors still looking "the same oversaturated" after two rounds of hex-value edits: the fix was in a completely different, non-hex place. The four \`.badge-wait\`/\`.badge-tmrw\`/\`.badge-upco\`/\`.badge-today\` date-pill colors were separately un-desaturated \`rgba()\` values too, fixed in the same pass. If TBOX colors are ever revisited again, grep for \`rgba(\` and data-URI-embedded colors too, not just hex strings — this file has at least two color systems that don't share a common format.
 
+**Persisted \`colStyles\` silently overriding every code-level color fix (fixed in version 6)**: \`ap()\`'s load path used to merge whatever \`colStyles\` was saved in Supabase/localStorage on top of the live \`TBOX\` object (\`Object.assign({},TBOX[k],saved[k])\`) — meaning whatever bg/txt values got saved to an account's cloud state the very first time (potentially the *original*, oversaturated colors, saved long before any desaturation pass ever ran) would permanently keep overriding every subsequent code-level color change, on every device, forever. There has never been any editing UI that legitimately writes custom values into \`colStyles\` — it's written only at this one load-merge line and read only once, at cork-render time — so this was pure accidental staleness with no real feature behind it. This is *why* recoloring kept appearing not to take effect even in a brand-new incognito browser: incognito doesn't matter when the color data actually lives in shared cloud state, not a local cache. Fixed by always taking \`colStyles = JSON.parse(JSON.stringify(TBOX))\` directly from the live code, ignoring whatever was previously saved. \`colStyles\` is kept as a key on the serialized state only so \`sn()\`'s existing shape doesn't change for anything that still expects the key to exist.
+
+**Green tint pass (version 7)**: after two rounds of pure desaturation, the boards read as flat neutral gray rather than fitting Verdure/Racine/Branche's own green-tinted dark palette — very low saturation makes hue essentially imperceptible regardless of a color's original hue family. Fixed by blending every \`TBOX\`/\`CORK_FRAME\`/\`CORK_GFX\`/badge color's hue substantially toward Racine's own root-green hue (\`--root:#7f9767\`, ≈100°) and nudging saturation back up slightly (capped at 22%, well below the original vivid values) so the green tint actually reads rather than looking gray again. Lightness was left untouched throughout, so relative light/dark relationships between boxes are unchanged — only hue and saturation moved.
+
 **Today/Tomorrow + same-day wait incorrectly routing to Wait (fixed in Marigold Root)**: Today/Tomorrow tasks only ever get an explicit \`deadlineDate\` written if the date sub-panel is opened directly — the pill alone was always meant to be enough. \`addManual()\`'s and \`saveTask()\`'s wait-routing checks (\`if((wait...)&&!date)col='wait'\`) didn't know that, so a Today task with no separately-typed date that also had a same-day wait added looked "dateless" to that check and got moved into the Wait box outright, instead of staying in Today shown blocked/faded (the documented, intended behavior — see the comment directly above that check in both functions). Both functions now resolve Today→\`today()\`/Tomorrow→\`tomorrow()\` as an implied date *before* the wait-routing check runs, and \`addManual()\` persists that resolved date onto the new task rather than the possibly-empty raw field.
 
 **Recurring wait didn't survive past its first occurrence (fixed in version 2)**: a repeating task with a wait (e.g. "Take out the trash" every Sunday, wait until 9pm) only ever waited *once*.
@@ -2824,7 +2828,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'6',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'7',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
