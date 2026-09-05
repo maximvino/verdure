@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 7</title>
+<title>Fleur · 8</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -496,6 +496,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <select id="aco" style="display:none"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="upcoming">Upcoming</option><option value="wait">Wait</option><option value="casual">Casual</option></select>
       </div>
       <div class="dock-pane" id="pane-cat">
+        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Time box colors</div>
+        <div id="tbox-color-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+        <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:12px"></div>
         <div class="cat-chip-row" id="cat-chips"></div>
         <div class="new-cat-row" style="gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fi" id="nca" type="text" style="flex:1;min-width:120px">
@@ -742,7 +745,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_7_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_8_v1',KDAY='fleur_marigold_day';
 
 // Marigold Root: pulled every box's saturation down a notch (bg and text
 // alike) so they read as muted, dusty jewel tones rather than vivid ones --
@@ -811,7 +814,15 @@ function ap(s){
   // always taking the live, current-code TBOX directly -- colStyles is kept
   // only so sn()'s existing serialized shape doesn't change (some import/
   // export code still expects the key to exist).
-  colStyles=JSON.parse(JSON.stringify(TBOX));
+  // colStyles now has a genuine editing UI (Categories pane -- "Time box
+  // colors"), so merging saved values on top of TBOX's defaults is correct
+  // again here: a user's custom color choice for a box should persist and
+  // load on every device, exactly like any other piece of their state.
+  // (This merge was removed for a while because it was ONLY ever silently
+  // re-applying stale first-ever-saved colors with no way to change them --
+  // see the version-6 doc note below. That reasoning no longer applies now
+  // that colStyles is an intentional, user-editable customization.)
+  colStyles={};for(const k of Object.keys(TBOX))colStyles[k]=Object.assign({},TBOX[k],(s.colStyles||{})[k]||{});
   // Ensure new fields exist on all tasks
   tasks.forEach(t=>{if(t.waitUntil===undefined)t.waitUntil=null;if(t.link===undefined)t.link=null;if(t.repeatMonthDay===undefined)t.repeatMonthDay=null;if(t.casuPin===undefined)t.casuPin=false;if(t.urgent===undefined)t.urgent=false;if(t.fadedUntil===undefined)t.fadedUntil=null;if(t.notes===undefined)t.notes='';if(t.sortOrder===undefined)t.sortOrder=null;});
   // Safety net: if two tasks ever ended up sharing the same id (can happen if two
@@ -915,7 +926,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1183,6 +1194,7 @@ function switchPane(name){
   document.getElementById('di-'+name)?.classList.add('active');
   if(name==='pile')renderPilePane();
   if(name==='ai')loadAiNotes();
+  if(name==='cat')renderTboxColorList();
   if(name==='rep'){renderRepPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
   if(name==='pre'){renderPresetPane();}
 }
@@ -1251,8 +1263,8 @@ function snHTML(task,inCat){
   const bg=ensureColor(task);const tx=con(bg);
   const cat=getCat(task.categoryId);
   // streak color = time box bg; tack color = time box txt (light, visible on dark tab)
-  const streakBg=TBOX[task.col]?.bg||'rgba(0,0,0,.12)';
-  const tackColor=task.urgent?'#ff4444':inCat?(TBOX[task.col]?.txt||tx):tx;
+  const streakBg=colStyles[task.col]?.bg||'rgba(0,0,0,.12)';
+  const tackColor=task.urgent?'#ff4444':inCat?(colStyles[task.col]?.txt||tx):tx;
   // Date/repeat badges go on the TAB (header area)
   const dateStr=fmtDate(task.deadlineDate,task.col);
   let dateCls='badge';
@@ -1650,6 +1662,43 @@ function renderCatSection(){
   el.innerHTML=html;
 }
 
+// ── Time box color editing (Categories pane) ────────────────────────
+// Direct user control over each time box's color, rather than continuing
+// to guess at saturation/hue by hand. Only the background is picked --
+// text color is auto-derived via the same con() contrast function every
+// sticky note already uses, so a chosen color always stays readable
+// without a second picker to keep in sync. Writing into colStyles (not
+// TBOX directly) is what makes this persist/export/sync correctly: TBOX
+// stays the code-level *default* for a box that's never been customized,
+// colStyles is the live value actually rendered everywhere (cork board
+// backgrounds AND sticky tab headers when a task sits in a category box
+// -- see snHTML's streakBg/tackColor, which read colStyles, not TBOX).
+function renderTboxColorList(){
+  const el=document.getElementById('tbox-color-list');if(!el)return;
+  el.innerHTML=Object.keys(TBOX).map(k=>{
+    const cur=colStyles[k]?.bg||TBOX[k].bg;
+    return `<div style="display:flex;align-items:center;gap:8px">
+      <span style="flex:1;font-size:13px;color:var(--ink2)">${TBOX[k].label}</span>
+      <input type="color" data-tbox-col="${k}" value="${cur}" style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
+      <button class="tiny-btn" data-tbox-reset="${k}" title="Reset to default">reset</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-tbox-col]').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const k=inp.getAttribute('data-tbox-col');
+      colStyles[k]={...TBOX[k],bg:inp.value,txt:con(inp.value)};
+      save();ra();
+    });
+  });
+  el.querySelectorAll('[data-tbox-reset]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const k=btn.getAttribute('data-tbox-reset');
+      colStyles[k]={...TBOX[k]};
+      save();ra();renderTboxColorList();
+    });
+  });
+}
+
 function renderCatChips(){
   const el=document.getElementById('cat-chips');
   el.innerHTML=cats.length?cats.map(c=>`<div class="cchip" style="background:${c.color}20;color:${c.color};border-color:${c.color}40" onclick="openCat(${c.id})"><div style="width:7px;height:7px;border-radius:50%;background:${c.color}"></div>${esc(c.name)}</div>`).join(''):'<span style="font-size:11px;color:var(--ink3);">No categories yet</span>';
@@ -1861,13 +1910,13 @@ function aemTogglePin(){
 }
 function aemBuildCol(){
   const cur=document.getElementById('aco').value||'today';
-  document.getElementById('as-col-opts').innerHTML=Object.entries(TBOX_UI).map(([k,v])=>
+  document.getElementById('as-col-opts').innerHTML=Object.entries(colStyles).map(([k,v])=>
     `<div class="em-col-opt${cur===k?' sel':''}" style="background:${v.bg};color:${v.txt}" onclick="aemSetCol('${k}')">${v.label}</div>`
   ).join('');
 }
 function aemSetCol(col){
   document.getElementById('aco').value=col;
-  const v=TBOX_UI[col];
+  const v=colStyles[col];
   const pill=document.getElementById('ap-col');
   pill.style.background=v.bg;pill.style.borderColor=v.txt;pill.style.color=v.txt;
   const dateEl=document.getElementById('ad');
@@ -2039,13 +2088,13 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
-const TBOX_UI={
-  today:  {label:'Today',    bg:'#2d332b',txt:'#c5cbc3'},
-  tomorrow:{label:'Tomorrow',bg:'#292d24',txt:'#c3ccb9'},
-  upcoming:{label:'Upcoming',bg:'#282c22',txt:'#c2cab7'},
-  wait:   {label:'Wait',     bg:'#2c2e29',txt:'#cfd2c8'},
-  casual: {label:'Casual',   bg:'#272c28',txt:'#c6d0c8'},
-};
+// TBOX_UI (a hand-maintained copy of TBOX for the box-picker pills) was
+// removed here in the same pass that added user-editable time-box colors --
+// every former TBOX_UI reference now reads colStyles directly instead, which
+// is already the live, potentially-user-customized source of truth. This
+// also permanently removes the "keep TBOX_UI in sync with TBOX by hand"
+// maintenance burden flagged earlier in this doc -- there is only one color
+// object to update now, not two.
 const REP_LABELS=[
   ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
   ['MWF','M·W·F'],['TTS','T·T·S'],['weekdays','Weekdays'],['custom','Custom'],
@@ -2081,13 +2130,13 @@ function emTogglePin(){
 function buildEmCol(){
   const cur=document.getElementById('eco').value;
   const wrap=document.getElementById('es-col-opts');
-  wrap.innerHTML=Object.entries(TBOX_UI).map(([k,v])=>
+  wrap.innerHTML=Object.entries(colStyles).map(([k,v])=>
     `<div class="em-col-opt${cur===k?' sel':''}" style="background:${v.bg};color:${v.txt}" onclick="emSetCol('${k}')">${v.label}</div>`
   ).join('');
 }
 function emSetCol(col){
   document.getElementById('eco').value=col;
-  const v=TBOX_UI[col];
+  const v=colStyles[col];
   const pill=document.getElementById('ep-col');
   pill.style.background=v.bg;pill.style.borderColor=v.txt;pill.style.color=v.txt;
   // Keep the date field in sync so saveTask() routes correctly.
@@ -2162,7 +2211,7 @@ function emSetRep(val){
 
 function emSyncPills(t){
   // Box pill
-  const cv=TBOX_UI[t.col];
+  const cv=colStyles[t.col];
   const cp=document.getElementById('ep-col');
   if(cv){cp.style.background=cv.bg;cp.style.borderColor=cv.txt;cp.style.color=cv.txt;}
   // Category pill
@@ -2729,7 +2778,11 @@ A task is **blocked** when:
 
 **CORK_GFX glyph-pattern textures and time-box badges (fixed after version 3 shipped)**: both desaturation passes above only ever touched \`TBOX\`/\`TBOX_UI\`/\`CORK_FRAME\`/the dead \`:root\` vars/\`applyTheme()\` — all plain hex strings. \`CORK_GFX\`, the repeating glyph-pattern texture layered over every cork board's background, stores its colors as \`rgba(...)\` values **inside a base64/URL-encoded SVG data URI**, not a plain hex code — so neither pass ever found or touched it, and it kept rendering at its original, much higher saturation the whole time, sitting visually on top of the now-duller \`TBOX\` background underneath. This was the actual cause of the colors still looking "the same oversaturated" after two rounds of hex-value edits: the fix was in a completely different, non-hex place. The four \`.badge-wait\`/\`.badge-tmrw\`/\`.badge-upco\`/\`.badge-today\` date-pill colors were separately un-desaturated \`rgba()\` values too, fixed in the same pass. If TBOX colors are ever revisited again, grep for \`rgba(\` and data-URI-embedded colors too, not just hex strings — this file has at least two color systems that don't share a common format.
 
-**Persisted \`colStyles\` silently overriding every code-level color fix (fixed in version 6)**: \`ap()\`'s load path used to merge whatever \`colStyles\` was saved in Supabase/localStorage on top of the live \`TBOX\` object (\`Object.assign({},TBOX[k],saved[k])\`) — meaning whatever bg/txt values got saved to an account's cloud state the very first time (potentially the *original*, oversaturated colors, saved long before any desaturation pass ever ran) would permanently keep overriding every subsequent code-level color change, on every device, forever. There has never been any editing UI that legitimately writes custom values into \`colStyles\` — it's written only at this one load-merge line and read only once, at cork-render time — so this was pure accidental staleness with no real feature behind it. This is *why* recoloring kept appearing not to take effect even in a brand-new incognito browser: incognito doesn't matter when the color data actually lives in shared cloud state, not a local cache. Fixed by always taking \`colStyles = JSON.parse(JSON.stringify(TBOX))\` directly from the live code, ignoring whatever was previously saved. \`colStyles\` is kept as a key on the serialized state only so \`sn()\`'s existing shape doesn't change for anything that still expects the key to exist.
+**Persisted \`colStyles\` silently overriding every code-level color fix (fixed in version 6, then given a real purpose in version 8)**: \`ap()\`'s load path used to merge whatever \`colStyles\` was saved in Supabase/localStorage on top of the live \`TBOX\` object (\`Object.assign({},TBOX[k],saved[k])\`) — meaning whatever bg/txt values got saved to an account's cloud state the very first time (potentially the *original*, oversaturated colors, saved long before any desaturation pass ever ran) would permanently keep overriding every subsequent code-level color change, on every device, forever. At the time, there was no editing UI anywhere that legitimately wrote custom values into \`colStyles\`, so version 6 fixed this by ignoring saved \`colStyles\` entirely and always taking \`TBOX\` fresh from code.
+
+**Version 8 added the missing editing UI** ("Time box colors" in the Categories pane — see below), which makes merging saved \`colStyles\` over \`TBOX\` legitimate again: it's now an intentional user customization, not accidental staleness. The version-6 fix was reverted back to the original merge (\`colStyles[k]=Object.assign({},TBOX[k],saved[k]||{})\`) now that there's a real feature behind it. If \`colStyles\` is ever a source of confusion again, the deciding question is simply: *is there a UI that writes to it right now?* If yes (as of version 8, there is), the merge is correct. If a future refactor ever removes that UI without also reverting this merge, the version-6 bug will silently come back.
+
+**Time box color editing** (Categories pane, "Time box colors" section, version 8): one color picker per box (background only — text color is auto-derived via \`con()\`, the same contrast function every sticky already uses, so there's no second field to keep in sync and no way to accidentally pick an unreadable combination). Writes into \`colStyles[k]\`, which is what \`corkHTML()\` already read for cork board backgrounds — but \`snHTML()\`'s sticky-tab \`streakBg\`/\`tackColor\` (the color a task's tab shows when sitting in a *category* box, not a time box directly) used to read \`TBOX\` directly instead, bypassing any customization entirely. Both now read \`colStyles\`, so a custom time-box color reaches everywhere that color is supposed to show, matching what the cork board itself already did. \`TBOX_UI\`, the previously-separate, hand-maintained copy of these colors used only for the box-picker pills in the Add/Edit task modals, has been removed entirely — every former \`TBOX_UI\` reference now reads \`colStyles\` directly, which permanently removes the "keep TBOX_UI in sync with TBOX by hand" maintenance burden this doc flagged more than once before. \`colStyles\` is already part of \`sn()\`'s serialized shape, so a custom color scheme is automatically included in every export/cloud-sync without any separate wiring.
 
 **Green tint pass (version 7)**: after two rounds of pure desaturation, the boards read as flat neutral gray rather than fitting Verdure/Racine/Branche's own green-tinted dark palette — very low saturation makes hue essentially imperceptible regardless of a color's original hue family. Fixed by blending every \`TBOX\`/\`CORK_FRAME\`/\`CORK_GFX\`/badge color's hue substantially toward Racine's own root-green hue (\`--root:#7f9767\`, ≈100°) and nudging saturation back up slightly (capped at 22%, well below the original vivid values) so the green tint actually reads rather than looking gray again. Lightness was left untouched throughout, so relative light/dark relationships between boxes are unchanged — only hue and saturation moved.
 
@@ -2828,7 +2881,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'7',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'8',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
