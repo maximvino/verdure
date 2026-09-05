@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 15 -->
+<!-- Branche — build 16 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -38,7 +38,11 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 
 /* ── Icon grid: bare icons, no backing shape. 10x3 default (build 14) --
    sized so 10 columns fit comfortably at the shared 1160px max-width
-   without cramping (see gap/padding below, tuned for that width). ── */
+   without cramping (see gap/padding below, tuned for that width).
+   Build 16: mobile collapse removed entirely on request -- the grid now
+   renders identically on every screen size, same as desktop, just with
+   smaller cells at narrow widths (handled purely by the fixed column
+   count shrinking cell size, no separate mobile code path needed). ── */
 #icon-grid-wrap{margin:6px auto 0;padding:0 16px}
 #icon-grid{display:grid;gap:16px 12px;padding:4px 0 16px;justify-items:center}
 #icon-grid:empty{padding:0;margin:0}
@@ -47,27 +51,22 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .grid-icon:hover{background:rgba(255,255,255,.06)}
 .grid-icon img{width:60%;height:60%;object-fit:contain}
 
-/* Mobile: collapsed by default, tap to expand -- same grid, no separate layout. */
-#grid-toggle{display:none;width:100%;max-width:340px;margin:6px auto 0;background:rgba(255,255,255,.05);
-  border:1px solid var(--border2);border-radius:10px;padding:10px;color:var(--ink2);font-family:var(--font-b);
-  font-size:.8rem;cursor:pointer;text-align:center}
-@media (max-width:480px){
-  #grid-toggle{display:block}
-  #icon-grid-wrap{display:none;max-width:340px;margin:6px auto 0}
-  #icon-grid-wrap.expanded{display:block}
-  #icon-grid.expanded-grid{gap:10px 8px;padding:4px 0 12px}
-}
+/* A little breathing room between the greeting and the icons (build 16, explicit request) */
+#canopy-divider{width:60px;height:1px;background:var(--border2);margin:14px auto 0}
+#canopy-divider:empty{}
 
-/* ── Corner buttons (build 13, icons instead of words as of build 14) --
-   right-aligned within .branche-inner (the shared 1160px column), same
-   row-position convention Racine already uses for its own top-right
-   buttons, matching padding so the two rows' buttons sit flush above
-   one another. ── */
-#corner-buttons{display:flex;justify-content:flex-end;gap:6px;padding:6px 5px 0}
-.corner-btn{background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:6px;
-  width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.corner-btn:hover{background:rgba(255,255,255,.12)}
-.corner-btn img{width:16px;height:16px}
+/* ── Corner buttons (build 16: moved to top-right, restyled to match
+   Racine's own subtle .icon-btn exactly -- was a visible bordered/
+   backgrounded button before, which read as much heavier than anything
+   else in this stack). Top-right (not bottom) so they sit directly above
+   Racine's own top-right buttons with as little vertical gap as
+   possible, and so the row no longer trails after the icon grid, which
+   was part of what created extra space before Racine on wider screens. ── */
+#corner-buttons{display:flex;justify-content:flex-end;gap:8px;padding:2px 5px 0}
+.corner-btn{width:16px;height:16px;border-radius:50%;border:none;background:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;opacity:.55;transition:opacity .15s}
+.corner-btn:hover{opacity:1}
+.corner-btn img{width:12px;height:12px}
 
 /* ── Edit pane ── */
 .modal{position:fixed;inset:0;background:rgba(10,7,3,.72);display:flex;align-items:center;justify-content:center;
@@ -122,8 +121,10 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 .bday-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
 .bday-row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border2);
   border-radius:6px;padding:5px 8px;font-size:.78rem;color:var(--ink);font-family:var(--font-b);outline:none}
-.bday-row input[type=date]{background:rgba(255,255,255,.05);border:1px solid var(--border2);
-  border-radius:6px;padding:4px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none;color-scheme:dark}
+.bday-row select,.bday-row input[type=number],.add-bday-row select,.add-bday-row input[type=number]{
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 6px;font-size:.72rem;color:var(--ink);font-family:var(--font-b);outline:none}
+.bday-row select option,.add-bday-row select option{background:#1c1528}
 .add-bday-row{display:flex;gap:8px;margin-top:8px}
 .add-bday-row input[type=text]{flex:1;min-width:0}
 
@@ -154,16 +155,16 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 
 <div id="app">
   <div class="branche-inner">
-    <div id="canopy">
-      <div class="canopy-main" id="canopy-main"></div>
-      <div class="canopy-sub" id="canopy-sub"></div>
-    </div>
-    <button id="grid-toggle"></button>
-    <div id="icon-grid-wrap"><div id="icon-grid"></div></div>
     <div id="corner-buttons">
       <button class="corner-btn" id="main-knot" title="Edit Branche"><img src="" alt="Edit" id="main-knot-img"></button>
       <button class="corner-btn" id="bday-knot" title="Edit Birthdays"><img src="" alt="Birthdays" id="bday-knot-img"></button>
     </div>
+    <div id="canopy">
+      <div class="canopy-main" id="canopy-main"></div>
+      <div class="canopy-sub" id="canopy-sub"></div>
+    </div>
+    <div id="canopy-divider"></div>
+    <div id="icon-grid-wrap"><div id="icon-grid"></div></div>
   </div>
 </div>
 <button id="doc-btn" title="Download Branche context doc"></button>
@@ -198,7 +199,8 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
     <div id="edit-birthdays"></div>
     <div class="add-bday-row">
       <input type="text" id="new-bday-name" placeholder="Name">
-      <input type="date" id="new-bday-date">
+      <select id="new-bday-month"></select>
+      <input type="number" id="new-bday-day" min="1" max="31" placeholder="Day" style="width:56px">
       <button class="tiny-btn" id="add-bday-btn">+ Add</button>
     </div>
     <div class="modal-actions"><button class="btn-done" id="close-birthdays">Done</button></div>
@@ -367,8 +369,8 @@ function iconUrl(icon,size,color){
   const c=encodeURIComponent(color||DEFAULT_ICON_COLOR);
   return `https://api.iconify.design/${prefix}/${name}.svg?height=${size||64}&color=${c}`;
 }
-document.getElementById('main-knot-img').src=iconUrl(EDIT_KNOT_ICON,20,'#c3b394');
-document.getElementById('bday-knot-img').src=iconUrl(BDAY_KNOT_ICON,20,'#c3b394');
+document.getElementById('main-knot-img').src=iconUrl(EDIT_KNOT_ICON,14,'#8a7c62');
+document.getElementById('bday-knot-img').src=iconUrl(BDAY_KNOT_ICON,14,'#8a7c62');
 
 // ── Icon grid (live view) ─────────────────────────────────────────
 function renderGrid(){
@@ -386,20 +388,9 @@ function renderGrid(){
       if(ic)window.open(ic.url,'_blank','noopener');
     });
   });
-  document.getElementById('grid-toggle').textContent=icons.length?`Icons (${icons.length}) ▾`:'';
-  document.getElementById('grid-toggle').style.display=icons.length?'':'none';
   reportHeight();
 }
 window.addEventListener('resize',reportHeight);
-
-document.getElementById('grid-toggle').addEventListener('click',()=>{
-  const wrap=document.getElementById('icon-grid-wrap');
-  const grid=document.getElementById('icon-grid');
-  const nowExpanded=wrap.classList.toggle('expanded');
-  grid.classList.toggle('expanded-grid',nowExpanded);
-  document.getElementById('grid-toggle').textContent=nowExpanded?'▴':`Icons (${icons.length}) ▾`;
-  reportHeight();
-});
 
 // ── Edit pane ──────────────────────────────────────────────────────
 function openEditPane(){
@@ -488,30 +479,41 @@ document.getElementById('import-file').addEventListener('change',async(e)=>{
 });
 
 // ── Birthdays edit list ──────────────────────────────────────────
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function monthOptions(selected){
+  return MONTH_NAMES.map((m,i)=>`<option value="${i+1}"${selected===i+1?' selected':''}>${m}</option>`).join('');
+}
+document.getElementById('new-bday-month').innerHTML=monthOptions(1);
+
 function renderBirthdaysEditList(){
   const wrap=document.getElementById('edit-birthdays');
   if(!wrap)return;
   const sorted=birthdays.slice().sort((a,b)=>(a.month-b.month)||(a.day-b.day));
-  wrap.innerHTML=sorted.map(b=>{
-    const mm=String(b.month).padStart(2,'0'),dd=String(b.day).padStart(2,'0');
-    return `
+  wrap.innerHTML=sorted.map(b=>`
     <div class="bday-row" data-id="${b.id}">
       <input type="text" data-action="bday-name" data-id="${b.id}" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Name">
-      <input type="date" data-action="bday-date" data-id="${b.id}" value="2000-${mm}-${dd}">
+      <select data-action="bday-month" data-id="${b.id}">${monthOptions(b.month)}</select>
+      <input type="number" data-action="bday-day" data-id="${b.id}" min="1" max="31" value="${b.day}" style="width:56px">
       <button class="tiny-btn danger" data-action="bday-del" data-id="${b.id}">✕</button>
-    </div>`;
-  }).join('')||'<div style="font-size:.72rem;color:var(--ink3);padding:4px 0">No birthdays added yet</div>';
+    </div>`).join('')||'<div style="font-size:.72rem;color:var(--ink3);padding:4px 0">No birthdays added yet</div>';
   wrap.querySelectorAll('[data-action=bday-name]').forEach(el=>{
     el.addEventListener('input',()=>{
       const b=birthdays.find(x=>x.id===el.dataset.id);if(!b)return;
       b.name=el.value;persist();renderCanopy();
     });
   });
-  wrap.querySelectorAll('[data-action=bday-date]').forEach(el=>{
+  wrap.querySelectorAll('[data-action=bday-month]').forEach(el=>{
     el.addEventListener('change',()=>{
-      const b=birthdays.find(x=>x.id===el.dataset.id);if(!b||!el.value)return;
-      const [,m,d]=el.value.split('-').map(Number);
-      b.month=m;b.day=d;persist();renderBirthdaysEditList();renderCanopy();
+      const b=birthdays.find(x=>x.id===el.dataset.id);if(!b)return;
+      b.month=parseInt(el.value,10);persist();renderCanopy();
+    });
+  });
+  wrap.querySelectorAll('[data-action=bday-day]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const b=birthdays.find(x=>x.id===el.dataset.id);if(!b)return;
+      const d=parseInt(el.value,10);
+      if(!d||d<1||d>31){el.value=b.day;return;}
+      b.day=d;persist();renderCanopy();
     });
   });
   wrap.querySelectorAll('[data-action=bday-del]').forEach(el=>{
@@ -523,12 +525,13 @@ function renderBirthdaysEditList(){
 }
 document.getElementById('add-bday-btn').addEventListener('click',()=>{
   const nameEl=document.getElementById('new-bday-name');
-  const dateEl=document.getElementById('new-bday-date');
-  if(!dateEl.value)return;
-  const [,m,d]=dateEl.value.split('-').map(Number);
+  const monthEl=document.getElementById('new-bday-month');
+  const dayEl=document.getElementById('new-bday-day');
+  const d=parseInt(dayEl.value,10);
+  if(!d||d<1||d>31)return; // a birthday needs at least a real day; name and month always have a value already
   birthdays.push({id:'bday_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-    name:nameEl.value.trim()||'(no name)',month:m,day:d});
-  nameEl.value='';dateEl.value='';
+    name:nameEl.value.trim()||'(no name)',month:parseInt(monthEl.value,10),day:d});
+  nameEl.value='';dayEl.value='';
   persist();renderBirthdaysEditList();renderCanopy();
 });
 
@@ -701,7 +704,8 @@ function timeGreeting(d){
   return 'Bonne nuit';
 }
 function mainGreeting(d){
-  return `${timeGreeting(d)}, nous sommes ${frenchDate(d)}.`;
+  const date=frenchDate(d);
+  return `${timeGreeting(d)}. Nous sommes ${date}.`;
 }
 
 function nthWeekdayOfMonth(year,month,weekday,n){
@@ -869,9 +873,17 @@ function releaseFullHeight(){
   reportHeight();
 }
 if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getElementById('app'));}
+// Web fonts (Lora/DM Sans) loading async can reflow text after the first
+// height report goes out -- how reliably a browser's ResizeObserver catches
+// that specific reflow varies machine to machine (font cache state, network
+// timing), which is exactly the kind of inconsistency that shows up as "a
+// gap on some desktops but not others." Racine hit the same class of bug
+// and fixed it the same way: explicitly re-check once webfonts are
+// confirmed loaded, rather than relying solely on ResizeObserver to catch it.
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reportHeight);
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='15';
+const BRANCHE_VERSION='16';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
