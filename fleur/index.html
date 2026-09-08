@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 8</title>
+<title>Fleur · 10</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -23,13 +23,14 @@
   --font-t:'DM Sans',sans-serif;
   --font-hand:'DM Sans',sans-serif;
   --ts:15px;
-  /* time box raw colors (kept in sync with TBOX/TBOX_UI in JS, though
-     unreferenced by any var(--x) in current CSS/JS as of Marigold Root) */
-  --today:#2d332b;    --today-t:#c5cbc3;
-  --tmrw:#292d24;     --tmrw-t:#c3ccb9;
-  --upco:#282c22;     --upco-t:#c2cab7;
-  --wait:#2c2e29;     --wait-t:#cfd2c8;
-  --casu:#272c28;     --casu-t:#c6d0c8;
+  --sn-default:#8fd9a0; /* build 10 — default task outline when no category is set; replaces the old PASTELS random-assignment default */
+  /* time-box outline colors (kept in sync with TBOX in JS). Build 9: these
+     are now used as border-color outlines, never as fills. */
+  --today:#5db075;  --today-t:#c8ecd3;
+  --tmrw:#d6b93e;   --tmrw-t:#f2e6ad;
+  --upco:#d98f3e;   --upco-t:#f5d6ad;
+  --wait:#c85c5c;   --wait-t:#f3caca;
+  --casu:#9b72c9;   --casu-t:#e2d1f2;
   /* day abbrevs */
 }
 html{height:auto}
@@ -55,62 +56,59 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   .hdr-svg #hdr-f3>g{transform:scale(1.18);transform-origin:0 0}
 }
 
-/* ── Board: 3-col + 2 full rows ── */
-.board{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:4px;align-items:stretch}
-@media(max-width:660px){.board{grid-template-columns:1fr}}
-.full-row{margin-bottom:11px}
+/* ── Board: 7-day grid (build 10) — replaces the old Today/Tomorrow/
+   Upcoming 3-box layout. Mirrors Racine's own 7-day week grid exactly
+   (same repeat(7,1fr), same .page/.racine-inner max-width:1160px
+   centering) so Fleur's day columns line up directly under Racine's,
+   Verdure stacking them with nothing in between. Each day column has NO
+   border, NO background, NO minimize/add button — genuinely invisible,
+   same as Racine's own day columns. Casual + Wait keep their build-9
+   outlined-box treatment (border, minimize, add, casual's pin zone),
+   just side by side now instead of stacked full-width. */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:11px}
+.daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0}
+.cw-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:11px}
+@media(max-width:660px){.daycol{padding:1px 2px 3px}}
 
-/* ── Corkboard (time box) ── */
-.cork{border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative;
-  /* steel/metal frame */
-  border:3px solid transparent; /* set per-box via inline style */
-  box-shadow:
-    inset 0 1px 0 rgba(255,235,180,.18),
-    inset 0 -2px 0 rgba(0,0,0,.4),
-    inset 2px 0 0 rgba(255,235,180,.06),
-    inset -2px 0 0 rgba(0,0,0,.25),
-    0 6px 20px rgba(0,0,0,.5),
-    0 2px 4px rgba(0,0,0,.35)}
-.cork.minimized>.cork-body{display:none}
+/* ── Time box (Wait/Casual only, build 10) ──
+   Scrapped the steel-frame/paper-texture cork look entirely. Each time box
+   is now a plain bordered card: dark/transparent fill, border colored per
+   box (today=green, tomorrow=yellow, upcoming=orange, wait=red,
+   casual=purple — see TBOX in JS, still user-editable in the Categories
+   pane). Content inside is a simple vertical list of task rows (see .sn
+   below) instead of a tile grid of paper stickies — the same idea as
+   Racine's day-events list. */
+.cork{border-radius:10px;display:flex;flex-direction:column;position:relative;
+  background:rgba(0,0,0,.14);
+  border:1.5px solid transparent /* color set per-box via inline style */}
 .cork.minimized{min-height:36px!important}
+.cork.minimized>.cork-body{display:none}
 .cork-hdr{display:none}
 .cork-title{display:none}
 .cork-count{display:none}
 .cork-float{position:absolute;top:6px;right:6px;display:flex;gap:6px;z-index:10}
 .cork-btns{display:flex;gap:3px}
-.corkbtn{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);cursor:pointer;color:rgba(255,255,255,.5);font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0;flex-shrink:0;backdrop-filter:blur(4px)}
+.corkbtn{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);cursor:pointer;color:rgba(255,255,255,.5);font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0;flex-shrink:0}
 .corkbtn:hover{background:rgba(255,255,255,.15);color:rgba(255,255,255,.9)}
-.cork-nail{width:24px;height:24px;border:none;background:transparent;cursor:pointer;padding:0;flex-shrink:0;position:relative;transition:opacity .15s}
-.cork-nail::before{content:'';position:absolute;top:50%;left:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.7),rgba(170,170,170,.4) 55%,rgba(15,15,15,.6) 100%);
-  box-shadow:0 1px 1.5px rgba(0,0,0,.6);opacity:.45;transition:opacity .15s,transform .15s}
-.cork-nail:hover::before{opacity:.85;transform:translate(-50%,-50%) scale(1.3)}
-/* Wait scraps — torn paper above stickies */
-.wait-groups{display:flex;flex-wrap:wrap;gap:10px;padding:38px 14px 12px;width:100%;align-items:flex-start}
+.cork-nail{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);cursor:pointer;padding:0;flex-shrink:0;position:relative;transition:opacity .15s,background .15s;color:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:12px}
+.cork-nail:hover{background:rgba(255,255,255,.15);color:#fff}
+/* Wait scraps — simple pill chips above wait tasks (build 9: replaces the
+   old torn-paper ribbon look, same click/hover behavior) */
+.wait-groups{display:flex;flex-wrap:wrap;gap:6px;padding:32px 10px 6px;width:100%;align-items:flex-start}
 .cork.minimized .wait-groups{display:none}
 .wait-ribbon{
-  display:inline-block;
-  padding:4px 16px 5px;
-  font-family:var(--font-note);
-  font-size:12.5px;
-  
-  color:#2a1f0e;
-  background:#dfc99a;
-  cursor:pointer;
-  transition:transform .18s ease,box-shadow .18s ease;
+  display:inline-block;border-radius:99px;padding:3px 11px;
+  font-family:var(--font-b);font-size:11px;font-weight:500;
+  color:var(--ink2);background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);
+  cursor:pointer;transition:background .15s,border-color .15s;
   white-space:nowrap;
-  clip-path:polygon(0% 6%,0.8% 0%,1.8% 4.5%,3% 1%,4.2% 5.5%,5.5% 0.5%,7% 4%,9% 0%,11% 3.5%,13.5% 0.8%,16% 4%,19% 0.5%,22% 3%,26% 0%,30% 2.5%,35% 0.5%,40% 3%,46% 0%,52% 2.5%,58% 0.5%,64% 3%,70% 0.5%,76% 2%,82% 0%,87% 3%,91% 0.5%,94% 2.5%,96.5% 0%,98% 3%,99.2% 0.5%,100% 5%,99.5% 9%,100% 88%,99.2% 91%,99.8% 94%,98.5% 97%,97% 93%,95.8% 99%,94% 95%,92% 100%,89.5% 95.5%,87% 100%,83% 96%,79% 100%,74% 95.5%,69% 99.5%,63% 96%,57% 100%,50% 96%,43% 100%,36% 95.5%,29% 99%,22% 95%,15% 100%,9% 96%,5% 100%,2.5% 95.5%,0.8% 99%,0% 94%,0.5% 89%,0% 85%,0.4% 10%);
-  box-shadow:1px 3px 8px rgba(0,0,0,.4),0 1px 0 rgba(255,248,220,.6) inset;
-  letter-spacing:.01em;
 }
-.wait-ribbon:nth-child(3n+1){transform:rotate(-1.2deg)}
-.wait-ribbon:nth-child(3n+2){transform:rotate(0.8deg)}
-.wait-ribbon:nth-child(3n){transform:rotate(-0.4deg)}
-.wait-ribbon:hover{box-shadow:2px 5px 14px rgba(0,0,0,.5),0 1px 0 rgba(255,248,220,.6) inset}
-/* highlighted stickies when hovering a ribbon */
-.sn.wait-highlight{transform:translateY(-3px) rotate(1.5deg)!important;box-shadow:4px 7px 18px rgba(0,0,0,.4)!important;z-index:10}
-/* Cork body — sticky note grid */
-.cork-body{padding:34px 3px 14px;display:grid;grid-template-columns:repeat(auto-fill,140px);gap:8px;align-items:start;justify-content:center;flex:1}
+.wait-ribbon:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
+/* highlighted task rows when hovering a wait-group pill */
+.sn.wait-highlight{outline:1.5px solid rgba(255,255,255,.5);z-index:10}
+/* Cork body — vertical task-row list */
+.cork-body{padding:30px 8px 10px;display:flex;flex-direction:column;gap:5px;flex:1}
 /* Inline add */
 .cork-add{padding:6px 9px 8px;background:rgba(0,0,0,.12);display:none}
 .cork-add.open{display:block}
@@ -119,33 +117,45 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* Drag-over */
 .cork.drag-over>.cork-body{box-shadow:inset 0 0 0 2px rgba(190,220,170,.4)}
 
-/* ── Sticky note ── */
-@keyframes sn-done{0%{transform:scale(1) rotate(0);opacity:1}40%{transform:scale(.85) rotate(-4deg);opacity:.7}100%{transform:scale(.5) rotate(8deg);opacity:0}}
-.sn{border-radius:3px;display:flex;flex-direction:column;
-  box-shadow:2px 3px 8px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.15);
-  transition:transform .13s,box-shadow .13s;
+/* ── Task row (build 10) ──
+   Matches Racine's event chip almost exactly — same border-radius,
+   padding, font-size/line-height, and title font (Lora medium via
+   --font-h) — except Racine's chips are solid-filled and these are
+   outlined. Outline color: the task's category color when it's sitting
+   in a day column / Wait / Casual (snColor() with ctx!=='cat'), or a
+   due-date color (colStyles[task.col].bg — the same green/yellow/
+   orange/red system as the boxes) when it's sitting in a category box
+   (ctx==='cat'). No per-task custom color picker anymore — a task with
+   no category defaults to a plain light-green outline (--sn-default).
+   No check/pin button, no separate note button, no separate fade
+   button: double-click marks done, single click opens the edit modal
+   (which now includes notes), and click-and-hold (long-press) fades. */
+@keyframes sn-done{0%{transform:scale(1);opacity:1}100%{transform:scale(.9);opacity:0}}
+.sn{border-radius:5px;padding:3px 6px;font-size:.68rem;line-height:1.28;
+  border:1.3px solid; /* color set inline */
+  background:rgba(0,0,0,.14);
   cursor:pointer;position:relative;overflow:hidden;
-  width:140px;aspect-ratio:1/1}
-/* blocked sticky — faded, in its date box below divider */
-.sn-blocked{opacity:.38;filter:saturate(.5)}
+  transition:background .13s,opacity .13s;width:100%;user-select:none;-webkit-user-select:none}
+.sn:hover{background:rgba(255,255,255,.04)}
+.sn.pressing{background:rgba(255,255,255,.1);transition:background .5s linear}
+.sn-blocked{opacity:.4}
 .sn-blocked:hover{opacity:.55}
-.sn-curl{position:absolute;bottom:0;right:0;width:26px;height:26px;cursor:pointer;z-index:6}
-.sn-note-btn{position:absolute;bottom:0;left:0;width:26px;height:26px;cursor:pointer;z-index:6}
-.sn-note-btn.has-note::before{content:'';position:absolute;bottom:5px;left:5px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.4}
-.sn-popover{position:fixed;z-index:700;background:#1c1528;border:1px solid rgba(190,220,170,.2);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.5);width:220px}
-.sn-popover textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.15);border-radius:6px;padding:6px 8px;font-size:14px;font-family:var(--font-note);color:var(--ink);resize:none;outline:none;min-height:80px;line-height:1.5}
-.sn-popover textarea::placeholder{color:var(--ink3)}
-.sn.sn-faded{opacity:.4;filter:saturate(.4)}
-/* divider line between active and blocked stickies */
-.cork-blocked-divider,.casu-pin-divider{width:100%;height:1px;background:rgba(255,255,255,.12);
-  grid-column:1/-1;margin:4px 0;position:relative}
+.sn-faded{opacity:.4}
+.sn.completing{animation:sn-done .3s ease-in forwards;pointer-events:none}
+.sn-time{font-family:var(--font-h);font-weight:500;font-size:.85em;opacity:.85;display:block;color:var(--ink)}
+.sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sn-badges{margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;clear:both}
+.sn-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;float:right;margin-left:4px}
+.sn-link-btn{font-size:11px;text-decoration:none;opacity:.55;line-height:1;padding:1px;flex-shrink:0;font-weight:500;color:inherit}
+.sn-link-btn:hover{opacity:1}
+/* divider line between active and blocked task rows */
+.cork-blocked-divider,.casu-pin-divider{width:100%;height:1px;background:rgba(255,255,255,.12);margin:4px 0;position:relative}
 .casu-pin-divider{background:rgba(255,255,255,.2)}
 /* Casual pin drop zone */
 .casu-pin-zone{
   width:100%;padding:8px 10px 6px;
   border:2px dashed rgba(255,255,255,.18);
   border-radius:8px;margin-bottom:6px;
-  grid-column:1/-1;
   display:flex;align-items:center;justify-content:center;
   font-size:10px;font-family:var(--font-b);letter-spacing:.07em;text-transform:uppercase;
   color:rgba(255,255,255,.25);cursor:default;
@@ -153,46 +163,26 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   min-height:36px;box-sizing:border-box}
 .casu-pin-zone.drag-over{border-color:rgba(255,255,255,.55);color:rgba(255,255,255,.7);background:rgba(255,255,255,.06)}
 .casu-pin-zone.has-pins{border-style:solid;border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.3)}
-.casu-pin-label{font-size:9px;font-family:var(--font-b);letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.25);grid-column:1/-1;margin-bottom:2px}
+.casu-pin-label{font-size:9px;font-family:var(--font-b);letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:2px}
 
-/* grow taller than square when wait text is present */
-.sn[data-haswait]{aspect-ratio:unset;min-height:140px}
-.sn:not(.completing):hover{transform:translateY(-2px) rotate(.4deg);box-shadow:3px 5px 14px rgba(0,0,0,.3)}
-.sn.completing{animation:sn-done .45s ease-in forwards;pointer-events:none}
-.sn.crumpled{filter:blur(.3px);transform:rotate(var(--cr,0deg)) scale(.92);opacity:.7}
-.sn-body{padding:8px 10px 6px;flex:1;line-height:24px;background-image:repeating-linear-gradient(to bottom,transparent,transparent 23px,rgba(0,0,0,.08) 23px,rgba(0,0,0,.08) 24px);background-position:0 0}
-.sn-name{font-size:var(--ts);line-height:24px;font-family:var(--font-note);color:inherit;word-break:break-word}
-.sn-badges{margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
-.sn-link-btn{font-size:12px;text-decoration:none;opacity:.55;line-height:1;padding:1px 2px;flex-shrink:0;font-weight:500}
-.sn-link-btn:hover{opacity:1}
-.sn-tab{padding:4px 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid rgba(0,0,0,.12);background:rgba(0,0,0,.12);flex-shrink:0}
-.sn-tab-badges{display:flex;flex-wrap:wrap;gap:2px;justify-content:flex-end;align-items:center}
-.sn-streak{height:6px;width:100%;flex-shrink:0}
+/* Wait text reveal — shown below task name when ⏳ tapped */
+.sn-wait-reveal{display:none;font-family:var(--font-b);font-size:.85em;line-height:1.35;
+  color:var(--ink2);margin-top:3px;word-break:break-word;clear:both;
+  border-top:1px solid rgba(255,255,255,.08);padding-top:3px}
+.sn.wait-open .sn-wait-reveal{display:block}
 
 /* ── Badges ── */
-.badge{font-size:10px;padding:1px 6px;border-radius:99px;font-weight:500;font-family:var(--font-b);color:inherit;opacity:.8}
-.badge-wait{background:rgba(61,70,44,.55);color:#e1e6d7;border:1px solid rgba(139,157,102,.25)}
-.badge-tmrw{background:rgba(48,58,37,.55);color:#c8d4bc;border:1px solid rgba(121,146,94,.2)}
-.badge-upco{background:rgba(46,55,35,.55);color:#d0d9c4;border:1px solid rgba(119,140,90,.2)}
-.badge-today{background:rgba(38,52,34,.55);color:#d2e0ce;border:1px solid rgba(88,122,78,.2)}
+.badge{font-size:9px;padding:0 5px;border-radius:99px;font-weight:500;font-family:var(--font-b);color:inherit;opacity:.85}
+.badge-wait{background:rgba(200,92,92,.16);color:#e5a3a3;border:1px solid rgba(200,92,92,.35)}
+.badge-tmrw{background:rgba(214,185,62,.16);color:#e8d489;border:1px solid rgba(214,185,62,.35)}
+.badge-upco{background:rgba(217,143,62,.16);color:#eab27e;border:1px solid rgba(217,143,62,.35)}
+.badge-today{background:rgba(93,176,117,.16);color:#9fd6b2;border:1px solid rgba(93,176,117,.35)}
 .badge-rep{background:rgba(255,255,255,.1)}
 .badge-time{background:rgba(255,255,255,.12)}
 
-/* ── Check button ── */
-.cbtn{width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .13s;background:none;border:none;padding:0;opacity:.7}
-.cbtn:hover{opacity:1;transform:translateY(-1px)}
-.cbtn.ck{opacity:.35;filter:grayscale(1)}
-.cbtn svg.pin{width:20px;height:20px}
-
-/* ── Wait icon (tab) + inline reveal ── */
-.sn-wait-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:1px 2px;opacity:.55;line-height:1;color:inherit;flex-shrink:0;display:inline-flex;align-items:center;font-family:serif}
+/* ── Wait icon + inline reveal ── */
+.sn-wait-btn{background:none;border:none;cursor:pointer;font-size:11px;padding:1px;opacity:.55;line-height:1;color:inherit;flex-shrink:0;display:inline-flex;align-items:center;font-family:serif}
 .sn-wait-btn:hover,.sn-wait-btn.open{opacity:1}
-/* Wait text reveal — shown below task name when ⏳ tapped */
-.sn-wait-reveal{display:none;font-family:var(--font-note);font-size:var(--ts);line-height:24px;
-  color:inherit;opacity:.55;margin-top:0;word-break:break-word;
-  border-top:1px solid rgba(0,0,0,.08);padding-top:2px;margin-top:4px}
-.sn.wait-open .sn-wait-reveal{display:block}
-.sn[data-haswait]{aspect-ratio:unset;min-height:140px}
 
 /* ── Empty ── */
 .empty{width:100%;text-align:center;padding:.8rem .4rem;font-size:11px;font-family:var(--font-h);opacity:.3}
@@ -202,33 +192,25 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cat-row{display:flex;gap:4px;margin-bottom:4px;align-items:start;flex-wrap:wrap}
 .cat-row .cbox{flex:1;min-width:0}
 
-/* ── Category box — "rolled wallpaper" aesthetic (Marigold Petal) ──
-   A subtle repeating petal-texture overlay sits over each category's
-   own color (set inline per-box), replacing the old flat-color
-   "plastic brick" look. Minimized state reads as a rolled-up tube of
-   that same wallpaper via cylindrical inset shading + fully rounded
-   ends, rather than just a shrunk flat bar. */
-:root{ --petal-pattern: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2244%22%20height%3D%2244%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cg%20fill%3D%22white%22%20fill-opacity%3D%220.055%22%3E%3Cpath%20d%3D%22M22%209c3.5%200%206%203.3%206%207s-2.5%207-6%207-6-3.3-6-7%202.5-7%206-7z%22/%3E%3Cpath%20d%3D%22M9%2022c0-3.5%203.3-6%207-6s7%202.5%207%206-3.3%206-7%206-7-2.5-7-6z%22/%3E%3Cpath%20d%3D%22M22%2035c-3.5%200-6-3.3-6-7s2.5-7%206-7%206%203.3%206%207-2.5%207-6%207z%22/%3E%3Cpath%20d%3D%22M35%2022c0%203.5-3.3%206-7%206s-7-2.5-7-6%203.3-6%207-6%207%202.5%207%206z%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%223%22/%3E%3C/g%3E%3C/svg%3E"); }
-.cbox{border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
-  min-height:120px;cursor:default;position:relative;
-  background-image:var(--petal-pattern);background-repeat:repeat;
-  box-shadow:0 4px 14px rgba(0,0,0,.28),0 1px 3px rgba(0,0,0,.15);
-  border:1px solid rgba(0,0,0,.2);transition:border-radius .2s,box-shadow .2s}
-.cbox.minimized{
-  min-height:34px!important;border-radius:17px;
-  border:1px solid rgba(0,0,0,.22);
-  box-shadow:inset 0 3px 5px rgba(255,255,255,.16),inset 0 -3px 6px rgba(0,0,0,.32),0 3px 9px rgba(0,0,0,.28);
-}
+/* ── Category box — outline redesign (build 9) ──
+   Scrapped the "rolled wallpaper"/petal-pattern fill entirely. A category
+   box is now a plain card outlined in that category's own color (set
+   inline via style="border-color:..."), dark/transparent fill, no
+   background image, no cylindrical minimized-tube shading. */
+.cbox{border-radius:10px;display:flex;flex-direction:column;
+  min-height:60px;cursor:default;position:relative;
+  background:rgba(0,0,0,.14);
+  border:1.5px solid; /* color set inline */
+  transition:border-radius .2s}
+.cbox.minimized{min-height:34px!important;border-radius:17px}
 .cbox.minimized>.cbox-body{display:none}
-.cbox.cbox-dragging{opacity:.45;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.cbox.cbox-dragging{opacity:.45}
 .cbox.drop-before{outline:2px solid var(--accent);outline-offset:-2px}
 .cbox-hdr{display:none}
 .cbox-title{display:none}
 .cbox-count{display:none}
 .cbox-btns{display:none}
-.cbox-body{padding:34px 3px 14px;display:grid;grid-template-columns:repeat(auto-fill,140px);gap:8px;align-items:start;justify-content:center;flex:1}
-.cbox-body .sn{width:140px;flex-shrink:0;aspect-ratio:1/1;min-height:unset}
-.cbox-body .sn[data-haswait]{aspect-ratio:unset;min-height:140px}
+.cbox-body{padding:30px 8px 10px;display:flex;flex-direction:column;gap:5px;flex:1}
 .cbox-add{padding:6px 9px 8px;background:rgba(0,0,0,.12);display:none}
 .cbox-add.open{display:block}
 .cbox-add input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none}
@@ -383,10 +365,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .ubtn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;font-weight:500;padding:0}
 
 /* color dots */
-.cdots{display:flex;gap:5px;flex-wrap:wrap}
-.cdot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s,border-color .12s;flex-shrink:0}
-.cdot.sel{border-color:rgba(255,255,255,.7);transform:scale(1.15)}
-.cdot.cx{background:rgba(255,255,255,.07);border-style:dashed;border-color:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink3)}
+
 /* day checks */
 .day-checks{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
 .dclbl{display:flex;align-items:center;gap:2px;font-size:11px;color:var(--ink2);cursor:pointer;padding:3px 7px;border-radius:99px;border:1px solid rgba(190,220,170,.13);transition:all .12s}
@@ -416,9 +395,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     </svg>
   </div>
 
-  <div class="board" id="board"></div>
-  <div class="full-row" id="casu-row"></div>
-  <div class="full-row" id="wait-row"></div>
+  <div class="week-grid" id="board"></div>
+  <div class="cw-row">
+    <div id="casu-row"></div>
+    <div id="wait-row"></div>
+  </div>
   <!-- Control dock (between time boxes and categories) -->
   <div class="dock" id="dock-static">
     <div class="dock-top">
@@ -449,7 +430,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           <div class="em-pill ap-pill" id="ap-wait" title="Wait" onclick="aemToggle('wait')">⏳</div>
           <div class="em-pill ap-pill" id="ap-link" title="Link" onclick="aemToggle('link')">🔗</div>
           <div class="em-pill ap-pill" id="ap-rep" title="Repeat" onclick="aemToggle('rep')">🔁</div>
-          <div class="em-pill ap-pill" id="ap-color" title="Color" onclick="aemToggle('color')">🎨</div>
+          <div class="em-pill ap-pill" id="ap-notes" title="Notes" onclick="aemToggle('notes')">📝</div>
           <div class="em-pill ap-pill" id="ap-urgent" title="Urgent" onclick="aemToggleUrgent()">🚨</div>
           <div class="em-pill ap-pill" id="ap-pin" title="Pin to watch list" onclick="aemTogglePin()">📍</div>
         </div>
@@ -488,7 +469,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             <option value="monthly-end">Monthly — last day</option><option value="monthly-day">Monthly — specific day…</option>
           </select>
         </div>
-        <div class="em-sub" id="as-color"><div class="cdots" id="add-cr"></div></div>
+        <div class="em-sub" id="as-notes"><textarea class="fi" id="anotes" placeholder="Add a note…" maxlength="500" style="min-height:70px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea></div>
         <!-- hidden compat -->
         <select id="ac" style="display:none"></select>
         <input type="checkbox" id="aurgent" style="display:none">
@@ -633,8 +614,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       <div class="em-pill" id="ep-link" title="Link" onclick="emToggle('link')">🔗</div>
       <!-- 🔁 Repeat -->
       <div class="em-pill" id="ep-rep" title="Repeat" onclick="emToggle('rep')">🔁</div>
-      <!-- 🎨 Color -->
-      <div class="em-pill" id="ep-color" title="Color" onclick="emToggle('color')">🎨</div>
+      <!-- 📝 Notes -->
+      <div class="em-pill" id="ep-notes" title="Notes" onclick="emToggle('notes')">📝</div>
       <!-- 🚨 Urgent toggle -->
       <div class="em-pill" id="ep-urgent" title="Urgent" onclick="emToggleUrgent()">🚨</div>
       <!-- 📍 Pin to watch list -->
@@ -697,9 +678,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       </select>
     </div>
 
-    <!-- Color sub -->
-    <div class="em-sub" id="es-color">
-      <div class="cdots" id="edit-cr"></div>
+    <!-- Notes sub -->
+    <div class="em-sub" id="es-notes">
+      <textarea class="fi" id="enotes" placeholder="Add a note…" maxlength="500" style="min-height:80px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea>
     </div>
 
     <!-- hidden inputs kept for saveTask compat -->
@@ -745,42 +726,28 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_8_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_10_v1',KDAY='fleur_marigold_day';
 
-// Marigold Root: pulled every box's saturation down a notch (bg and text
-// alike) so they read as muted, dusty jewel tones rather than vivid ones --
-// Verdure's simpler, quieter look above made the old TBOX colors feel loud
-// by comparison. Hue and relative identity per box are unchanged, just less
-// saturated/vivid; if a future edit needs to touch these again, adjust here
-// only (this is the single source of truth colStyles copies from).
-// Version 1: pulled saturation down again (~45% further reduction in HSL
-// terms, hue/lightness held steady) once Verdure/Racine/Branche's own
-// palette got quieter still -- same reasoning as Marigold Root, just a
-// second pass now that "quieter" moved again. Remember TBOX_UI, CORK_FRAME,
-// the dead :root vars, AND applyTheme()'s hardcoded defaults object all
-// have to be updated together with this -- that's four places, not three;
-// applyTheme() in particular is easy to miss since it's a separate copy
-// from :root and doesn't visibly break anything if it's left stale (the
-// CSS var just gets silently overwritten back to the old value on load).
-// Version 3: still too saturated after version 1 -- cut much harder this
-// time (~65% further reduction in HSL terms off version 1's already-lower
-// numbers, so roughly 12-16% saturation down to roughly 4-9%). This is
-// close to the edge of staying visually distinguishable box-to-box at all
-// -- if a future pass needs to go duller still, consider whether hue
-// alone can keep carrying the distinction at this lightness, or whether
-// the five boxes need a different differentiator entirely (an icon, a
-// left-edge stripe) rather than relying on ever-smaller saturation gaps.
-// TBOX_UI + CORK_FRAME + the dead :root vars updated together with this
-// pass too; applyTheme() doesn't need touching this time since it only
-// carries --accent, not any of the TBOX/CORK_FRAME colors.
+// Build 9 — outline redesign. Every prior pass here (Marigold Root,
+// version 1, version 3) was about desaturating a FILLED box color down to
+// something quiet enough to sit against Verdure/Racine/Branche's palette.
+// That whole problem is gone now: TBOX.bg is no longer a fill, it's an
+// outline/border color, so it can just be a clean, legible hue per box
+// instead of being fought down toward gray. Explicit request: Today=green,
+// Tomorrow=yellow, Upcoming=orange, Wait=red, Casual=purple. This is the
+// single source of truth colStyles copies from (and the "Time box colors"
+// picker in the Categories pane writes into colStyles, not here — see
+// renderTboxColorList()). CORK_FRAME/TBOX_UI (both dead extra copies of
+// this same data used only for the old steel-frame border and the old
+// box-picker pills) are gone as of this build — corkHTML()/snHTML() now
+// read colStyles[col].bg directly wherever a border color is needed.
 const TBOX={
-  today:   {label:'Today',    bg:'#2d332b',txt:'#c5cbc3',shape:'sticky'},
-  tomorrow:{label:'Tomorrow', bg:'#292d24',txt:'#c3ccb9',shape:'sticky'},
-  upcoming:{label:'Upcoming', bg:'#282c22',txt:'#c2cab7',shape:'sticky'},
-  wait:    {label:'Wait',     bg:'#2c2e29',txt:'#cfd2c8',shape:'sticky'},
-  casual:  {label:'Casual',   bg:'#272c28',txt:'#c6d0c8',shape:'sticky'},
+  today:   {label:'Today',    bg:'#5db075',txt:'#0e1c12',shape:'sticky'},
+  tomorrow:{label:'Tomorrow', bg:'#d6b93e',txt:'#0e1c12',shape:'sticky'},
+  upcoming:{label:'Upcoming', bg:'#d98f3e',txt:'#0e1c12',shape:'sticky'},
+  wait:    {label:'Wait',     bg:'#c85c5c',txt:'#0e1c12',shape:'sticky'},
+  casual:  {label:'Casual',   bg:'#9b72c9',txt:'#0e1c12',shape:'sticky'},
 };
-const CORK_FRAME={today:'#495147',tomorrow:'#454c3e',upcoming:'#464c3e',wait:'#4b4e44',casual:'#3f4940'};
 // Version 1: desaturated alongside TBOX/CORK_FRAME/accent -- same hues,
 // pulled down to roughly the same saturation range as Racine/Branche's own
 // ambient palette (~17-20%), since these are the single most visually
@@ -926,7 +893,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1085,11 +1052,26 @@ function applyTheme(){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function con(hex){try{const h=(hex||'').replace('#','');const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return(0.299*r+0.587*g+0.114*b)/255>0.5?'#1a1a1a':'#f5f0e8';}catch(e){return'#f5f0e8';}}
 function getCat(id){return cats.find(c=>c.id==id)||null;}
-function ensureColor(t){
-  if(t.stickyColor)return t.stickyColor;
-  const c=getCat(t.categoryId);if(c)return c.color;
-  if(!t.paletteColor)t.paletteColor=nxtP();return t.paletteColor;
+// Build 10: replaces ensureColor(). No more per-task custom color picker
+// (stickyColor) or random default-color assignment (paletteColor/PASTELS)
+// — those fields are still in the data model for old-export compatibility
+// but are never read for color anymore. Color is now fully rule-based:
+//  - Outside a category box (day column, Wait, Casual): the task's own
+//    category color, or --sn-default (light green) if it has none.
+//  - Inside a category box: a due-date color instead — the same
+//    green/yellow/orange/red system the day columns and Wait/Casual boxes
+//    use, read from colStyles[task.col].bg. The box itself already shows
+//    the category identity via its own outline, so the task communicates
+//    urgency instead.
+// Urgent always wins over either rule.
+const SN_DEFAULT='#8fd9a0';
+function snColor(t,ctx){
+  if(t.urgent)return'#e05a5a';
+  if(ctx==='cat')return(colStyles[t.col]||TBOX[t.col])?.bg||SN_DEFAULT;
+  const c=getCat(t.categoryId);
+  return c?c.color:SN_DEFAULT;
 }
+
 function isBlocked(t){
   if(t.waitTaskId){const d=tasks.find(x=>x.id==t.waitTaskId);if(d&&!d.done)return true;}
   if(t.waitUntil){const u=new Date(t.waitUntil);if(!isNaN(u)&&u>new Date())return true;}
@@ -1166,9 +1148,11 @@ function parseNL(text){
 }
 
 // ── Color dots ────────────────────────────────────────────────────
-function mkDots(cid2,sel){const el=document.getElementById(cid2);if(!el)return;el.innerHTML=PASTELS.map(c=>`<div class="cdot${sel===c?' sel':''}" data-c="${c}" style="background:${c}" onclick="pickDot('${cid2}','${c}')"></div>`).join('')+`<div class="cdot cx${sel===''?' sel':''}" data-c="" onclick="pickDot('${cid2}','')">↻</div>`;}
-function pickDot(cid2,c){document.querySelectorAll(`#${cid2} .cdot`).forEach(s=>s.classList.remove('sel'));document.querySelector(`#${cid2} [data-c="${c}"]`)?.classList.add('sel');}
-function getDot(cid2){return document.querySelector(`#${cid2} .cdot.sel`)?.dataset.c||'';}
+// mkDots/pickDot/getDot (the old per-task color-dot picker UI) removed in
+// build 10 — task color is fully rule-based now (see snColor()), so
+// there's nothing left for a manual color picker to control. PASTELS/
+// nxtP() below are unrelated and stay: they're still used to auto-assign
+// a new CATEGORY's default color when one isn't specified.
 function buildDays(cid2,sel){const el=document.getElementById(cid2);if(!el)return;el.innerHTML=DAYS.map((d,i)=>`<label class="dclbl"><input type="checkbox" value="${i}"${(sel||[]).includes(i)?' checked':''}>${d}</label>`).join('');}
 function getDays(cid2){return[...document.querySelectorAll(`#${cid2} input:checked`)].map(c=>parseInt(c.value));}
 function onRepCh(selId,dcId){
@@ -1259,69 +1243,96 @@ function ra(){
 
 function repLabel(r){return{daily:'↻',weekly:'↻W',biweekly:'↻2W',MWF:'MWF',TTS:'TTS',weekdays:'M–F',custom:'↻?','monthly-start':'↻M1','monthly-mid':'↻M15','monthly-end':'↻M▸','monthly-day':'↻M#'}[r]||r||'';}
 
-function snHTML(task,inCat){
-  const bg=ensureColor(task);const tx=con(bg);
-  const cat=getCat(task.categoryId);
-  // streak color = time box bg; tack color = time box txt (light, visible on dark tab)
-  const streakBg=colStyles[task.col]?.bg||'rgba(0,0,0,.12)';
-  const tackColor=task.urgent?'#ff4444':inCat?(colStyles[task.col]?.txt||tx):tx;
-  // Date/repeat badges go on the TAB (header area)
-  const dateStr=fmtDate(task.deadlineDate,task.col);
+function snHTML(task,ctx){
+  // Build 10: outline color is now context-aware (see snColor). Interaction
+  // model matches Racine's read-only chips as closely as an editable/
+  // completable task allows: single click opens the edit modal (which now
+  // includes notes — no more separate note button/popover), double-click
+  // marks done (no more check/pin button), and click-and-hold (long-press,
+  // via snDown/snUp/snClick/snDblclick below) fades the task for today (no
+  // more separate fade/curl button). ⏳ wait-reveal and 🔗 link stay as
+  // small inline icons since neither maps to a click gesture.
+  const outline=snColor(task,ctx);
+  // Date badge is redundant in a day column (the column IS the date) —
+  // only shown in Wait/Casual/category-box context.
+  const dateStr=ctx==='day'?'':fmtDate(task.deadlineDate,task.col);
   let dateCls='badge';
   if(task.col==='wait')dateCls+=' badge-wait';
   else if(task.col==='tomorrow')dateCls+=' badge-tmrw';
   else if(task.col==='upcoming')dateCls+=' badge-upco';
   else if(task.col==='today')dateCls+=' badge-today';
-  const timeStr=task.deadlineTime||'';
   // Wait text: text label, dep name, or time label
   const wn=task.waitingFor||(task.waitTaskId?('until '+getDepName(task)+' done'):'')
           ||(task.waitUntil?waitUntilLabel(task):'');
   const blocked=isBlocked(task);
-  const waitIcon=wn?`<button class="sn-wait-btn" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${wn}">◷</button>`:'';
-  const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Open link">↗</a>`:'';
-  const tabLeft=dateStr?`<span class="${dateCls}" style="font-size:9px;padding:1px 5px">${esc(dateStr)}</span>`:'';
-  const tabRight=[
-    task.repeat?`<span class="badge badge-rep" style="font-size:9px;padding:1px 4px">${repLabel(task.repeat)}</span>`:'',
-    waitIcon,
-    linkIcon,
-  ].filter(Boolean).join('');
-  // Tab style: in cat box use streakBg so tack stands out
-  const tabStyle=inCat
-    ?`background:${streakBg};border-bottom-color:rgba(0,0,0,.15)`
-    :`border-bottom-color:${tx}22`;
+  const waitIcon=wn?`<button class="sn-wait-btn" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${esc(wn)}">◷</button>`:'';
+  const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()" title="Open link">↗</a>`:'';
+  const dateBadge=dateStr?`<span class="${dateCls}">${esc(dateStr)}</span>`:'';
+  const repBadge=task.repeat?`<span class="badge badge-rep">${repLabel(task.repeat)}</span>`:'';
+  const timeStr=task.deadlineTime?fmtTime(task.deadlineTime):'';
   const isFaded=task.fadedUntil&&new Date(task.fadedUntil)>new Date();
-  return`<div class="sn${inCat?' cat-sn':''}${blocked?' sn-blocked':''}${isFaded?' sn-faded':''}" draggable="true"
-    style="background:${bg};color:${tx}" data-tid="${task.id}" ${wn?'data-haswait':''} ${blocked?'data-blocked':''}
-    onclick="openTask(${task.id})" ondragstart="dstart(event,${task.id})" ondragend="dend()" ondragover="snDragOver(event,${task.id})" ondrop="snDrop(event,${task.id})">
-    <div class="sn-tab" style="${tabStyle}">
-      <div class="sn-tab-badges" style="justify-content:flex-start">${tabLeft}</div>
-      <button class="cbtn${task.done?' ck':''}" style="color:${tackColor}" onclick="event.stopPropagation();chk(${task.id})" title="${task.done?'Unpin':'Pin as done'}"><svg class="pin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="currentColor" opacity=".9"/><circle cx="12" cy="8" r="2.5" fill="rgba(0,0,0,.3)"/><line x1="12" y1="13" x2="12" y2="22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".7"/></svg></button>
-      <div class="sn-tab-badges">${tabRight}</div>
-    </div>
-    <div class="sn-body">
-      <div class="sn-name">${esc(task.name)}</div>
-      ${wn?`<div class="sn-wait-reveal">${esc(wn)}</div>`:''}
-    </div>
-    ${inCat?'<div class="sn-streak" style="background:'+streakBg+'"></div>':''}
-    <div class="sn-note-btn${task.notes?' has-note':''}" onclick="event.stopPropagation();openNotePopover(${task.id},this)" title="${task.notes?'Edit note':'Add note'}"></div>
-    <div class="sn-curl" onclick="event.stopPropagation();toggleFade(${task.id})" title="Fade for today"></div>
+  return`<div class="sn${ctx==='cat'?' cat-sn':''}${blocked?' sn-blocked':''}${isFaded?' sn-faded':''}" draggable="true"
+    style="border-color:${outline}" data-tid="${task.id}" ${wn?'data-haswait':''} ${blocked?'data-blocked':''}
+    onmousedown="snDown(event,${task.id})" onmouseup="snUp(${task.id})" onmouseleave="snUp(${task.id})"
+    ontouchstart="snDown(event,${task.id})" ontouchend="snUp(${task.id})" ontouchmove="snUp(${task.id})"
+    onclick="snClick(${task.id})" ondblclick="snDblclick(event,${task.id})"
+    ondragstart="dstart(event,${task.id})" ondragend="dend()" ondragover="snDragOver(event,${task.id})" ondrop="snDrop(event,${task.id})">
+    <div class="sn-actions">${waitIcon}${linkIcon}</div>
+    ${timeStr?`<span class="sn-time">${esc(timeStr)}</span>`:''}
+    <span class="sn-name">${esc(task.name)}</span>
+    ${(dateBadge||repBadge)?`<div class="sn-badges">${dateBadge}${repBadge}</div>`:''}
+    ${wn?`<div class="sn-wait-reveal">${esc(wn)}</div>`:''}
   </div>`;
 }
+// ── Click / double-click / long-press disambiguation ────────────────
+// Native onclick+ondblclick both fire on a real double-click (click, click,
+// dblclick in quick succession), which would flash the edit modal open
+// right before the dblclick registers. So a single click is delayed
+// briefly and canceled if a second click arrives in time; a long-press
+// (mouse or touch) is handled separately via its own timer and suppresses
+// the click that follows it.
+const SN_HOLD_MS=550,SN_CLICK_MS=260;
+let _snPressT={},_snClickT={},_snPressed={};
+function snDown(e,id){
+  if(e.button!==undefined&&e.button!==0)return;
+  _snPressed[id]=false;
+  clearTimeout(_snPressT[id]);
+  document.querySelector(`.sn[data-tid="${id}"]`)?.classList.add('pressing');
+  _snPressT[id]=setTimeout(()=>{
+    _snPressed[id]=true;
+    document.querySelectorAll(`.sn[data-tid="${id}"]`).forEach(el=>el.classList.remove('pressing'));
+    toggleFade(id);
+    if(navigator.vibrate)navigator.vibrate(12);
+  },SN_HOLD_MS);
+}
+function snUp(id){
+  clearTimeout(_snPressT[id]);
+  document.querySelectorAll(`.sn[data-tid="${id}"]`).forEach(el=>el.classList.remove('pressing'));
+}
+function snClick(id){
+  if(_snPressed[id]){_snPressed[id]=false;return;} // long-press already handled this tap
+  clearTimeout(_snClickT[id]);
+  _snClickT[id]=setTimeout(()=>{openTask(id);},SN_CLICK_MS);
+}
+function snDblclick(e,id){
+  clearTimeout(_snClickT[id]);
+  clearTimeout(_snPressT[id]);
+  chk(id);
+}
+function fmtTime(t){ // "14:30" -> "2:30pm"
+  const[h,m]=t.split(':').map(Number);
+  return(h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h<12?'am':'pm');
+}
 
-// ── Cork grain ──────────────────────────────────────────────────────
-const CORK_GFX={
-  today:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C172%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C172%2C126%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%80%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  tomorrow:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28142%2C183%2C161%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28142%2C183%2C161%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9D%83%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  upcoming:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C189%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28151%2C189%2C155%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%A4%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  wait:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28139%2C167%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28139%2C167%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BD%3C%2Ftext%3E%3C%2Fsvg%3E)',
-  casual:'url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2252%22%20height%3D%2252%22%3E%3Ctext%20x%3D%2213%22%20y%3D%2218%22%20font-size%3D%2222%22%20fill%3D%22rgba%28155%2C173%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3Ctext%20x%3D%2239%22%20y%3D%2244%22%20font-size%3D%2222%22%20fill%3D%22rgba%28155%2C173%2C127%2C0.4%29%22%20font-family%3D%22serif%22%20text-anchor%3D%22middle%22%3E%E2%9C%BE%3C%2Ftext%3E%3C%2Fsvg%3E)',
-};
 function corkHTML(col){
+  // Build 10: this function is now only used for Wait and Casual — the
+  // date-based Today/Tomorrow/Upcoming boxes are gone, replaced by the
+  // 7-day grid (see dayColHTML). The old cross-day "blockedHere" lookup
+  // (which pulled in tasks whose true date-based col matched this one)
+  // never applies to wait/casual, so it's gone rather than left as dead
+  // code that never actually matches anything.
   const cs=colStyles[col]||TBOX[col];const isMin=colMin[col]||false;
   const ct=tasks.filter(t=>t.col===col);const done=ct.filter(t=>t.done).length;
-  // Also include tasks blocked by waitTaskId/waitUntil that belong to this col by date
-  const blockedHere=tasks.filter(t=>t.col!==col&&t.deadlineDate&&d2col(t.deadlineDate,t.repeat)===col&&isBlocked(t)&&t.col!=='wait'||
-    (t.col!==col&&!t.deadlineDate&&col==='today'&&isBlocked(t)&&t.col!=='wait'));
   function sortTasks(arr){return arr.slice().sort((a,b)=>{
   // Manual order takes precedence when both tasks have sortOrder set
   const ao=a.sortOrder,bo=b.sortOrder;
@@ -1333,11 +1344,9 @@ function corkHTML(col){
   if(da)return -1;if(db)return 1;
   return a.name.localeCompare(b.name);
 });}
-  const oneWeekOut=(()=>{const d=new Date();d.setDate(d.getDate()+7);return d.toISOString().slice(0,10);})();
-  const withinWeek=t=>col!=='upcoming'||!t.deadlineDate||t.deadlineDate<=oneWeekOut;
-  const activeItems=sortTasks(ct.filter(t=>!isBlocked(t)&&withinWeek(t))).map(t=>snHTML(t,false));
-  const blockedItems=sortTasks([...ct.filter(t=>isBlocked(t)&&withinWeek(t)),...blockedHere.filter(withinWeek)]).map(t=>snHTML(t,false));
-  const divider=blockedItems.length?`<div class="cork-blocked-divider" style="color:${cs.txt}"></div>`:'';
+  const activeItems=sortTasks(ct.filter(t=>!isBlocked(t))).map(t=>snHTML(t,col));
+  const blockedItems=sortTasks(ct.filter(t=>isBlocked(t))).map(t=>snHTML(t,col));
+  const divider=blockedItems.length?`<div class="cork-blocked-divider"></div>`:'';
   const allItems=[...activeItems,divider,...blockedItems];
   const content=allItems.length&&(activeItems.length||blockedItems.length)?allItems.join(''):'';
   // Wait group pills (shown above stickies in Wait box)
@@ -1366,10 +1375,10 @@ function corkHTML(col){
     const pinnedBlocked=allPinned.filter(t=>isBlocked(t));
     // Unpinned = tasks actually assigned to casual col (not pinned ones — they'd duplicate)
     const unpinned=sortTasks(ct.filter(t=>!t.casuPin&&!isBlocked(t)));
-    const bBlocked=sortTasks([...ct.filter(t=>!t.casuPin&&isBlocked(t)),...blockedHere]);
-    const pinnedItems=pinned.map(t=>snHTML(t,false));
-    const unpinnedItems=unpinned.map(t=>snHTML(t,false));
-    const blockedItems2=bBlocked.map(t=>snHTML(t,false));
+    const bBlocked=sortTasks(ct.filter(t=>!t.casuPin&&isBlocked(t)));
+    const pinnedItems=pinned.map(t=>snHTML(t,col));
+    const unpinnedItems=unpinned.map(t=>snHTML(t,col));
+    const blockedItems2=bBlocked.map(t=>snHTML(t,col));
     const hasPins=pinned.length>0||pinnedBlocked.length>0;
     const pinZone=`<div class="casu-pin-zone${hasPins?' has-pins':''}" id="casu-pin-zone"
       ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -1380,19 +1389,19 @@ function corkHTML(col){
     const pinDiv=hasPins&&unpinnedItems.length?`<div class="casu-pin-divider"></div>`:'';
     const blockDiv=blockedItems2.length?`<div class="cork-blocked-divider"></div>`:'';
     // pinnedBlocked tasks (pinned but currently waiting): show after active pins, before divider
-    const pinnedBlockedItems=pinnedBlocked.map(t=>snHTML(t,false));
+    const pinnedBlockedItems=pinnedBlocked.map(t=>snHTML(t,col));
     const hasPinnedBlocked=pinnedBlockedItems.length>0;
     if(minLevel===0)bodyHTML=pinZone+(hasPins?pinnedItems.join(''):'')+(hasPinnedBlocked?pinnedBlockedItems.join(''):'')+(( hasPins||hasPinnedBlocked)&&unpinnedItems.length?`<div class="casu-pin-divider"></div>`:'')+unpinnedItems.join('')+blockDiv+blockedItems2.join('');
     else bodyHTML=(pinnedItems.join('')+pinnedBlockedItems.join(''))||'';
   } else {
     bodyHTML=content;
   }
-  const addBtn=`<button class="cork-nail" title="Add" onclick="toggleCorkAdd('${col}')"></button>`;
+  const addBtn=`<button class="cork-nail" title="Add" onclick="toggleCorkAdd('${col}')">+</button>`;
   const bodyHidden=isCasu?false:!!minLevel;
     return`<div class="cork${bodyHidden?' minimized':''}" data-col="${col}"
-    style="background:${CORK_GFX[col]},${cs.bg};border-color:${CORK_FRAME[col]||'#5a4a2e'}"
+    style="border-color:${cs.bg}"
     ondragover="dover(event,'${col}')" ondrop="drop(event,'${col}')" ondragleave="dleave(event)">
-    <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="toggleMin('${col}')" title="${minLevel?'Expand':'Minimize'}"></button></div>
+    <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="toggleMin('${col}')" title="${minLevel?'Expand':'Minimize'}">${minLevel?'▸':'▾'}</button></div>
     <div class="cork-float">
       ${addBtn}
     </div>
@@ -1404,8 +1413,55 @@ function corkHTML(col){
   </div>`;
 }
 
+// ── Day grid (build 10) ──────────────────────────────────────────────
+// Replaces Today/Tomorrow/Upcoming. Seven date-based columns (today..+6),
+// each just the plain task list for that exact deadlineDate — no box
+// chrome, no minimize/add (see .daycol/.week-grid CSS). A task whose
+// deadlineDate falls beyond day 6 simply isn't shown yet, same as the old
+// Upcoming box not rendering tasks beyond one week out; it'll appear on
+// its own once its date rolls into the 7-day window (dayTrans() already
+// keeps col in sync with deadlineDate at midnight, independent of this).
+//
+// Auto-fade (build 10): a day-box task that isBlocked() (e.g. due Sunday
+// but with a wait condition not fulfilled until Sunday night) is NOT
+// segregated into a separate blocked section the way Wait/Casual still
+// do — it stays in its natural sorted position in its day, just rendered
+// with .sn-blocked (faded). Once isBlocked() goes false (the wait
+// resolves), the next render shows it at full opacity automatically —
+// no manual unfade needed.
+function fmtISO(d){return d.toISOString().slice(0,10);}
+function weekDates(){
+  const days=[];const base=new Date();base.setHours(0,0,0,0);
+  for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()+i);days.push(fmtISO(d));}
+  return days;
+}
+function dayColHTML(dateStr){
+  const dayTasks=tasks.filter(t=>t.deadlineDate===dateStr&&t.col!=='wait'&&t.col!=='casual'&&!t.done);
+  const sorted=dayTasks.slice().sort((a,b)=>{
+    const ao=a.sortOrder,bo=b.sortOrder;
+    if(ao!=null&&bo!=null)return ao-bo;
+    if(ao!=null)return -1;if(bo!=null)return 1;
+    const ta=a.deadlineTime||'',tb=b.deadlineTime||'';
+    if(ta&&tb)return ta<tb?-1:ta>tb?1:0;
+    if(ta)return -1;if(tb)return 1;
+    return a.name.localeCompare(b.name);
+  });
+  const html=sorted.map(t=>snHTML(t,'day')).join('');
+  return`<div class="daycol" data-date="${dateStr}"
+    ondragover="dover(event,'${dateStr}')" ondrop="dropDay(event,'${dateStr}')" ondragleave="dleave(event)"
+    >${html}</div>`;
+}
 function renderBoard(){
-  document.getElementById('board').innerHTML=['today','tomorrow','upcoming'].map(corkHTML).join('');
+  document.getElementById('board').innerHTML=weekDates().map(dayColHTML).join('');
+}
+function dropDay(e,dateStr){
+  e.preventDefault();e.stopPropagation();e.currentTarget.classList.remove('drag-over');
+  if(dragTid===null)return;const id=dragTid;dragTid=null;
+  const task=tasks.find(t=>t.id==id);if(!task)return;
+  pu('drag');
+  task.deadlineDate=dateStr;
+  task.col=d2col(dateStr,task.repeat);
+  save();ra();showU('Moved');
 }
 
 // ── Preset row ──────────────────────────────────────────────────────
@@ -1601,7 +1657,7 @@ function renderRepPane(){
   if(!reps.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No repeating tasks yet.</div>';return;}
   const catOpts='<option value="">—</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   el.innerHTML=reps.map(t=>{
-    const bg=ensureColor(t);const tx=con(bg);
+    const bg=snColor(t,'day');const tx=con(bg);
     return`<div class="rep-row" data-tid="${t.id}" style="background:${bg}22;border:1px solid ${bg}44;border-radius:8px;padding:6px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       <span style="flex:1;min-width:80px;font-size:13px;color:var(--ink);font-family:var(--font-note)">${esc(t.name)}</span>
       <select style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:2px 4px" onchange="updRepField(${t.id},'repeat',this.value)">
@@ -1635,22 +1691,25 @@ function renderCatSection(){
     gc.forEach(cat=>{
       const ctRaw=tasks.filter(t=>t.categoryId==cat.id);const done=ctRaw.filter(t=>t.done).length;
       const ct=ctRaw.slice().sort((a,b)=>{const da=a.deadlineDate||'',db=b.deadlineDate||'';if(da&&db)return da<db?-1:da>db?1:0;if(da)return -1;if(db)return 1;return a.name.localeCompare(b.name);});
-      const isMin=cat.minimized||false;const tx=con(cat.color);
+      const isMin=cat.minimized||false;
       function sortT(arr){return arr.slice().sort((a,b)=>{const da=a.deadlineDate||'',db=b.deadlineDate||'';if(da&&db)return da<db?-1:da>db?1:0;if(da)return -1;if(db)return 1;return a.name.localeCompare(b.name);});}
-      const activeT=sortT(ct.filter(t=>!isBlocked(t))).map(t=>snHTML(t,true));
+      const activeT=sortT(ct.filter(t=>!isBlocked(t))).map(t=>snHTML(t,'cat'));
       const blockedT=sortT(ct.filter(t=>isBlocked(t))).map(t=>{
         // No fade in cat boxes — just a divider
-        return snHTML(t,true).replace(' sn-blocked','');
+        return snHTML(t,'cat').replace(' sn-blocked','');
       });
-      const catDiv=blockedT.length?`<div class="cork-blocked-divider" style="color:${tx}"></div>`:'';
+      const catDiv=blockedT.length?`<div class="cork-blocked-divider"></div>`:'';
       const items=[...activeT,catDiv,...blockedT];
-      const content=items.length&&(activeT.length||blockedT.length)?items.join(''):`<div class="empty" style="color:${tx}">—</div>`;
+      const content=items.length&&(activeT.length||blockedT.length)?items.join(''):`<div class="empty">—</div>`;
       const addId=`cba-${cat.id}`;
-      html+=`<div class="cbox${isMin?' minimized':''}" id="cbox-${cat.id}" data-catid="${cat.id}" style="background-color:color-mix(in srgb,${cat.color} 45%,#0d0a14 55%)"
+      // Build 9: outline instead of fill — border-color is the category's own
+      // color (set here), background is the same plain dark surface every
+      // other box now uses. No more color-mix()'d tint fill.
+      html+=`<div class="cbox${isMin?' minimized':''}" id="cbox-${cat.id}" data-catid="${cat.id}" style="border-color:${cat.color}"
         draggable="true" ondragstart="catDs(event,${cat.id})" ondragend="catDe(event)"
         ondragover="cboxOver(event,${cat.id})" ondrop="cboxDrop(event,${cat.id})" ondragleave="catDl(event)">
-        <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}"></button></div>
-        <div class="cork-float"><button class="cork-nail" onclick="event.stopPropagation();toggleCboxAdd(${cat.id})" title="Add"></button></div>
+        <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}">${isMin?'▸':'▾'}</button></div>
+        <div class="cork-float"><button class="cork-nail" onclick="event.stopPropagation();toggleCboxAdd(${cat.id})" title="Add">+</button></div>
         <div class="cbox-body">${content}</div>
         <div class="cbox-add" id="${addId}">
           <input id="${addId}-i" placeholder="" onkeydown="cboxKey(event,${cat.id})">
@@ -1666,13 +1725,14 @@ function renderCatSection(){
 // Direct user control over each time box's color, rather than continuing
 // to guess at saturation/hue by hand. Only the background is picked --
 // text color is auto-derived via the same con() contrast function every
-// sticky note already uses, so a chosen color always stays readable
+// task row already uses, so a chosen color always stays readable
 // without a second picker to keep in sync. Writing into colStyles (not
 // TBOX directly) is what makes this persist/export/sync correctly: TBOX
 // stays the code-level *default* for a box that's never been customized,
-// colStyles is the live value actually rendered everywhere (cork board
-// backgrounds AND sticky tab headers when a task sits in a category box
-// -- see snHTML's streakBg/tackColor, which read colStyles, not TBOX).
+// colStyles is the live value actually rendered everywhere (cork/cat box
+// borders AND task-row outlines when a task sits in a time box -- see
+// snHTML(), which reads ensureColor(task), and corkHTML(), which reads
+// colStyles[col].bg directly).
 function renderTboxColorList(){
   const el=document.getElementById('tbox-color-list');if(!el)return;
   el.innerHTML=Object.keys(TBOX).map(k=>{
@@ -1765,74 +1825,61 @@ function toggleFade(id){
   else{const d=new Date();d.setHours(23,59,59,999);t.fadedUntil=d.toISOString();}
   save();ra();
 }
-// ── Note popover ─────────────────────────────────────────────────
-let _notePopover=null,_noteTid=null;
-function openNotePopover(id,triggerEl){
-  // Close any existing popover first
-  closeNotePopover();
-  const task=tasks.find(t=>t.id==id);if(!task)return;
-  _noteTid=id;
-  const pop=document.createElement('div');
-  pop.className='sn-popover';
-  pop.innerHTML=`<textarea placeholder="Add a note…" maxlength="500">${task.notes||''}</textarea>`;
-  document.body.appendChild(pop);
-  _notePopover=pop;
-  // Position near the trigger (bottom-left of sticky)
-  const r=triggerEl.getBoundingClientRect();
-  const popW=220,popH=120;
-  let left=r.left,top=r.top-popH-6;
-  if(top<8)top=r.bottom+6;
-  if(left+popW>window.innerWidth-8)left=window.innerWidth-popW-8;
-  if(left<8)left=8;
-  pop.style.left=left+'px';pop.style.top=top+'px';
-  const ta=pop.querySelector('textarea');
-  ta.focus();
-  ta.addEventListener('blur',()=>setTimeout(closeNotePopover,120));
-  ta.addEventListener('input',()=>{
-    const t2=tasks.find(t=>t.id==_noteTid);
-    if(t2){t2.notes=ta.value;save();}
-  });
-  // Close on Escape
-  ta.addEventListener('keydown',e=>{if(e.key==='Escape')closeNotePopover();});
-}
-function closeNotePopover(){
-  if(_notePopover){
-    // Final save and re-render to update the indicator dot
-    const t=tasks.find(t=>t.id==_noteTid);
-    if(t){t.notes=_notePopover.querySelector('textarea').value;save();ra();}
-    _notePopover.remove();_notePopover=null;_noteTid=null;
-  }
-}
-// Close popover if user taps outside
-document.addEventListener('pointerdown',e=>{
-  if(_notePopover&&!_notePopover.contains(e.target))closeNotePopover();
-},{passive:true});
+// ── Notes ─────────────────────────────────────────────────────────
+// Build 10: the separate note-popover (triggered by a small ✎ corner
+// button on the sticky) is gone — notes are now just a field inside the
+// regular task edit modal, behind the 📝 pill (see emToggle('notes') /
+// aemToggle('notes')), same as every other task attribute. No standalone
+// popover, no separate save path: it's read/written in openTask()/
+// saveTask() and addTaskFromModal() like every other field.
 
-// ── Drag-to-reorder within same col ──────────────────────────────
+
+// ── Drag-to-reorder within same bucket ───────────────────────────────
+// "Same bucket" used to just mean "same col", back when today/tomorrow/
+// upcoming were single boxes. Now that upcoming spans five separate day
+// columns (all still col==='upcoming' internally), same-col alone isn't
+// enough — two tasks in different day columns could both be 'upcoming'.
+// So day-bucketed tasks (today/tomorrow/upcoming) also have to match on
+// deadlineDate; wait/casual are still single buckets as before.
+function sameBucket(a,b){
+  if(a.col!==b.col)return false;
+  if(a.col==='wait'||a.col==='casual')return true;
+  return a.deadlineDate===b.deadlineDate;
+}
+function cmpTasks(a,b){
+  const ao=a.sortOrder,bo=b.sortOrder;
+  if(ao!=null&&bo!=null)return ao-bo;
+  if(ao!=null)return -1;if(bo!=null)return 1;
+  const ta=a.deadlineTime||'',tb=b.deadlineTime||'';
+  if(ta&&tb)return ta<tb?-1:ta>tb?1:0;
+  if(ta)return -1;if(tb)return 1;
+  return a.name.localeCompare(b.name);
+}
 function snDragOver(e,targetId){
   if(dragTid===null||dragTid===targetId)return;
   const dragTask=tasks.find(t=>t.id==dragTid);
   const targetTask=tasks.find(t=>t.id==targetId);
-  // Only handle same-col reordering here; cross-col is handled by the cork ondragover
-  if(!dragTask||!targetTask||dragTask.col!==targetTask.col)return;
+  // Only handle same-bucket reordering here; cross-bucket is handled by the cork/day ondragover
+  if(!dragTask||!targetTask||!sameBucket(dragTask,targetTask))return;
   e.preventDefault();e.stopPropagation();
 }
 function snDrop(e,targetId){
   if(dragTid===null||dragTid===targetId)return;
   const dragTask=tasks.find(t=>t.id==dragTid);
   const targetTask=tasks.find(t=>t.id==targetId);
-  if(!dragTask||!targetTask||dragTask.col!==targetTask.col)return;
+  if(!dragTask||!targetTask||!sameBucket(dragTask,targetTask))return;
   e.preventDefault();e.stopPropagation();
   pu('reorder');
-  // Get all tasks in this col in current display order
-  const colTasks=sortTasks(tasks.filter(t=>t.col===dragTask.col&&!t.done));
-  // Remove the dragged task and insert before the target
-  const withoutDrag=colTasks.filter(t=>t.id!==dragTask.id);
+  // Get all tasks in this exact bucket in current display order (this used
+  // to call a bare sortTasks() that was never defined at this scope — a
+  // pre-existing crash on every reorder attempt, fixed here alongside the
+  // bucket-matching change since both needed touching this function anyway)
+  const bucketTasks=tasks.filter(t=>sameBucket(t,dragTask)&&!t.done).sort(cmpTasks);
+  const withoutDrag=bucketTasks.filter(t=>t.id!==dragTask.id);
   const targetIdx=withoutDrag.findIndex(t=>t.id===targetId);
   withoutDrag.splice(targetIdx,0,dragTask);
   // Assign sequential sortOrder values
   withoutDrag.forEach((t,i)=>t.sortOrder=i);
-  // Zero out sort order for any tasks in other cols so they don't get stale values
   save();ra();showU('Reordered');
 }
 
@@ -1967,7 +2014,7 @@ function aemUpdateDatePill(){
 }
 function aemReset(){
   _aurgent=false;_aemOpen=null;
-  ['ap-col','ap-cat','ap-date','ap-wait','ap-link','ap-rep','ap-color'].forEach(id=>{
+  ['ap-col','ap-cat','ap-date','ap-wait','ap-link','ap-rep','ap-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el){el.style.background='';el.style.borderColor='';el.style.color='';el.classList.remove('has-val','active');}
   });
   document.getElementById('ap-urgent').classList.remove('lit');
@@ -2019,12 +2066,12 @@ function addManual(){
     // creating a task that can never sort itself correctly.
     aemToggle('date');showU('Upcoming needs a due date');return;
   }
-  const color=getDot('add-cr');
+  const notes=document.getElementById('anotes')?.value||'';
   pu('add');
-  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:color,link,paletteColor:color?'':nxtP()});
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null});
   // Reset
-  document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';
-  mkDots('add-cr','');aemReset();aemClose();save();ra();showU('Added');
+  document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';if(document.getElementById('anotes'))document.getElementById('anotes').value='';
+  aemReset();aemClose();save();ra();showU('Added');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='an'&&!(e.ctrlKey||e.metaKey)){e.preventDefault();addManual();}});
 
@@ -2047,7 +2094,7 @@ function chk(id){
     document.querySelectorAll(`[data-tid="${id}"]`).forEach(el=>el.classList.add('completing'));
     setTimeout(()=>{
       t.done=true;liberateDeps(id);
-      completedToday.push({id:t.id,name:t.name,color:ensureColor(t),categoryId:t.categoryId});
+      completedToday.push({id:t.id,name:t.name,color:snColor(t,'day'),categoryId:t.categoryId});
       if(!t.repeat){tasks=tasks.filter(x=>x.id!==id);}
       else{
         // Repeating: advance to next occurrence
@@ -2233,9 +2280,9 @@ function emSyncPills(t){
   const rp=document.getElementById('ep-rep');
   rp.classList.toggle('has-val',!!t.repeat);
   if(!t.repeat){rp.style.background='';rp.style.borderColor='';}
-  const clp=document.getElementById('ep-color');
-  if(t.stickyColor){clp.style.background=t.stickyColor;clp.style.borderColor=t.stickyColor;}
-  else{clp.style.background='';clp.style.borderColor='';clp.classList.remove('has-val');}
+  const np=document.getElementById('ep-notes');
+  np.classList.toggle('has-val',!!t.notes);
+  if(!t.notes){np.style.background='';np.style.borderColor='';}
   // Urgent pill
   document.getElementById('ep-urgent').classList.toggle('lit',!!t.urgent);
   document.getElementById('eurgent').checked=!!t.urgent;
@@ -2244,8 +2291,6 @@ function emSyncPills(t){
   document.getElementById('epin').checked=!!t.casuPin;
 }
 
-// Wire color dots change → update pill live
-const _origMkDots=mkDots;
 // ── Task edit modal ───────────────────────────────────────────────
 let _returnToCalendar=false;
 function openTask(id){
@@ -2275,21 +2320,13 @@ function openTask(id){
   const isC=t.repeat==='custom';document.getElementById('edc').style.display=isC?'block':'none';
   if(isC)buildDays('edit-days',t.repeatDays||[]);
   syncSelects();document.getElementById('ec').value=t.categoryId||'';
-  mkDots('edit-cr',t.stickyColor||'');
+  document.getElementById('enotes').value=t.notes||'';
   emClose();
   // Reset pill styles before sync
-  ['ep-col','ep-cat','ep-date','ep-wait','ep-link','ep-rep','ep-color'].forEach(id=>{
+  ['ep-col','ep-cat','ep-date','ep-wait','ep-link','ep-rep','ep-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el){el.style.background='';el.style.borderColor='';el.style.color='';}
   });
   emSyncPills(t);
-  // Wire color pill: update when dot changes
-  document.querySelectorAll('#edit-cr .cdot').forEach(d=>{
-    d.addEventListener('click',()=>{
-      const clp=document.getElementById('ep-color');
-      const sc=getDot('edit-cr');
-      clp.style.background=sc||'';clp.style.borderColor=sc||'';
-    });
-  });
   document.getElementById('tm').classList.remove('hidden');
 }
 // ewg always visible — no listener needed
@@ -2322,7 +2359,7 @@ function saveTask(){
   t.repeatDays=t.repeat==='custom'?getDays('edit-days'):[];
   t.repeatMonthDay=t.repeat==='monthly-day'?parseInt(document.getElementById('emonthday')?.value||1):null;
   const cv=document.getElementById('ec').value;t.categoryId=cv?parseInt(cv):null;
-  t.stickyColor=getDot('edit-cr');t.urgent=document.getElementById('eurgent').checked;t.casuPin=document.getElementById('epin').checked;
+  t.notes=document.getElementById('enotes').value;t.urgent=document.getElementById('eurgent').checked;t.casuPin=document.getElementById('epin').checked;
   const chosenCol=document.getElementById('eco').value;
   // Today/Tomorrow imply a concrete date even if the task was originally
   // created without one (the pill alone used to be enough). Resolve that
@@ -2359,6 +2396,8 @@ function delTask(){pu('del');tasks=tasks.filter(t=>t.id!==editTid);closeM('tm');
 // ── Drag tasks ────────────────────────────────────────────────────
 function dstart(e,id){
   if(e.target.closest('[data-catid]')&&!e.target.closest('[data-tid]'))return;
+  clearTimeout(_snPressT[id]);_snPressed[id]=false;
+  document.querySelectorAll(`.sn[data-tid="${id}"]`).forEach(el=>el.classList.remove('pressing'));
   dragTid=id;e.dataTransfer.effectAllowed='move';e.stopPropagation();
   setTimeout(()=>{document.querySelectorAll(`[data-tid="${id}"]`).forEach(el=>el.style.opacity='.4');},0);
 }
@@ -2403,51 +2442,12 @@ function confirmDrop(){
 }
 
 // ── Touch long-press + move menu ─────────────────────────────────
-let _tT=null,_tTk=null;
-document.addEventListener('touchstart',e=>{const el=e.target.closest('[data-tid]');if(!el)return;_tTk=parseInt(el.dataset.tid);_tT=setTimeout(()=>{showMoveMenu(_tTk);_tTk=null;},600);},{passive:true});
-document.addEventListener('touchend',()=>{clearTimeout(_tT);_tTk=null;},{passive:true});
-document.addEventListener('touchmove',()=>{clearTimeout(_tT);_tTk=null;},{passive:true});
-function showMoveMenu(id){
-  const task=tasks.find(t=>t.id==id);if(!task)return;
-  const mo=document.getElementById('dm');
-  document.getElementById('dm-title').textContent=`Move "${task.name}"`;
-  document.getElementById('dm-dg').style.display='none';
-  document.getElementById('dm-wg').style.display='none';
-  mo.querySelectorAll('.dp-btns').forEach(e=>e.remove());
-  const btns=document.createElement('div');btns.className='dp-btns';
-  // Time box section
-  const tboxLabel=document.createElement('div');tboxLabel.style.cssText='font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);padding:2px 0 4px';tboxLabel.textContent='Move to';btns.appendChild(tboxLabel);
-  Object.keys(TBOX).filter(c=>c!==task.col).forEach(col=>{
-    const b=document.createElement('button');b.className='dp-btn';b.textContent=TBOX[col].label;
-    b.onclick=()=>{pendingDrop={taskId:id,targetCol:col};
-      if(col==='upcoming'){btns.remove();document.getElementById('dm-title').textContent='Set due date';document.getElementById('dm-dg').style.display='flex';document.getElementById('dm-date').value=task.deadlineDate||'';}
-      else if(col==='wait'){btns.remove();document.getElementById('dm-title').textContent='Waiting for?';document.getElementById('dm-wg').style.display='flex';document.getElementById('dm-wait').value=task.waitingFor||'';}
-      else{mo.classList.add('hidden');confirmDrop();}
-    };btns.appendChild(b);
-  });
-  // Pin to Casual top section option
-  if(task.col==='casual'||true){
-    const sepEl=document.createElement('div');sepEl.style.cssText='height:1px;background:rgba(255,255,255,.08);margin:4px 0';btns.appendChild(sepEl);
-    const bpin=document.createElement('button');bpin.className='dp-btn';
-    bpin.textContent=task.casuPin?'Unpin from top':'Pin to Casual top';
-    bpin.onclick=()=>{pu('pin');task.casuPin=!task.casuPin;mo.classList.add('hidden');save();ra();showU(task.casuPin?'Pinned ★':'Unpinned');};
-    btns.appendChild(bpin);
-  }
-  // Category section
-  if(cats.length){
-    const catLabel=document.createElement('div');catLabel.style.cssText='font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);padding:6px 0 4px';catLabel.textContent='Assign category';btns.appendChild(catLabel);
-    cats.forEach(cat=>{
-      const b=document.createElement('button');b.className='dp-btn';
-      b.style.cssText=`border-left:3px solid ${cat.color}`;
-      b.textContent=cat.name+(task.categoryId===cat.id?' ✓':'');
-      b.onclick=()=>{pu('cat');task.categoryId=cat.id;mo.classList.add('hidden');save();ra();showU('Category set');};
-      btns.appendChild(b);
-    });
-    if(task.categoryId!=null){const bc=document.createElement('button');bc.className='dp-btn';bc.textContent='Clear category';bc.style.color='var(--ink3)';bc.onclick=()=>{pu('cat');task.categoryId=null;mo.classList.add('hidden');save();ra();showU('Category cleared');};btns.appendChild(bc);}
-  }
-  mo.querySelector('.md').insertBefore(btns,mo.querySelector('.mf'));
-  mo.classList.remove('hidden');
-}
+// Build 10: the old global touch long-press → "Move task" menu is gone.
+// That gesture is now hold-to-fade on the task row itself (see snDown()),
+// so the two would have collided on touch devices. Moving a task on
+// mobile now happens via drag-and-drop (where supported) or by opening
+// the task's edit modal and changing its date/category there.
+
 
 // ── Time-wait checker ────────────────────────────────────────────
 function chkTimeWaits(){
@@ -2545,69 +2545,77 @@ That log was already known to be incomplete — a full alphabet cycle or more ha
 --ink2: #b8c4ac       /* secondary text — green, matches Racine's family */
 --ink3: #6e7a62       /* muted text — green, matches Racine's family */
 --accent: #9db08d     /* sage green, further desaturated in version 1 to match Verdure's more muted palette (was #9bbf7e; before that, dusty rose #c98fd4) */
---font-h: 'Lora'      /* headings */
+--font-h: 'Lora'      /* headings, and (build 10) task-row names/times, matching Racine's chip font */
 --font-b: 'DM Sans'   /* UI/body */
---font-note: 'Spectral' /* sticky note text */
---ts: 15px            /* sticky font size */
+--font-note: 'Spectral' /* only the Repeats pane's task-name list now (build 10) — task rows themselves switched to --font-h */
+--sn-default: #8fd9a0 /* build 10 — default task outline when no category is set */
+--ts: 15px            /* used by the Repeats pane; task rows use their own .68rem, not this */
 \`\`\`
 
 **Fonts**: Lora (headings/UI labels), DM Sans (UI/body), Spectral (sticky note text, serif). Loaded from Google Fonts.
 
 ---
 
-## Sticky notes
+## Task rows (build 10 — Racine-chip interaction model)
 
-- Fixed \`width:140px\`, \`aspect-ratio:1/1\` → always square by default
-- Grows taller (not wider) when \`data-haswait\` attr is present: \`aspect-ratio:unset; min-height:140px\`
-- \`overflow:hidden\` on \`.sn\` — never change this
-- Background: \`ensureColor(task)\` — task's \`stickyColor\`, or \`paletteColor\`, or category color
-- Text color: \`con(bg)\` — auto dark/light contrast
-- **Urgent flag**: \`task.urgent\` (bool). When true, the thumbtack SVG renders in \`#ff4444\` (red) instead of the normal \`tackColor\`. Toggle via the edit modal (🚨 Urgent checkbox).
+Build 9 turned the sticky note into a plain outlined row. Build 10 goes further, on explicit request: task rows now look and behave almost exactly like Racine's read-only event chips (same border-radius, padding, font-size, and title font — Lora medium, \`--font-h\`), with three differences: they're outlined instead of solid-filled, the outline color follows different rules depending on *where* the task is sitting, and they're editable/completable (Racine's chips aren't).
 
-**Structure TOP→BOTTOM**:
-1. \`.sn-tab\` — 3-col CSS grid (\`1fr auto 1fr\`):
-   - Left cell: date badge (\`.badge\` with col-specific class)
-   - Center: thumbtack button (\`.cbtn\`) — always centered regardless of badges. Color is red if \`task.urgent\`, else normal \`tackColor\`.
-   - Right cell: \`.sn-tab-badges\` — repeat badge + ⏳ wait icon + 🔗 link icon
-2. \`.sn-body\` — ruled lines via \`repeating-linear-gradient(24px)\`:
-   - \`.sn-name\` — task name in Spectral
-   - \`.sn-wait-reveal\` — wait text, hidden by default, shown when \`.sn\` has \`.wait-open\` class
-3. \`.sn-streak\` (cat box stickies only) — thin colored bar at bottom, color = \`TBOX[task.col].bg\`
+**Interaction model** (`.sn` in \`snHTML()\`, plus \`snDown\`/\`snUp\`/\`snClick\`/\`snDblclick\`):
+- **Single click** → opens the edit modal (\`openTask\`). Delayed ~260ms and canceled if a second click arrives, so a double-click doesn't flash the modal open first.
+- **Double-click** → marks done (\`chk\`). There's no check/pin button anymore — this replaces it entirely.
+- **Click-and-hold** (550ms, mouse *and* touch, via \`snDown\`/\`snUp\`) → fades the task for the rest of today (\`toggleFade\`). This replaces the old separate fade/curl button. Visual feedback: \`.sn.pressing\` brightens the row while held. \`dstart()\` (drag start) cancels any pending press timer so a hesitant drag doesn't also trigger a fade.
+- There is **no more separate note button** — notes are now a field (📝 pill) inside the same edit modal, not a standalone popover. See "Notes" below.
+- The old **global touch long-press → "Move task" menu is gone** (build 10, explicit request) — it collided with the new hold-to-fade gesture on touch. Moving a task on mobile is now drag-and-drop (where it works) or editing the task's date/category directly in the modal.
+- ⏳ (wait-reveal toggle) and 🔗 (open link) remain as small inline icons in \`.sn-actions\` — neither maps to a click/hold/double-click gesture, so they kept their own tap targets (with \`stopPropagation\` on both \`mousedown\`/\`touchstart\` *and* \`click\`, so tapping them doesn't also arm the row's long-press timer).
 
-**Tab styling in category boxes**: tab bg = \`TBOX[task.col].bg\` (streakBg); tack color = \`TBOX[task.col].txt\` (ensures visibility on dark tab). Urgent overrides tack color to \`#ff4444\`.
+**Outline color** — \`snColor(task, ctx)\`, not \`ensureColor()\` (removed):
+- \`ctx==='cat'\` (task sitting in a category box): the box already shows category identity via its own border, so the *task* shows due-date urgency instead — \`colStyles[task.col].bg\`, the same green/yellow/orange/red system the boxes use.
+- Any other \`ctx\` (\`'day'\`, \`'wait'\`, \`'casual'\`): the task's own category color, or \`--sn-default\` (light green, \`#8fd9a0\`) if it has none.
+- \`task.urgent\` always overrides to \`#e05a5a\` regardless of context.
+- **There is no more per-task custom color picker.** The 🎨 pill and its color-dot UI (\`mkDots\`/\`pickDot\`/\`getDot\`, \`.cdots\`/\`.cdot\` CSS) are gone from both the add and edit modals — color is fully rule-based now, so a free-choice picker had nothing left to control. \`stickyColor\`/\`paletteColor\` fields still exist on the task object (for old-export compatibility) but are never read for rendering. \`PASTELS\`/\`nxtP()\` still exist and are still used — but only for auto-picking a new *category's* default color, unrelated to tasks.
 
-**Completion animation**: \`.completing\` class → \`sn-done\` keyframe (scale+rotate+fade, 450ms), then state commits
+**Notes** (build 10): moved from a standalone popover (\`openNotePopover\`, positioned near the sticky's corner) into a 📝 pill + textarea inside the regular add/edit task modals (\`#anotes\`/\`#enotes\`), read/written in \`addManual()\`/\`saveTask()\` exactly like every other field. No separate popover system, no separate save path.
 
-**Blocked stickies**: \`.sn-blocked\` — \`opacity:.38; filter:saturate(.5)\` — used in time boxes only, not category boxes
+**Structure inside \`.sn\`**: \`.sn-actions\` (⏳/🔗, floated right) → optional \`.sn-time\` (only if \`deadlineTime\` is set) → \`.sn-name\` (single line, ellipsis-truncated around the floated actions) → optional \`.sn-badges\` (date badge — suppressed entirely when \`ctx==='day'\` since the day column already IS the date; repeat badge) → optional \`.sn-wait-reveal\`.
+
+**Completion animation**: \`.completing\` → \`sn-done\` keyframe (scale+fade, 300ms), then state commits.
+**Blocked rows**: \`.sn-blocked\` (\`opacity:.4\`) — see "Day grid" below for how this now works inline rather than via a segregated section.
+**Faded rows**: \`.sn-faded\` (\`opacity:.4\`, via hold-to-fade).
 
 ---
 
-## Cork boards (time boxes, Wait, Casual)
+## Day grid + Wait/Casual (build 10 — replaces the 3-box Today/Tomorrow/Upcoming layout)
 
-**Background**: \`background:\${CORK_GFX[col]},\${cs.bg}\` — per-box Unicode floral glyph tile layered over the solid time-box color. \`CORK_GFX\` is a JS object keyed by col name, each value a URL-encoded SVG data URI with a half-drop repeat pattern. Never regenerate unless explicitly asked.
+**The single biggest structural change in build 10**: Today/Tomorrow/Upcoming are gone as boxes entirely. In their place is a **7-day grid** (\`.week-grid\`, \`grid-template-columns:repeat(7,1fr)\`) — today plus the next six days — deliberately built to mirror Racine's own week grid (same \`repeat(7,1fr)\`, same \`.page\` \`max-width:1160px\` centering) so Fleur's day columns line up directly underneath Racine's when Verdure stacks the two iframes, with nothing in between.
 
-**Glyphs per box**: today \`❀\`, tomorrow \`✾\`, upcoming \`✽\`, wait \`❃\`, casual \`✤\`. Each in a complementary color to that box's background (amber on green, mauve on amber, periwinkle on orange, sage on red, coral on purple).
+**Each day column (\`.daycol\`) is genuinely invisible** — no border, no background, no minimize button, no add button, on explicit request ("basically invisible"). It's just \`tasks.filter(t=>t.deadlineDate===thatDate)\` (excluding wait/casual/done), sorted, and rendered as plain task rows (\`dayColHTML()\`/\`weekDates()\`). There's no per-day chrome left for a minimize/add button to attach to, matching the old cork-nail buttons' reasoning in reverse — they needed a visible box to sit on, and there isn't one anymore. Adding a task to a specific day now happens through the global add dock (🌸) or by dragging; there's no per-day inline add.
 
-**Half-drop tile geometry**: SVG is \`2s × 2s\` pixels (where \`s = fontSize + 4\`). Glyph 1 at \`(s/2, s*0.72)\`, glyph 2 at \`(3s/2, s*0.72 + s)\`. When tiled this produces a brick/half-drop stagger with no dead space.
+**Auto-fade for blocked-but-due tasks** (build 10, explicit request — e.g. "due Sunday but has a wait of Sunday night"): a day-column task that \`isBlocked()\` is *not* segregated into a separate section anymore (the old Today/Tomorrow/Upcoming boxes showed active tasks, then a divider, then blocked ones). It just stays in its natural sorted position within its day, rendered with \`.sn-blocked\` (faded). Once the wait resolves and \`isBlocked()\` goes false, the next render shows it at full opacity automatically — nothing manual needed. Wait and Casual still use the old divider-segregated approach internally (unchanged) since those are still real boxes with their own active/blocked distinction.
 
-**Metal frame**: \`border:3px solid #5a4a2e\` + directional inset box-shadows (highlight top, shadow bottom)
+**A task with a \`deadlineDate\` beyond day 6 simply doesn't render yet** — same as the old Upcoming box not showing tasks more than a week out. It appears on its own once the date rolls into the 7-day window; \`dayTrans()\` (midnight rollover) is unaffected by any of this.
 
-**TBOX colors** (desaturated in Marigold Root, then desaturated further in version 1 — same hues throughout, pulled quieter each time to sit better against Verdure/Racine/Branche's own increasingly muted palette; if changing these again, update \`TBOX\`, \`TBOX_UI\`, \`CORK_FRAME\`, **and** \`applyTheme()\`'s hardcoded defaults object together — that's four places, not three; \`applyTheme()\` is the one most likely to get missed since it's a separate copy from \`:root\` and doesn't visibly break anything if left stale):
-| Col | bg | txt |
-|-----|----|-----|
-| today | \`#29352e\` | \`#c1cdc4\` |
-| tomorrow | \`#2f2b22\` | \`#d1cab4\` |
-| upcoming | \`#2f281f\` | \`#d0c2b1\` |
-| wait | \`#312626\` | \`#d6c4c4\` |
-| casual | \`#26242f\` | \`#c7c3d3\` |
+**Dropping onto a day column** (\`dropDay(e, dateStr)\`) sets \`deadlineDate\` directly and recomputes \`col\` via \`d2col()\` — no date-prompt modal needed (unlike the old Upcoming-box drop, which had to prompt for a date since it had none to infer). \`corkHTML(col)\` is now **only ever called with \`'wait'\`/\`'casual'\`** — the old cross-day \`blockedHere\` lookup it used to do for Today/Tomorrow/Upcoming was removed as dead code rather than left in place (it could never match once those boxes were rendered by \`dayColHTML\` instead).
 
-**Cork body grid**: \`display:grid; grid-template-columns:repeat(auto-fill,140px); gap:8px; justify-content:center\`
+**A real bug fixed while touching this**: \`snDrop\`'s within-bucket reorder logic called a bare \`sortTasks()\` that was never defined at that scope (a pre-existing crash on every drag-reorder, present since well before build 9) — replaced with a proper \`cmpTasks\` comparator. Also: since \`col==='upcoming'\` now spans five different day columns, matching *just* on \`col\` for reordering was no longer enough — two different days' tasks could both be \`'upcoming'\`. Reordering now also requires matching \`deadlineDate\` for day-bucketed tasks (\`sameBucket()\`), so drag-to-reorder only reorders within the same actual day.
 
-**Category box bg**: \`color-mix(in srgb, cat.color 45%, #0d0a14 55%)\`
+**Casual + Wait**: still real boxes, unchanged from build 9 (outline = \`colStyles[col].bg\`, minimize/add/pin-zone all intact) — just laid out side by side now (\`.cw-row\`, Casual left / Wait right) instead of stacked full-width, sitting below the day grid.
 
-**Corner buttons**: every time box (today, tomorrow, upcoming, wait, casual) AND every category box has exactly two \`.cork-nail\` buttons in the same arrangement — small, faint, metallic dots styled to look like nails/tacks holding the box to the wall (24px tap target, but the visible dot is just 8px via \`::before\`, opacity .45, brightens on hover). No symbols/glyphs inside. Top-left (\`.cork-float-l\`) is Minimize (\`toggleMin(col)\` for time boxes, \`toggleCatMin(catId)\` for category boxes), top-right (\`.cork-float\`) is Add (\`toggleCorkAdd(col)\` / \`toggleCboxAdd(catId)\`). This left=minimize/right=add arrangement must stay identical between time boxes and category boxes — they were briefly inconsistent (cbox had it backwards) and that was a bug, not a deliberate difference. \`.corkbtn\` is a different, unrelated glyph-button style (＋ ✎ ▾/▸) that is no longer used anywhere in the current UI — if you see it referenced, it's dead/legacy. There is no calendar button on Upcoming anymore — the calendar lives in the header flower row instead.
+**TBOX colors** (unchanged from build 9 — still the source for Wait/Casual's own outline *and* for category-box task outlines by due date):
+| Col | Color | Hue |
+|-----|-------|-----|
+| today | \`#5db075\` | green |
+| tomorrow | \`#d6b93e\` | yellow |
+| upcoming | \`#d98f3e\` | orange |
+| wait | \`#c85c5c\` | red |
+| casual | \`#9b72c9\` | purple |
 
-**Empty time boxes**: when a time box has no tasks to show, the \`.cork-body\` renders with no placeholder text (no "—" dash). It's simply empty.
+\`colStyles\` still merges a user's custom pick (Categories pane → "Time box colors") over these defaults, unchanged — that picker still works exactly as before; its effect now shows up as Wait/Casual's own border color and as category-box task outline colors, rather than as a Today/Tomorrow/Upcoming box border (those boxes no longer exist to have one).
+
+**Category boxes**: unchanged from build 9 — \`border: 1.5px solid <cat.color>\`, plain dark fill, vertical flex list (\`.cbox-body\`). The only build-10 change is what color the *tasks inside* use (due-date color instead of their own category color — see "Outline color" above), since the box border already carries the category identity.
+
+**Corner buttons** (Wait/Casual/category boxes only, day columns have none): still exactly two \`.cork-nail\` buttons — top-left (\`.cork-float-l\`) Minimize, top-right (\`.cork-float\`) Add. Unchanged from build 9.
+
+**Empty boxes**: still render with no placeholder text.
 
 ---
 
@@ -2678,7 +2686,7 @@ A task's \`col\` and \`deadlineDate\` must always agree with each other, and for
 - \`casual\` → clears \`deadlineDate\`/\`deadlineTime\` to \`null\`. Casual is explicitly dateless.
 - \`wait\` → leaves \`deadlineDate\` untouched. Wait status is orthogonal to date; a task can have both a deadline and an active wait (it shows blocked/faded in its date column rather than moving to the Wait box — only a PURE wait with no deadline at all lives in Wait).
 
-Current call sites: \`corkAddKey\`, \`confirmDrop\` (handles both new-task creation that got paused for a date prompt via \`pendingNewTask\`, and drag-and-drop moves via \`pendingDrop\`), \`drop()\` for the simple today/tomorrow/casual cases, \`casuPinDrop\`, the "Pin to Casual top" button in \`showMoveMenu\`. \`saveTask()\` (the edit modal) has its own extended version of the same rules inline because it has to handle the wait-with-date nuance above — if you touch it, keep that nuance, don't replace it with a bare \`routeTask\` call.
+Current call sites: \`corkAddKey\`, \`confirmDrop\` (handles both new-task creation that got paused for a date prompt via \`pendingNewTask\`, and drag-and-drop moves via \`pendingDrop\`), \`drop()\` for the simple wait/casual cases, \`dropDay()\` for the 7-day grid (build 10 — sets deadlineDate directly, never needs to prompt), \`casuPinDrop\`. \`saveTask()\` (the edit modal) has its own extended version of the same rules inline because it has to handle the wait-with-date nuance above — if you touch it, keep that nuance, don't replace it with a bare \`routeTask\` call.
 
 \`addManual()\` and \`cboxKey()\` (quick-add inside a category box) still have their own inline logic rather than calling \`routeTask\` directly, but they independently enforce the same Upcoming-requires-a-date rule. If you're touching either of these, prefer migrating them to call \`routeTask\` for consistency rather than maintaining a third copy of the same rules.
 
@@ -2747,8 +2755,9 @@ Current call sites: \`corkAddKey\`, \`confirmDrop\` (handles both new-task creat
 
 ### Rendering
 - \`ra()\` — re-renders everything
-- \`snHTML(task, inCat)\` — builds sticky HTML. Tack color: \`task.urgent ? '#ff4444' : tackColor\`
-- \`corkHTML(col)\` — builds cork board. Background: \`CORK_GFX[col]\` (per-box glyph)
+- \`snHTML(task, ctx)\` — builds task-row HTML. \`ctx\` is \`'day'\`/\`'wait'\`/\`'casual'\`/\`'cat'\`. Outline color: \`snColor(task, ctx)\`, not \`ensureColor()\` (removed in build 10)
+- \`corkHTML(col)\` — builds Wait or Casual only now (build 10). Border color: \`colStyles[col].bg\`
+- \`dayColHTML(dateStr)\`, \`weekDates()\` — build 10's 7-day grid, replaces the old Today/Tomorrow/Upcoming corkHTML calls
 - \`renderCatSection()\`, \`renderPresetRow()\`, \`renderRepPane()\`, \`renderPresetPane()\`
 
 ### Task actions
@@ -2830,13 +2839,15 @@ tasks.forEach(t => {
 ## CSS rules — never violate
 
 - **NO ITALICS, ANYWHERE, EVER.** This is a major standing Fleur rule, not a one-off preference. No \`font-style:italic\`, no italic Google Fonts variants, no slanted lettering of any kind — not in the header, not on stickies, not in modals, not in the AI pane, nowhere. If a font choice only looks distinctive in its italic form, pick a different font or weight instead. This has been mistakenly reintroduced before (e.g. the header day number briefly shipped in italic Lora) — always grep the file for \`italic\` before sending a new version and remove any hits.
-- \`.sn\`: \`width:140px; aspect-ratio:1/1; overflow:hidden\`
-- \`.sn[data-haswait]\`: \`aspect-ratio:unset; min-height:140px\`
-- \`.sn-tab\`: \`display:grid; grid-template-columns:1fr auto 1fr\`
-- \`.cork-body\`, \`.cbox-body\`: \`display:grid; grid-template-columns:repeat(auto-fill,140px); justify-content:center\`
-- \`.sn-blocked\`: \`opacity:.38; filter:saturate(.5)\` — time boxes only
+- \`.sn\` (build 9/10): bordered row, \`border-color\` set via \`snColor(task,ctx)\` — never go back to a fixed \`width:140px; aspect-ratio:1/1\` tile (old sticky shape) or a filled background (build 9's outline requirement still stands)
+- \`.week-grid\`/\`.daycol\` (build 10): NO border, NO background, NO minimize/add button on day columns — that invisibility was explicit. Don't add box chrome back onto them without a new explicit request
+- \`.cork\`, \`.cbox\` (Wait/Casual/category boxes): border-color set inline to the box's own color — don't reintroduce a filled/tinted background or texture image on either
+- \`.cork-body\`, \`.cbox-body\`, \`.daycol\`: \`display:flex; flex-direction:column\` — a plain vertical list, not a tile grid. Don't revert to \`display:grid; grid-template-columns:repeat(auto-fill,140px)\`
+- \`.sn-blocked\`, \`.sn-faded\`: \`opacity:.4\`. Build 10: a blocked day-column task stays inline with this class, it is NOT segregated into a separate section (Wait/Casual still do segregate — don't unify those two behaviors without being asked)
+- No check/pin button, no separate note button, no separate fade button on \`.sn\` (build 10) — double-click finishes, click-and-hold fades, single click opens the edit modal. Don't add standalone buttons back for these without an explicit request
+- No per-task color picker (build 10) — \`snColor()\` is fully rule-based (category color or due-date color). Don't re-add a color-dot UI without being asked
 - \`textarea\`, date/time inputs: \`font-size:16px\` minimum
-- Never use \`overflow:visible\` on \`.sn\`
+- \`CORK_FRAME\` and \`CORK_GFX\` are deleted, not just unused — don't re-add either without an explicit request
 
 ---
 
@@ -2846,13 +2857,19 @@ tasks.forEach(t => {
 - **Use Python string replace** via bash for edits — exact string matching, verify after
 - **Run a verification pass** after every batch of changes
 - **Never send test files** — final output only, named \`[VersionName].html\`
-- **Always rename** to the next flower/plant letter on every version sent — update \`<title>\`, \`KEY\`, \`version:\`, and add new key to \`oldKeys\` in \`load()\`
+- **Always bump the version number** on every version sent (plain numbers now, not flower names — see "Naming convention" above) — update \`<title>\`, \`KEY\`, \`version:\`, and add new key to \`oldKeys\` in \`load()\`
 - **Keep this doc in sync, every version**: this entire file is generated by \`dlContextDoc()\` in the HTML. Version/storage-key fields are auto-derived from \`KEY\` and can't drift, but every other section (Header, Cork boards, Sticky notes, Dock panes, etc.) is hand-written prose that WILL go stale if a UI change isn't mirrored here in the same edit pass. Before sending a new version, diff what changed against this doc's relevant section and update it in the same response — this has drifted multiple versions behind before and should not happen again.
 - **Update this in-app template, not a separate file**: the context doc is downloaded from the AI pane in the app itself (this function). Don't send \`fleur-context.md\` as a separate chat attachment each version — just make sure this template (\`dlContextDoc()\`) reflects every change, so the in-app download button stays accurate.
 - **Never add busy UI text** — no counts, no labels, no extra tooltips unless explicitly requested
-- **Preserve \`CORK_GFX\`** — it is a pre-computed constant object; never regenerate unless asked
+- **\`CORK_GFX\`/\`CORK_FRAME\` no longer exist** (removed in build 9's outline redesign) — don't try to "preserve" or reference them in future edits
 - The user has **limited 5-hour message credits** — no test files, no unnecessary clarifying questions
 - User's GitHub: \`maximvino\`, repo: \`fleur\`
+
+---
+
+## Sticky-note backup (build 9)
+
+The old paper sticky-note look (torn/ruled paper body, folded corner, tab header, \`CORK_GFX\` cork-board texture, \`color-mix\` category-box tint, metal frame) was fully scrapped in build 9 in favor of the plain outlined task rows described above. A separate backup file with the complete removed CSS/JS was generated alongside build 9 specifically so it can be handed to a future AI session if the old look is ever wanted back — ask the user for that backup file rather than trying to reconstruct the old design from memory or from this doc's historical notes, which describe it but don't contain the full working code. (Build 10's changes — the 7-day grid, the color-dot picker removal, the double-click/hold-to-fade interaction model — are NOT in that backup file; it only covers the build-9-and-earlier sticky-note look.)
 `;
   const b=new Blob([md],{type:'text/markdown'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fleur-context.md';a.click();
@@ -2873,7 +2890,7 @@ function openCalendar(){
       html+=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start">`;
       lastDate=dateStr;
     }
-    html+=snHTML(t,false);
+    html+=snHTML(t,'day');
   });
   if(lastDate)html+=`</div>`;
   if(!dated.length)html=`<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">No dated tasks</div>`;
@@ -2881,7 +2898,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'8',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'10',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -2997,7 +3014,7 @@ function loadAiNotes(){
   el.value=aiNotes||localStorage.getItem(AI_NOTES_KEY)||'';
 }
 setInterval(chkTimeWaits,60000);
-load().then(()=>{ra();mkDots('add-cr','');syncSelects();chkTimeWaits();});
+load().then(()=>{ra();syncSelects();chkTimeWaits();});
 
 // ── Report content height to Verdure (same-origin parent) ──────────
 // Fleur's iframe in Verdure is sized to match this exactly, since Fleur
