@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 10</title>
+<title>Fleur · 11</title>
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -86,29 +87,37 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cork-hdr{display:none}
 .cork-title{display:none}
 .cork-count{display:none}
-.cork-float{position:absolute;top:6px;right:6px;display:flex;gap:6px;z-index:10}
 .cork-btns{display:flex;gap:3px}
 .corkbtn{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);cursor:pointer;color:rgba(255,255,255,.5);font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0;flex-shrink:0}
 .corkbtn:hover{background:rgba(255,255,255,.15);color:rgba(255,255,255,.9)}
-.cork-nail{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);cursor:pointer;padding:0;flex-shrink:0;position:relative;transition:opacity .15s,background .15s;color:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:12px}
-.cork-nail:hover{background:rgba(255,255,255,.15);color:#fff}
-/* Wait scraps — simple pill chips above wait tasks (build 9: replaces the
-   old torn-paper ribbon look, same click/hover behavior) */
-.wait-groups{display:flex;flex-wrap:wrap;gap:6px;padding:32px 10px 6px;width:100%;align-items:flex-start}
-.cork.minimized .wait-groups{display:none}
+.cork-nail{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.2);cursor:pointer;padding:0;flex-shrink:0;position:relative;transition:opacity .15s,background .15s,border-color .15s;color:transparent;font-size:0;display:flex;align-items:center;justify-content:center}
+.cork-nail:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35)}
+/* Build 11: a real header row (minimize / middle content / add) replaces
+   the old absolutely-positioned corner buttons, so the middle can hold
+   the wait pills (Wait) or the quick-add input (Casual). */
+.cork-hdr-row{display:flex;align-items:center;gap:6px;padding:6px 8px 0}
+.cork-hdr-mid{flex:1;min-width:0;display:flex;align-items:center;overflow-x:auto;gap:5px}
+.cork-hdr-pills{display:flex;gap:5px;align-items:center;overflow-x:auto;width:100%}
+.cork.minimized .cork-hdr-mid{display:none}
+/* Wait scraps — faded pill chips, in the header row (build 11) */
 .wait-ribbon{
   display:inline-block;border-radius:99px;padding:3px 11px;
   font-family:var(--font-b);font-size:11px;font-weight:500;
   color:var(--ink2);background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.14);
-  cursor:pointer;transition:background .15s,border-color .15s;
-  white-space:nowrap;
+  cursor:pointer;transition:background .15s,border-color .15s,opacity .15s;
+  white-space:nowrap;flex-shrink:0;
 }
+.wait-ribbon.faded{opacity:.5}
+.wait-ribbon.faded:hover{opacity:.9}
 .wait-ribbon:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
+/* Casual persistent quick-add (build 11) */
+.casu-quickadd{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:4px 10px;font-size:12px;font-family:var(--font-b);color:var(--ink);outline:none}
+.casu-quickadd::placeholder{color:var(--ink3)}
 /* highlighted task rows when hovering a wait-group pill */
 .sn.wait-highlight{outline:1.5px solid rgba(255,255,255,.5);z-index:10}
 /* Cork body — vertical task-row list */
-.cork-body{padding:30px 8px 10px;display:flex;flex-direction:column;gap:5px;flex:1}
+.cork-body{padding:4px 8px 10px;display:flex;flex-direction:column;gap:5px;flex:1}
 /* Inline add */
 .cork-add{padding:6px 9px 8px;background:rgba(0,0,0,.12);display:none}
 .cork-add.open{display:block}
@@ -143,7 +152,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn-faded{opacity:.4}
 .sn.completing{animation:sn-done .3s ease-in forwards;pointer-events:none}
 .sn-time{font-family:var(--font-h);font-weight:500;font-size:.85em;opacity:.85;display:block;color:var(--ink)}
-.sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;line-height:1.32;max-height:2.65em;
+  -webkit-mask-image:linear-gradient(to bottom,#000 65%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 65%,transparent 100%);
+}
 .sn-badges{margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;clear:both}
 .sn-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;float:right;margin-left:4px}
 .sn-link-btn{font-size:11px;text-decoration:none;opacity:.55;line-height:1;padding:1px;flex-shrink:0;font-weight:500;color:inherit}
@@ -227,6 +241,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   .dock-icons{max-width:216px;margin:0 auto}
 }
 .dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
+.dock-icon iconify-icon{font-size:22px}
+.dock-initials{font-size:10px;font-weight:700;letter-spacing:.02em;font-family:var(--font-b);color:var(--ink2);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
 .dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
 .dock-panel{background:rgba(20,15,30,.96);border:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
@@ -404,12 +420,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   <div class="dock" id="dock-static">
     <div class="dock-top">
       <div class="dock-icons" id="dock-icons">
-        <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task">🌸</div>
-        <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories">🌿</div>
-        <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="AI">🌼</div>
-        <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today">🍃</div>
-        <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks">🌾</div>
-        <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets">🪴</div>
+        <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task"></div>
+        <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories"></div>
+        <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="Notes"></div>
+        <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today"></div>
+        <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks"></div>
+        <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets"></div>
         <label class="dock-icon" title="Import / Export" style="cursor:pointer" onclick="showTransferMenu()">🌱</label>
         <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar">🍂</div>
       </div>
@@ -459,14 +475,25 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div class="em-sub" id="as-link"><input class="fi" id="alink" type="url" placeholder="https://…"></div>
         <div class="em-sub" id="as-rep">
           <div class="em-rep-opts" id="as-rep-opts"></div>
-          <div id="adc" style="display:none;margin-top:4px"><div class="day-checks" id="add-days"></div><div id="amonthday-wrap" style="display:none;margin-top:6px"><input class="fi" id="amonthday" type="number" min="1" max="31" placeholder="Day 1–31"></div></div>
-          <input class="fi" id="arep-start" type="date" style="display:none;margin-top:4px">
-          <select id="arep" style="display:none" onchange="onRepCh('arep','adc')">
-            <option value="">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option>
-            <option value="biweekly">Every 2 weeks</option><option value="MWF">M·W·F</option>
-            <option value="TTS">T·T·S</option><option value="weekdays">Weekdays</option><option value="custom">Custom…</option>
-            <option value="monthly-start">Monthly — 1st</option><option value="monthly-mid">Monthly — 15th</option>
-            <option value="monthly-end">Monthly — last day</option><option value="monthly-day">Monthly — specific day…</option>
+          <div id="arep-weekly" style="display:none;margin-top:6px"><div class="day-checks" id="add-days"></div></div>
+          <div id="arep-biweekly" style="display:none;margin-top:6px">
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:4px">Repeats every 2 weeks, starting:</label>
+            <input class="fi" id="arep-start" type="date">
+          </div>
+          <div id="arep-monthly" style="display:none;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-bottom:6px">
+              <input type="checkbox" id="arep-lastday" onchange="repMonthlyToggle('a')"> Last day of the month
+            </label>
+            <div id="arep-monthday-row" style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;color:var(--ink2)">On day</span>
+              <input class="fi" id="amonthday" type="number" min="1" max="31" style="width:64px">
+              <span style="font-size:12px;color:var(--ink2)">of the month</span>
+            </div>
+          </div>
+          <select id="arep" style="display:none">
+            <option value="">None</option><option value="daily">Daily</option><option value="custom">Weekly</option>
+            <option value="biweekly">Every 2 weeks</option><option value="monthly-day">Monthly</option>
+            <option value="monthly-end">Monthly (last day)</option>
           </select>
         </div>
         <div class="em-sub" id="as-notes"><textarea class="fi" id="anotes" placeholder="Add a note…" maxlength="500" style="min-height:70px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea></div>
@@ -477,8 +504,18 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <select id="aco" style="display:none"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="upcoming">Upcoming</option><option value="wait">Wait</option><option value="casual">Casual</option></select>
       </div>
       <div class="dock-pane" id="pane-cat">
-        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Time box colors</div>
-        <div id="tbox-color-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Task colors</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="color" id="theme-default-color" value="#8fd9a0" onchange="setThemeColor('sn-default',this.value)" style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
+            <span style="flex:1;font-size:12px;color:var(--ink2)">Default task color (no category)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="theme-repeat-color-on" onchange="toggleRepeatColor(this.checked)">
+            <input type="color" id="theme-repeat-color" value="#7fb8d9" onchange="setThemeColor('repeat-color',this.value)" disabled style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
+            <span style="flex:1;font-size:12px;color:var(--ink2)">Repeating task color</span>
+          </div>
+        </div>
         <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:12px"></div>
         <div class="cat-chip-row" id="cat-chips"></div>
         <div class="new-cat-row" style="gap:8px;flex-wrap:wrap;align-items:center">
@@ -521,18 +558,16 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         </div>
       </div>
       <div class="dock-pane" id="pane-ai">
-        <textarea id="ai-notes" placeholder="…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px;color:var(--ink);font-size:13px;font-family:var(--font-b);resize:vertical;min-height:110px;line-height:1.5;outline:none"></textarea>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
-          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save notes" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">💾</button>
-          <button onclick="dlContextDoc()" title="Download context doc" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">📋</button>
-          <a href="https://github.com/maximvino/fleur/edit/main/index.html" target="_blank" title="Edit on GitHub" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none">🐙</a>
-          <button onclick="openAiLink()" title="Open AI chat" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center" id="ai-link-btn">🤖</button>
+        <div style="position:relative">
+          <textarea id="ai-notes" placeholder="…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 40px 8px 8px;color:var(--ink);font-size:13px;font-family:var(--font-b);resize:vertical;min-height:110px;line-height:1.5;outline:none"></textarea>
+          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save notes (⌘/Ctrl+S)" style="position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink)">💾</button>
         </div>
-        <input id="ai-link-input" type="url" placeholder="https://claude.ai/new" style="display:none;margin-top:6px;width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;color:var(--ink);font-size:13px;font-family:var(--font-b);outline:none" onchange="saveAiLink(this.value)" onblur="this.style.display='none'">
       </div></div>
       <!-- Presets pane -->
       <div class="dock-pane" id="pane-pre">
-        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Preset tasks</div>
+        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Dock icons</div>
+        <div id="dock-icon-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">Preset tasks</div>
         <div id="pre-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px;display:flex;gap:6px;flex-wrap:wrap">
           <button class="add-submit" onclick="openPresetEditor(null)" style="flex:1">＋ New preset</button>
@@ -553,7 +588,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <div class="md" style="max-width:440px">
       <h2 id="preset-mo-title">New preset</h2>
       <div style="display:flex;gap:8px;align-items:center">
-        <button id="pre-emoji-btn" onclick="openEmojiPick()" style="font-size:28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 10px;cursor:pointer;flex-shrink:0">🎯</button>
+        <button id="pre-emoji-btn" onclick="openEmojiPick('preset')" style="font-size:28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;color:var(--ink2);display:flex;align-items:center;justify-content:center;width:44px;height:44px"><iconify-icon id="pre-emoji-icon" icon="mdi:target"></iconify-icon></button>
         <input class="fi" id="pre-label" type="text" placeholder="Internal label (optional)" style="flex:1">
       </div>
       <div style="font-size:10px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin:6px 0 4px">Tasks created when fired</div>
@@ -663,18 +698,34 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       <input class="fi" id="elink" type="url" placeholder="https://…">
     </div>
 
-    <!-- Repeat sub -->
+    <!-- Repeat sub (build 11 — day-of-week / day-of-month picker, replaces
+         the old flat list of preset codes like MWF/TTS/monthly-start) -->
     <div class="em-sub" id="es-rep">
       <div class="em-rep-opts" id="es-rep-opts"></div>
-      <div id="edc" style="display:none;margin-top:4px"><div class="day-checks" id="edit-days"></div><div id="emonthday-wrap" style="display:none;margin-top:6px"><input class="fi" id="emonthday" type="number" min="1" max="31" placeholder="Day 1–31"></div></div>
-      <input class="fi" id="erep-start" type="date" style="display:none;margin-top:4px" placeholder="Start date">
-      <!-- hidden selects kept for saveTask compat -->
-      <select id="erep" style="display:none" onchange="onRepCh('erep','edc')">
-        <option value="">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option>
-        <option value="biweekly">Every 2 weeks</option><option value="MWF">M·W·F</option>
-        <option value="TTS">T·T·S</option><option value="weekdays">Weekdays</option><option value="custom">Custom…</option>
-        <option value="monthly-start">Monthly — 1st</option><option value="monthly-mid">Monthly — 15th</option>
-        <option value="monthly-end">Monthly — last day</option><option value="monthly-day">Monthly — specific day…</option>
+      <div id="erep-weekly" style="display:none;margin-top:6px"><div class="day-checks" id="edit-days"></div></div>
+      <div id="erep-biweekly" style="display:none;margin-top:6px">
+        <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:4px">Repeats every 2 weeks, starting:</label>
+        <input class="fi" id="erep-start" type="date">
+      </div>
+      <div id="erep-monthly" style="display:none;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-bottom:6px">
+          <input type="checkbox" id="erep-lastday" onchange="repMonthlyToggle('e')"> Last day of the month
+        </label>
+        <div id="erep-monthday-row" style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;color:var(--ink2)">On day</span>
+          <input class="fi" id="emonthday" type="number" min="1" max="31" style="width:64px">
+          <span style="font-size:12px;color:var(--ink2)">of the month</span>
+        </div>
+      </div>
+      <!-- hidden select kept as the actual stored value; saveTask() reads this directly -->
+      <select id="erep" style="display:none">
+        <option value="">None</option><option value="daily">Daily</option><option value="custom">Weekly</option>
+        <option value="biweekly">Every 2 weeks</option><option value="monthly-day">Monthly</option>
+        <option value="monthly-end">Monthly (last day)</option>
+        <!-- legacy values a loaded task may still carry — never written by this UI anymore, only read -->
+        <option value="weekly">weekly (legacy)</option><option value="MWF">MWF (legacy)</option>
+        <option value="TTS">TTS (legacy)</option><option value="weekdays">weekdays (legacy)</option>
+        <option value="monthly-start">monthly-start (legacy)</option><option value="monthly-mid">monthly-mid (legacy)</option>
       </select>
     </div>
 
@@ -726,7 +777,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_10_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_11_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -763,11 +814,13 @@ let undos=[],uTimer=null,editTid=null,editCid=null,dragTid=null,catDragId=null,p
 let completedToday=[];  // {id,name,color} — tasks completed this session
 
 // ── Persist ──────────────────────────────────────────────────────
-function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes}));}
+function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,plantIcons}));}
 function ap(s){
   tasks=s.tasks||[];
   cats=(s.cats||s.categories||[]).map(c=>({showBox:1,minimized:false,colGroup:1,...c}));
   colMin=s.colMin||{};if(colMin['wait']===undefined)colMin['wait']=1;if(colMin['casual']===undefined)colMin['casual']=1;gTheme=s.gTheme||{};cid=s.cid||10;
+  if(gTheme['sn-default'])SN_DEFAULT=gTheme['sn-default'];
+  if(gTheme['repeat-color'])REPEAT_COLOR=gTheme['repeat-color'];
   completedToday=s.completedToday||[];
   // colStyles used to merge in whatever bg/txt was saved to Supabase the
   // very FIRST time this account's state was ever saved, permanently
@@ -781,15 +834,16 @@ function ap(s){
   // always taking the live, current-code TBOX directly -- colStyles is kept
   // only so sn()'s existing serialized shape doesn't change (some import/
   // export code still expects the key to exist).
-  // colStyles now has a genuine editing UI (Categories pane -- "Time box
-  // colors"), so merging saved values on top of TBOX's defaults is correct
-  // again here: a user's custom color choice for a box should persist and
-  // load on every device, exactly like any other piece of their state.
-  // (This merge was removed for a while because it was ONLY ever silently
-  // re-applying stale first-ever-saved colors with no way to change them --
-  // see the version-6 doc note below. That reasoning no longer applies now
-  // that colStyles is an intentional, user-editable customization.)
+  // colStyles used to have a genuine editing UI (Categories pane -- "Time
+  // box colors"), so merging saved values on top of TBOX's defaults was
+  // correct. Build 11: that picker is gone (no longer needed — see the
+  // Categories pane's "Task colors" section instead), so colStyles is
+  // back to pure TBOX defaults with nothing left to ever write a custom
+  // value into it. The merge below is harmless no-op busywork now but is
+  // left in place rather than removed, since colStyles' shape is still
+  // expected by import/export code.
   colStyles={};for(const k of Object.keys(TBOX))colStyles[k]=Object.assign({},TBOX[k],(s.colStyles||{})[k]||{});
+  plantIcons=s.plantIcons||{};
   // Ensure new fields exist on all tasks
   tasks.forEach(t=>{if(t.waitUntil===undefined)t.waitUntil=null;if(t.link===undefined)t.link=null;if(t.repeatMonthDay===undefined)t.repeatMonthDay=null;if(t.casuPin===undefined)t.casuPin=false;if(t.urgent===undefined)t.urgent=false;if(t.fadedUntil===undefined)t.fadedUntil=null;if(t.notes===undefined)t.notes='';if(t.sortOrder===undefined)t.sortOrder=null;});
   // Safety net: if two tasks ever ended up sharing the same id (can happen if two
@@ -815,6 +869,9 @@ function ap(s){
   // like the one above happen in the first place.
   tid=Math.max(s.tid||100, ...tasks.map(t=>(t.id||0)+1), 100);
   presets=(s.presets||[]).filter(p=>!p.groupBreak);pid=s.pid||1;
+  // Build 11: migrate any preset still carrying a raw unicode emoji (from
+  // before the Iconify switch) to its matching Iconify id, once.
+  presets.forEach(p=>{if(p.emoji&&!p.emoji.includes(':'))p.emoji=EMOJI_TO_ICON[p.emoji]||'mdi:checkbox-marked-circle-outline';});
   aiNotes=s.aiNotes||aiNotes||'';
   // If no presets in loaded state, try to recover from any other local key
   if(!presets.length){
@@ -893,7 +950,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -961,6 +1018,19 @@ function dayTrans(loadedOk){
   if(newDay){_day=t;localStorage.setItem(KDAY,t);completedToday=[];tasks.forEach(tk=>{
     if(tk.repeat&&shouldRep(tk)){
       tk.done=false;
+      // Build 11 fix: keep deadlineDate synced to the ACTUAL occurrence
+      // date (today). This block used to only touch waitUntil/col, never
+      // deadlineDate — chk() (manual completion) was the only place that
+      // ever advanced deadlineDate for a repeating task. That's fine for a
+      // task the user diligently checks off every cycle, but a repeating
+      // task with a wait attached activates HERE, automatically, not via
+      // chk() — so its deadlineDate stayed stuck on a stale prior-cycle
+      // date. The day grid matches tasks to a column by EXACT deadlineDate,
+      // so a stale date meant the task silently never appeared in today's
+      // column even after its wait resolved. This was the real bug behind
+      // "the wait-repeat function doesn't work" — the wait mechanism
+      // itself was fine, the date just never advanced to match.
+      tk.deadlineDate=t;
       // Recurring wait: chkTimeWaits() (below) permanently clears waitingFor
       // to '' the moment a wait fires -- that's correct for a one-off wait,
       // but for a repeat task it meant the SECOND and every later occurrence
@@ -974,6 +1044,7 @@ function dayTrans(loadedOk){
       // must go through waitUntil, not waitingFor: waitUntil is the only
       // field the live chkTimeWaits() actually auto-releases by clock time.
       if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';tk.col='wait';}
+      else{tk.col=d2col(t,tk.repeat);}
     }
   });tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
   else{_day=t;}
@@ -1064,10 +1135,15 @@ function getCat(id){return cats.find(c=>c.id==id)||null;}
 //    the category identity via its own outline, so the task communicates
 //    urgency instead.
 // Urgent always wins over either rule.
-const SN_DEFAULT='#8fd9a0';
+// Build 11: both now overridable via the Categories pane ("Task colors")
+// instead of being fixed constants — see setThemeColor()/toggleRepeatColor()
+// and renderThemeColorControls(). Seeded from gTheme in load().
+let SN_DEFAULT='#8fd9a0';
+let REPEAT_COLOR=null; // null = no override, repeating tasks use normal rules
 function snColor(t,ctx){
   if(t.urgent)return'#e05a5a';
   if(ctx==='cat')return(colStyles[t.col]||TBOX[t.col])?.bg||SN_DEFAULT;
+  if(t.repeat&&REPEAT_COLOR)return REPEAT_COLOR;
   const c=getCat(t.categoryId);
   return c?c.color:SN_DEFAULT;
 }
@@ -1155,14 +1231,86 @@ function parseNL(text){
 // a new CATEGORY's default color when one isn't specified.
 function buildDays(cid2,sel){const el=document.getElementById(cid2);if(!el)return;el.innerHTML=DAYS.map((d,i)=>`<label class="dclbl"><input type="checkbox" value="${i}"${(sel||[]).includes(i)?' checked':''}>${d}</label>`).join('');}
 function getDays(cid2){return[...document.querySelectorAll(`#${cid2} input:checked`)].map(c=>parseInt(c.value));}
-function onRepCh(selId,dcId){
-  const v=document.getElementById(selId).value;
-  const dc=document.getElementById(dcId);
-  if(v==='custom'||v==='monthly-day'){dc.style.display='block';}
-  else{dc.style.display='none';}
-  if(v==='custom')buildDays(selId==='arep'?'add-days':'edit-days',[]);
-  const mdWrap=document.getElementById(selId==='arep'?'amonthday-wrap':'emonthday-wrap');
-  if(mdWrap)mdWrap.style.display=v==='monthly-day'?'block':'none';
+// ── Repeat picker (build 11) ─────────────────────────────────────────
+// Replaces the flat MWF/TTS/weekdays/monthly-start/mid/end enum with a
+// frequency chip (None/Daily/Weekly/Every 2 weeks/Monthly) plus, for
+// Weekly, day-of-week toggles, and for Monthly, a day-of-month number (or
+// a "last day" checkbox) — the two things actually asked for, "on a
+// specific day of the week or day of the month." The underlying stored
+// value/fields (repeat/repeatDays/repeatMonthDay/repeatStart) and
+// saveTask()'s persistence of them are UNCHANGED — this only replaces how
+// the value gets picked. 'custom' is written for any weekly pattern now
+// (day-of-week toggles fully cover what MWF/TTS/weekdays used to mean);
+// those legacy values are still understood when READING an existing
+// task's repeat (see repFreqOf/repDaysOf below) so old data keeps
+// displaying and firing correctly, they're just never written again.
+const REP_IDS={
+  e:{sel:'erep',opts:'es-rep-opts',weekly:'erep-weekly',days:'edit-days',biweekly:'erep-biweekly',start:'erep-start',monthly:'erep-monthly',lastday:'erep-lastday',monthday:'emonthday',monthdayRow:'erep-monthday-row'},
+  a:{sel:'arep',opts:'as-rep-opts',weekly:'arep-weekly',days:'add-days',biweekly:'arep-biweekly',start:'arep-start',monthly:'arep-monthly',lastday:'arep-lastday',monthday:'amonthday',monthdayRow:'arep-monthday-row'},
+};
+const REP_FREQS=[['','None'],['daily','Daily'],['weekly','Weekly'],['biweekly','Every 2 wks'],['monthly','Monthly']];
+function repFreqOf(v){
+  if(!v)return'';
+  if(v==='daily')return'daily';
+  if(v==='biweekly')return'biweekly';
+  if(['weekly','MWF','TTS','weekdays','custom'].includes(v))return'weekly';
+  if(['monthly-start','monthly-mid','monthly-end','monthly-day'].includes(v))return'monthly';
+  return'';
+}
+function repDaysOf(v,existingDays){
+  if(v==='custom')return existingDays||[];
+  if(v==='MWF')return[1,3,5];
+  if(v==='TTS')return[2,4,6];
+  if(v==='weekdays')return[1,2,3,4,5];
+  return[];
+}
+function renderRepPicker(prefix,existingDays,existingMonthDay){
+  const ids=REP_IDS[prefix];
+  const cur=document.getElementById(ids.sel).value;
+  const freq=repFreqOf(cur);
+  document.getElementById(ids.opts).innerHTML=REP_FREQS.map(([v,l])=>
+    `<div class="em-rep-opt${freq===v?' sel':''}" onclick="setRepFreq('${prefix}','${v}')">${l}</div>`
+  ).join('');
+  document.getElementById(ids.weekly).style.display=freq==='weekly'?'block':'none';
+  document.getElementById(ids.biweekly).style.display=freq==='biweekly'?'block':'none';
+  document.getElementById(ids.monthly).style.display=freq==='monthly'?'block':'none';
+  if(freq==='weekly')buildDays(ids.days,repDaysOf(cur,existingDays));
+  if(freq==='monthly'){
+    const isLast=cur==='monthly-end';
+    document.getElementById(ids.lastday).checked=isLast;
+    document.getElementById(ids.monthdayRow).style.display=isLast?'none':'flex';
+    if(!isLast){
+      let day=1;
+      if(cur==='monthly-day')day=existingMonthDay||1;
+      else if(cur==='monthly-mid')day=15;
+      document.getElementById(ids.monthday).value=day;
+    }
+  }
+  if(prefix==='e'){
+    const pill=document.getElementById('ep-rep');
+    if(pill){if(cur){pill.style.background='rgba(190,220,170,.15)';pill.style.borderColor='rgba(190,220,170,.35)';}else{pill.style.background='';pill.style.borderColor='';}}
+  }else{
+    const pill=document.getElementById('ap-rep');
+    if(pill){if(cur)pill.classList.add('has-val');else{pill.classList.remove('has-val');pill.style.background='';pill.style.borderColor='';}}
+  }
+}
+function setRepFreq(prefix,freq){
+  const ids=REP_IDS[prefix];
+  let val='';
+  if(freq==='daily')val='daily';
+  else if(freq==='biweekly')val='biweekly';
+  else if(freq==='weekly')val='custom';
+  else if(freq==='monthly')val='monthly-day';
+  document.getElementById(ids.sel).value=val;
+  if(freq==='weekly'&&!getDays(ids.days).length)buildDays(ids.days,[new Date().getDay()]);
+  if(freq==='monthly'&&!document.getElementById(ids.monthday).value)document.getElementById(ids.monthday).value=1;
+  renderRepPicker(prefix,getDays(ids.days),parseInt(document.getElementById(ids.monthday).value||1));
+}
+function repMonthlyToggle(prefix){
+  const ids=REP_IDS[prefix];
+  const isLast=document.getElementById(ids.lastday).checked;
+  document.getElementById(ids.sel).value=isLast?'monthly-end':'monthly-day';
+  document.getElementById(ids.monthdayRow).style.display=isLast?'none':'flex';
 }
 
 // ── Dock / pane switching ─────────────────────────────────────────
@@ -1178,9 +1326,9 @@ function switchPane(name){
   document.getElementById('di-'+name)?.classList.add('active');
   if(name==='pile')renderPilePane();
   if(name==='ai')loadAiNotes();
-  if(name==='cat')renderTboxColorList();
+  if(name==='cat')renderThemeColorControls();
   if(name==='rep'){renderRepPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
-  if(name==='pre'){renderPresetPane();}
+  if(name==='pre'){renderPresetPane();renderDockIconPicker();}
 }
 function showTransferMenu(){document.getElementById('transfer-mo').classList.remove('hidden');}
 
@@ -1238,7 +1386,7 @@ function ra(){
   });
   const _daynumEl=document.getElementById('hdr-daynum');
   if(_daynumEl)_daynumEl.textContent=_dn; // fill stays fixed dark ink — always sits on the cream flower disk, never on the day's color
-  renderBoard();renderFull('wait');renderFull('casual');renderCatSection();renderCatChips();syncSelects();renderPile();renderPresetRow();
+  renderBoard();renderFull('wait');renderFull('casual');renderCatSection();renderCatChips();syncSelects();renderPile();renderPresetRow();renderDockIcons();
 }
 
 function repLabel(r){return{daily:'↻',weekly:'↻W',biweekly:'↻2W',MWF:'MWF',TTS:'TTS',weekdays:'M–F',custom:'↻?','monthly-start':'↻M1','monthly-mid':'↻M15','monthly-end':'↻M▸','monthly-day':'↻M#'}[r]||r||'';}
@@ -1332,7 +1480,10 @@ function corkHTML(col){
   // never applies to wait/casual, so it's gone rather than left as dead
   // code that never actually matches anything.
   const cs=colStyles[col]||TBOX[col];const isMin=colMin[col]||false;
-  const ct=tasks.filter(t=>t.col===col);const done=ct.filter(t=>t.done).length;
+  // Build 11: only uncategorized tasks show here — a categorized task
+  // lives in its category box instead (shown there with a due-date
+  // outline color), not duplicated into Wait/Casual too.
+  const ct=tasks.filter(t=>t.col===col&&!t.categoryId);const done=ct.filter(t=>t.done).length;
   function sortTasks(arr){return arr.slice().sort((a,b)=>{
   // Manual order takes precedence when both tasks have sortOrder set
   const ao=a.sortOrder,bo=b.sortOrder;
@@ -1349,14 +1500,15 @@ function corkHTML(col){
   const divider=blockedItems.length?`<div class="cork-blocked-divider"></div>`:'';
   const allItems=[...activeItems,divider,...blockedItems];
   const content=allItems.length&&(activeItems.length||blockedItems.length)?allItems.join(''):'';
-  // Wait group pills (shown above stickies in Wait box)
+  // Wait group pills (build 11: now rendered faded, in the header row
+  // between the two buttons, instead of a full-width strip above the body)
   let wchipsHTML='';
   if(col==='wait'){
     // Only text-based waitingFor gets a ribbon (task-tethered waits show on the sticky itself)
     const byR=new Map();ct.forEach(t=>{if(!t.waitingFor||t.waitTaskId)return;const k=t.waitingFor;if(!byR.has(k))byR.set(k,[]);byR.get(k).push(t.id);});
     wchipsHTML=[...byR.entries()].map(([k,ids])=>{
       const idsJson=JSON.stringify(ids);
-      return`<button class="wait-ribbon"
+      return`<button class="wait-ribbon faded"
         onclick="clrWaitGroup(${idsJson})"
         onmouseenter="hlWait(${idsJson})"
         onmouseleave="unhlWait()"
@@ -1369,8 +1521,8 @@ function corkHTML(col){
   const isCasu=col==='casual';
   let bodyHTML='';
   if(isCasu){
-    // Pinned = ALL tasks across every col with casuPin=true (watch list), not just casual tasks
-    const allPinned=sortTasks(tasks.filter(t=>t.casuPin&&!t.done));
+    // Pinned = ALL uncategorized tasks across every col with casuPin=true (watch list)
+    const allPinned=sortTasks(tasks.filter(t=>t.casuPin&&!t.done&&!t.categoryId));
     const pinned=allPinned.filter(t=>!isBlocked(t));
     const pinnedBlocked=allPinned.filter(t=>isBlocked(t));
     // Unpinned = tasks actually assigned to casual col (not pinned ones — they'd duplicate)
@@ -1396,21 +1548,41 @@ function corkHTML(col){
   } else {
     bodyHTML=content;
   }
-  const addBtn=`<button class="cork-nail" title="Add" onclick="toggleCorkAdd('${col}')">+</button>`;
   const bodyHidden=isCasu?false:!!minLevel;
-    return`<div class="cork${bodyHidden?' minimized':''}" data-col="${col}"
+  // Build 11: a real flex header row replaces the old absolutely-positioned
+  // corner buttons for Wait/Casual — minimize (left), middle content (wait
+  // pills / casual quick-add), add (right). Both nail buttons are visually
+  // unmarked (see .cork-nail CSS — no glyph, just a plain small circle).
+  const midHTML=col==='wait'
+    ?(wchipsHTML?`<div class="cork-hdr-pills">${wchipsHTML}</div>`:'')
+    :`<input class="casu-quickadd" placeholder="Quick add — pins to top…" onkeydown="casuQuickAdd(event)">`;
+  return`<div class="cork${bodyHidden?' minimized':''}" data-col="${col}"
     style="border-color:${cs.bg}"
     ondragover="dover(event,'${col}')" ondrop="drop(event,'${col}')" ondragleave="dleave(event)">
-    <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="toggleMin('${col}')" title="${minLevel?'Expand':'Minimize'}">${minLevel?'▸':'▾'}</button></div>
-    <div class="cork-float">
-      ${addBtn}
+    <div class="cork-hdr-row">
+      <button class="cork-nail" onclick="toggleMin('${col}')" title="${minLevel?'Expand':'Minimize'}"></button>
+      <div class="cork-hdr-mid">${midHTML}</div>
+      <button class="cork-nail" title="Add" onclick="toggleCorkAdd('${col}')"></button>
     </div>
-    ${wchipsHTML?`<div class="wait-groups">${wchipsHTML}</div>`:''}
     ${bodyHidden?'':`<div class="cork-body">${bodyHTML}</div>`}
     <div class="cork-add" id="${addId}">
       <input id="${addId}-i" placeholder="" onkeydown="corkAddKey(event,'${col}')">
     </div>
   </div>`;
+}
+function casuQuickAdd(e){
+  // Build 11: persistent quick-add for Casual, always visible in the header
+  // row. Creates an uncategorized, dateless, casuPin:true task — same as
+  // dragging a new task onto the pin zone, but by typing instead. Drag it
+  // onto a day afterward to give it a due date; dropDay() auto-unpins it
+  // at that point, since a task with a real due date doesn't belong in the
+  // "watching, no date yet" pinned list anymore.
+  if(e.key!=='Enter')return;
+  const name=e.target.value.trim();if(!name)return;
+  pu('add');
+  tasks.push({id:tid++,name,col:'casual',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,repeatWaitTime:null,done:false,urgent:false,casuPin:true,repeat:'',repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:null,stickyColor:'',paletteColor:'',link:null,notes:'',sortOrder:null,fadedUntil:null});
+  e.target.value='';
+  save();ra();showU('Pinned ★');
 }
 
 // ── Day grid (build 10) ──────────────────────────────────────────────
@@ -1461,6 +1633,9 @@ function dropDay(e,dateStr){
   pu('drag');
   task.deadlineDate=dateStr;
   task.col=d2col(dateStr,task.repeat);
+  // Build 11: a task with a real due date doesn't belong in Casual's
+  // "watching, no date yet" pinned list anymore — auto-unpin.
+  task.casuPin=false;
   save();ra();showU('Moved');
 }
 
@@ -1482,7 +1657,7 @@ function renderPresetRow(){
   else if(n<=18){cols=6;}     // 3x6
   else{cols=6;}               // 6 per row for anything larger
   row.style.gridTemplateColumns=`repeat(${cols},44px)`;
-  row.innerHTML=vis.map(p=>`<div class="preset-btn" onclick="firePreset(${p.id})" title="${esc(p.label||p.tasks.map(t=>t.name).join(', '))}">${p.emoji}</div>`).join('');
+  row.innerHTML=vis.map(p=>`<div class="preset-btn" onclick="firePreset(${p.id})" title="${esc(p.label||p.tasks.map(t=>t.name).join(', '))}"><iconify-icon icon="${p.emoji}"></iconify-icon></div>`).join('');
 }
 
 // ── Fire a preset ────────────────────────────────────────────────────
@@ -1521,7 +1696,7 @@ function firePreset(pid){
       tasks.find(t=>t.id===createdIds[i]).waitTaskId=createdIds[tmpl.waitTaskIndex];
     }
   });
-  save();ra();showU(`${p.emoji} added`);
+  save();ra();showU('Added');
 }
 
 // ── Preset pane render ────────────────────────────────────────────────
@@ -1538,7 +1713,7 @@ function renderPresetPane(){
       ondrop="preDrop(event,${realIdx})"
       style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:7px 10px;cursor:grab">
       <span style="color:var(--ink3);font-size:14px;cursor:grab">⠿</span>
-      <span style="font-size:22px">${p.emoji}</span>
+      <span style="font-size:22px;display:flex;color:var(--ink2)"><iconify-icon icon="${p.emoji}"></iconify-icon></span>
       <span style="flex:1;font-size:13px;color:var(--ink)">${esc(p.label||p.tasks.map(t=>t.name).join(', '))}</span>
       <button onclick="openPresetEditor(${realIdx})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px">✎</button>
       <button onclick="removePreset(${realIdx})" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:14px">✕</button>
@@ -1564,7 +1739,7 @@ function openPresetEditor(idx){
   _ptRows=[];_editPresetIdx=idx;
   const p=idx!=null?presets[idx]:null;
   document.getElementById('preset-mo-title').textContent=p?'Edit preset':'New preset';
-  document.getElementById('pre-emoji-btn').textContent=p?.emoji||'🎯';
+  document.getElementById('pre-emoji-icon').setAttribute('icon',p?.emoji||'mdi:target');
   document.getElementById('pre-label').value=p?.label||'';
   _ptRows=(p?.tasks||[{name:'',col:'today'}]).map(t=>({...t}));
   renderPresetTaskRows(_ptRows);
@@ -1613,7 +1788,7 @@ function updPTF(i,field,val){_ptRows[i]=_ptRows[i]||{};_ptRows[i][field]=val;}
 function removePTRow(i){_ptRows.splice(i,1);renderPresetTaskRows(_ptRows);}
 function addPresetTaskRow(){_ptRows.push({name:'',col:'today'});renderPresetTaskRows(_ptRows);}
 function savePreset(){
-  const emoji=document.getElementById('pre-emoji-btn').textContent.trim();
+  const emoji=document.getElementById('pre-emoji-icon').getAttribute('icon');
   const label=document.getElementById('pre-label').value.trim();
   // Collect current row values from DOM
   document.querySelectorAll('#pre-tasks-list .pre-task-row').forEach((row,i)=>{
@@ -1638,18 +1813,63 @@ function savePreset(){
   closeM('preset-mo');showU(`${emoji} preset saved`);
 }
 
-// ── Emoji picker ─────────────────────────────────────────────────────
+// ── Icon picker (build 11 — Iconify instead of unicode emoji) ───────
+// Same picker UX as before (grid of options, click to choose), but the
+// grid now holds real Iconify icon ids instead of emoji characters —
+// which also means the search box actually works now (a text query can
+// meaningfully match an id like "mdi:egg-fried", it never could match
+// against a raw emoji character). Generalized with a target so the same
+// modal serves both preset icons and the 6 dock "plant" icons.
+const ICONIFY_ICONS=['mdi:egg-fried','mdi:silverware-fork-knife','mdi:food-apple','mdi:noodles','mdi:pot-steam','mdi:pot','mdi:cupcake','mdi:coffee','mdi:basket','mdi:tshirt-crew','mdi:dumbbell','mdi:bike','mdi:yoga','mdi:cart','mdi:book-open-page-variant','mdi:pencil','mdi:laptop','mdi:phone','mdi:hospital-box','mdi:pill','mdi:dog','mdi:leaf','mdi:flower','mdi:sprout','mdi:music-note','mdi:movie-open','mdi:controller-classic','mdi:home','mdi:wrench','mdi:car','mdi:airplane','mdi:target','mdi:star','mdi:lightbulb-on','mdi:note-text','mdi:calendar','mdi:cash','mdi:broom','mdi:bathtub','mdi:sleep','mdi:weather-night','mdi:weather-sunset','mdi:email','mdi:cellphone','mdi:handshake','mdi:gift','mdi:weight-lifter','mdi:soccer','mdi:tennis','mdi:guitar-acoustic','mdi:palette','mdi:flask','mdi:microscope','mdi:chart-bar','mdi:folder','mdi:pin','mdi:key','mdi:magnet','mdi:arm-flex','mdi:heart-pulse','mdi:tooth','mdi:glasses','mdi:bag-personal','mdi:shopping'];
+// Old EMOJIS array (same length/order) kept only so existing presets
+// saved with a raw emoji character can be translated to the matching
+// Iconify id once, on load — see the migration loop in load().
 const EMOJIS=['🍳','🍽️','🥗','🍜','🥘','🫕','🧁','☕','🧺','👕','🏋️','🚴','🧘','🛒','📚','✏️','💻','📞','🏥','💊','🐕','🌿','🌸','🌱','🎵','🎬','🎮','🏠','🔧','🚗','✈️','🎯','⭐','💡','📝','🗓️','💰','🧹','🛁','😴','🌙','🌅','📧','📱','🤝','🎁','🏋️','⚽','🎾','🎸','🎨','🧪','🔬','📊','🗂️','📌','🔑','🧲','💪','🫀','🦷','👓','🎒','🛍️'];
-function openEmojiPick(){
-  buildEmojiGrid(EMOJIS);
+const EMOJI_TO_ICON=Object.fromEntries(EMOJIS.map((e,i)=>[e,ICONIFY_ICONS[i]]));
+let _iconPickTarget=null; // 'preset' | {dock:'add'|'cat'|'ai'|'pile'|'rep'|'pre'}
+function openEmojiPick(target){
+  _iconPickTarget=target||'preset';
+  buildEmojiGrid(ICONIFY_ICONS);
   document.getElementById('emoji-search').value='';
   document.getElementById('emoji-mo').classList.remove('hidden');
 }
 function buildEmojiGrid(list){
-  document.getElementById('emoji-grid').innerHTML=list.map(e=>`<div onclick="pickEmoji('${e}')" style="font-size:24px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background=''">${e}</div>`).join('');
+  document.getElementById('emoji-grid').innerHTML=list.map(ic=>`<div onclick="pickEmoji('${ic}')" title="${ic}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;font-size:22px;color:var(--ink2);transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background=''"><iconify-icon icon="${ic}"></iconify-icon></div>`).join('');
 }
-function filterEmoji(q){buildEmojiGrid(q?EMOJIS.filter(e=>e.includes(q)):EMOJIS);}
-function pickEmoji(e){document.getElementById('pre-emoji-btn').textContent=e;closeM('emoji-mo');}
+function filterEmoji(q){buildEmojiGrid(q?ICONIFY_ICONS.filter(e=>e.includes(q.toLowerCase())):ICONIFY_ICONS);}
+function pickEmoji(ic){
+  if(_iconPickTarget&&_iconPickTarget.dock){
+    plantIcons[_iconPickTarget.dock]=ic;save();renderDockIcons();
+  }else{
+    document.getElementById('pre-emoji-icon').setAttribute('icon',ic);
+  }
+  closeM('emoji-mo');
+}
+
+// ── Dock "plant" icons (build 11) ────────────────────────────────────
+// Default to text initials until a real icon is picked, on explicit
+// request — no default Iconify icon is pre-assigned to any slot.
+let plantIcons={};
+const DOCK_SLOTS=[['add','Add','AD'],['cat','Categories','CT'],['ai','Notes','NT'],['pile','Completed','CO'],['rep','Repeat','RP'],['pre','Presets','PR']];
+function renderDockIcons(){
+  DOCK_SLOTS.forEach(([key,label,initials])=>{
+    const el=document.getElementById('di-'+key);if(!el)return;
+    const icon=plantIcons[key];
+    el.innerHTML=icon?`<iconify-icon icon="${icon}"></iconify-icon>`:`<span class="dock-initials">${initials}</span>`;
+  });
+}
+function renderDockIconPicker(){
+  const el=document.getElementById('dock-icon-list');if(!el)return;
+  el.innerHTML=DOCK_SLOTS.map(([key,label,initials])=>`
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="flex:1;font-size:12px;color:var(--ink2)">${label}</span>
+      <button onclick="openEmojiPick({dock:'${key}'})" style="width:34px;height:34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;cursor:pointer;color:var(--ink2);font-size:18px;display:flex;align-items:center;justify-content:center">
+        ${plantIcons[key]?`<iconify-icon icon="${plantIcons[key]}"></iconify-icon>`:`<span style="font-size:10px;font-weight:700">${initials}</span>`}
+      </button>
+      ${plantIcons[key]?`<button onclick="event.stopPropagation();delete plantIcons['${key}'];save();renderDockIcons();renderDockIconPicker();" title="Reset to initials" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px">↺</button>`:'<span style="width:20px"></span>'}
+    </div>`).join('');
+}
+
 
 function renderRepPane(){
   const el=document.getElementById('rep-task-list');if(!el)return;
@@ -1666,11 +1886,34 @@ function renderRepPane(){
       <select style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:2px 4px" onchange="updRepField(${t.id},'categoryId',this.value?parseInt(this.value):null)">
         ${catOpts.replace(`value="${t.categoryId||''}"`,`value="${t.categoryId||''}" selected`)}
       </select>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);white-space:nowrap">
+        <input type="checkbox" ${t.repeatWaitTime?'checked':''} onchange="updRepWaitToggle(${t.id},this.checked)">
+        wait until
+        <input type="time" value="${t.repeatWaitTime||'21:00'}" ${!t.repeatWaitTime?'disabled':''} style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px;width:78px" onchange="updRepField(${t.id},'repeatWaitTime',this.value)">
+      </label>
       <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
     </div>`;
   }).join('');
 }
 function updRepField(id,field,val){const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');t[field]=val;save();ra();}
+function updRepWaitToggle(id,on){
+  // Build 11 — direct editing of the repeating-wait rule right in this
+  // pane (previously only reachable via the edit modal's Wait sub-panel),
+  // so it's easy to tell whether the feature itself works or was just
+  // hard to find. Turning it off also releases the task immediately if
+  // it's currently sitting in Wait purely because of this rule.
+  const t=tasks.find(t=>t.id==id);if(!t)return;
+  pu('edit');
+  if(on){t.repeatWaitTime=t.repeatWaitTime||'21:00';}
+  else{
+    t.repeatWaitTime=null;
+    if(t.col==='wait'&&!t.waitingFor&&!t.waitTaskId){
+      t.waitUntil=null;
+      t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'today';
+    }
+  }
+  save();ra();renderRepPane();
+}
 function addRepTask(){
   const name=document.getElementById('new-rep-name').value.trim();if(!name)return;
   const rep=document.getElementById('new-rep-type').value;
@@ -1733,30 +1976,35 @@ function renderCatSection(){
 // borders AND task-row outlines when a task sits in a time box -- see
 // snHTML(), which reads ensureColor(task), and corkHTML(), which reads
 // colStyles[col].bg directly).
-function renderTboxColorList(){
-  const el=document.getElementById('tbox-color-list');if(!el)return;
-  el.innerHTML=Object.keys(TBOX).map(k=>{
-    const cur=colStyles[k]?.bg||TBOX[k].bg;
-    return `<div style="display:flex;align-items:center;gap:8px">
-      <span style="flex:1;font-size:13px;color:var(--ink2)">${TBOX[k].label}</span>
-      <input type="color" data-tbox-col="${k}" value="${cur}" style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
-      <button class="tiny-btn" data-tbox-reset="${k}" title="Reset to default">reset</button>
-    </div>`;
-  }).join('');
-  el.querySelectorAll('[data-tbox-col]').forEach(inp=>{
-    inp.addEventListener('input',()=>{
-      const k=inp.getAttribute('data-tbox-col');
-      colStyles[k]={...TBOX[k],bg:inp.value,txt:con(inp.value)};
-      save();ra();
-    });
-  });
-  el.querySelectorAll('[data-tbox-reset]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const k=btn.getAttribute('data-tbox-reset');
-      colStyles[k]={...TBOX[k]};
-      save();ra();renderTboxColorList();
-    });
-  });
+// Build 11: replaces renderTboxColorList()/"Time box colors" — that
+// picker is no longer exposed (TBOX/colStyles keep their fixed defaults).
+// This spot in the Categories pane now edits the two colors snColor()
+// actually uses day-to-day: the default outline for an uncategorized
+// task, and an optional override color for every repeating task.
+function renderThemeColorControls(){
+  const dc=document.getElementById('theme-default-color');
+  if(dc)dc.value=SN_DEFAULT;
+  const rcOn=document.getElementById('theme-repeat-color-on');
+  const rc=document.getElementById('theme-repeat-color');
+  if(rcOn&&rc){
+    const has=!!REPEAT_COLOR;
+    rcOn.checked=has;
+    rc.disabled=!has;
+    rc.value=REPEAT_COLOR||'#7fb8d9';
+  }
+}
+function setThemeColor(key,val){
+  gTheme[key]=val;
+  if(key==='sn-default')SN_DEFAULT=val;
+  if(key==='repeat-color')REPEAT_COLOR=val;
+  document.documentElement.style.setProperty('--'+key,val);
+  save();ra();
+}
+function toggleRepeatColor(on){
+  const inp=document.getElementById('theme-repeat-color');
+  inp.disabled=!on;
+  if(on){setThemeColor('repeat-color',inp.value);}
+  else{delete gTheme['repeat-color'];REPEAT_COLOR=null;save();ra();}
 }
 
 function renderCatChips(){
@@ -1942,7 +2190,7 @@ function aemToggle(key){
   document.getElementById('ap-'+key).classList.add('active');
   if(key==='col') aemBuildCol();
   if(key==='cat') aemBuildCat();
-  if(key==='rep') aemBuildRep();
+  if(key==='rep') renderRepPicker('a',getDays('add-days'),parseInt(document.getElementById('amonthday').value||1));
 }
 function aemToggleUrgent(){
   _aurgent=!_aurgent;
@@ -1990,22 +2238,6 @@ function aemSetCat(id,bg){
   else{pill.style.background='';pill.style.borderColor='';}
   aemBuildCat();
 }
-function aemBuildRep(){
-  const cur=document.getElementById('arep').value;
-  document.getElementById('as-rep-opts').innerHTML=REP_LABELS.map(([v,l])=>
-    `<div class="em-rep-opt${cur===v?' sel':''}" onclick="aemSetRep('${v}')">${l}</div>`
-  ).join('');
-  document.getElementById('adc').style.display=cur==='custom'?'block':'none';
-  const mw=document.getElementById('amonthday-wrap');if(mw)mw.style.display=cur==='monthly-day'?'block':'none';
-  const rs=document.getElementById('arep-start');if(rs)rs.style.display=cur&&cur!==''?'block':'none';
-}
-function aemSetRep(val){
-  document.getElementById('arep').value=val;
-  onRepCh('arep','adc');
-  aemBuildRep();
-  const pill=document.getElementById('ap-rep');
-  if(val){pill.classList.add('has-val');}else{pill.classList.remove('has-val');pill.style.background='';pill.style.borderColor='';}
-}
 function aemUpdateDatePill(){
   const val=document.getElementById('ad').value;
   const pill=document.getElementById('ap-date');
@@ -2026,7 +2258,9 @@ function aemReset(){
   document.getElementById('ac').value='';
   document.getElementById('arep').value='';
   if(document.getElementById('arwait'))document.getElementById('arwait').checked=false;
-  document.getElementById('adc').style.display='none';
+  document.getElementById('arep-weekly').style.display='none';
+  document.getElementById('arep-biweekly').style.display='none';
+  document.getElementById('arep-monthly').style.display='none';
   document.querySelectorAll('[id^="as-"]').forEach(el=>el.classList.remove('open'));
 }
 function addManual(){
@@ -2142,11 +2376,6 @@ function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.i
 // also permanently removes the "keep TBOX_UI in sync with TBOX by hand"
 // maintenance burden flagged earlier in this doc -- there is only one color
 // object to update now, not two.
-const REP_LABELS=[
-  ['','–'],['daily','Every day'],['weekly','Every week'],['biweekly','Every 2 wks'],
-  ['MWF','M·W·F'],['TTS','T·T·S'],['weekdays','Weekdays'],['custom','Custom'],
-  ['monthly-start','1st'],['monthly-mid','15th'],['monthly-end','Last day'],['monthly-day','Specific day'],
-];
 let _emOpen=null;
 
 function emClose(){
@@ -2161,7 +2390,7 @@ function emToggle(key){
   // Build dynamic content
   if(key==='col') buildEmCol();
   if(key==='cat') buildEmCat();
-  if(key==='rep') buildEmRep();
+  if(key==='rep'){const et=tasks.find(x=>x.id===editTid);renderRepPicker('e',et?.repeatDays||[],et?.repeatMonthDay);}
 }
 function emToggleUrgent(){
   const cb=document.getElementById('eurgent');
@@ -2233,29 +2462,6 @@ function emSetCat(id,bg){
   buildEmCat();
 }
 
-function buildEmRep(){
-  const cur=document.getElementById('erep').value;
-  const wrap=document.getElementById('es-rep-opts');
-  wrap.innerHTML=REP_LABELS.map(([v,l])=>
-    `<div class="em-rep-opt${cur===v?' sel':''}" onclick="emSetRep('${v}')">${l}</div>`
-  ).join('');
-  const needCustom=cur==='custom';
-  document.getElementById('edc').style.display=needCustom?'block':'none';
-  const needMonthDay=cur==='monthly-day';
-  const mw=document.getElementById('emonthday-wrap');if(mw)mw.style.display=needMonthDay?'block':'none';
-  const rs=document.getElementById('erep-start');
-  if(rs)rs.style.display=cur&&cur!==''?'block':'none';
-}
-function emSetRep(val){
-  document.getElementById('erep').value=val;
-  onRepCh('erep','edc');
-  buildEmRep();
-  // Update pill indicator
-  const pill=document.getElementById('ep-rep');
-  if(val){pill.style.background='rgba(190,220,170,.15)';pill.style.borderColor='rgba(190,220,170,.35)';}
-  else{pill.style.background='';pill.style.borderColor='';}
-}
-
 function emSyncPills(t){
   // Box pill
   const cv=colStyles[t.col];
@@ -2317,8 +2523,6 @@ function openTask(id){
   document.getElementById('erep').value=t.repeat||'';
   document.getElementById('erep-start').value=t.repeatStart||'';
   if(document.getElementById('emonthday'))document.getElementById('emonthday').value=t.repeatMonthDay||'';
-  const isC=t.repeat==='custom';document.getElementById('edc').style.display=isC?'block':'none';
-  if(isC)buildDays('edit-days',t.repeatDays||[]);
   syncSelects();document.getElementById('ec').value=t.categoryId||'';
   document.getElementById('enotes').value=t.notes||'';
   emClose();
@@ -2487,393 +2691,7 @@ function cboxDrop(e,targetId){
 
 // ── Export / Import ───────────────────────────────────────────────
 
-function dlContextDoc(){
-  // KEY can be a plain letter-name ('fleur_marigold_v1') or a sub-version
-  // ('fleur_marigold_stem_v1'). Splitting on '_' and taking index 1 only ever
-  // grabbed the first word, silently dropping the sub-name — the downloaded
-  // doc would show "Current version: Marigold" and the wrong storage key even
-  // when the live KEY was actually Marigold Stem. Strip the fixed 'fleur_'
-  // prefix and '_v<digits>' suffix instead, so whatever's left (one word or
-  // several) survives intact.
-  const vkey=KEY.replace(/^fleur_/,'').replace(/_v\d+$/,'');
-  const vname=vkey.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-  const md=`# Fleur — Full Project Context
-## Current version: ${vname}
-
-Paste this at the start of a new Claude conversation, then upload the current HTML file.
-
----
-
-## Infrastructure
-
-- **Frontend**: single \`index.html\` file hosted on GitHub Pages at \`https://maximvino.github.io/fleur\`. Updated by replacing the file in the GitHub repo — no build step, no CLI needed.
-- **Backend**: Netlify at \`https://oldfleurplanner.netlify.app\` — deployed once, rarely changed. Two serverless functions:
-  - \`/api/chat\` → proxies Anthropic API (key in Netlify env var \`ANTHROPIC_API_KEY\`)
-  - \`/api/sync\` → Supabase upsert/load (env vars \`SUPABASE_URL\`, \`SUPABASE_APIKEY\`)
-- **Database**: Supabase, table \`planner_state\`, single row \`id=1\`, column \`state\` (JSON)
-- **Model**: \`claude-haiku-4-5\` (1500 tokens). Sonnet toggle: \`claude-sonnet-4-5\` (2500 tokens)
-- **Storage key**: \`fleur_${vkey}_v1\` (localStorage + Supabase reference). \`load()\` falls back through all prior version keys if current is empty.
-- **Backend files** (\`netlify.toml\`, \`chat.js\`, \`sync.js\`): essentially permanent. \`sync.js\` has \`Access-Control-Allow-Origin: *\` CORS headers — required because frontend is on a different origin from the API.
-- **Output files**: always named \`[VersionName].html\` (e.g. \`${vname}.html\`). User renames to \`index.html\` when uploading to GitHub.
-
----
-
-## Naming convention (switched to plain numbers as of this version)
-
-**Historical flower-name log**, kept for reference (this scheme is retired, not in use for new versions):
-Kalmia (+ sub-versions: Vine) → Lavender → Lavender Stem → Lavender Petal → Lavender Vine → Marigold → Marigold Stem → Marigold Petal → Marigold Vine → Marigold Bud → **Marigold Root** (last flower-named version)
-
-That log was already known to be incomplete — a full alphabet cycle or more happened before Kalmia and was never reliably logged. This is itself part of why the project moved off name-picking entirely: Racine, Branche, and Verdure had already switched to plain numbers (1, 2, 3...) for exactly this reason (simpler, no risk of reuse/collision, no log to maintain), and Fleur now follows the same convention, per explicit project-wide instruction. Fleur keeps its own independent counter, just like the other three apps — not unified with theirs.
-
-**The plain-number convention began at version 1** (the first plain-numbered version, immediately following Marigold Root) — see "Current version" above for what it actually is now; that line is auto-interpolated from the live \`KEY\` constant so it can't go stale, this one is a fixed historical note about when the switch happened.
-
-**On every new version sent**:
-1. Bump the plain number.
-2. Update \`<title>Fleur · [N]</title>\`, \`const KEY='fleur_[N]_v1'\`, the \`version:\` string in \`exportData()\`, and add the *previous* version's key to the \`oldKeys\` fallback array in \`load()\` (never a bare rename — see the storage-keys warning in the master project doc).
-
----
-
-## Design language
-
-**Theme**: fully unified dark-green with Racine, as of Marigold Petal. Every former purple/dusty-rose value — the \`--page\`/\`--surface\`/\`--ink\` background trio, \`--ink2\`/\`--ink3\`/\`--accent\`, and every hardcoded \`rgba(220,190,255,...)\`-family accent border scattered through component styles — was converted to a green equivalent. There is also a runtime \`applyTheme()\` function that sets several of these as inline CSS custom properties from a hardcoded defaults object \`d\`, separate from the \`:root\` stylesheet block — **both places must be updated together**, which was the actual cause of an earlier color edit not visibly sticking. If a future color change doesn't appear to take effect, check \`applyTheme()\`'s \`d\` object first, not just \`:root\`.
-
-**CSS variables**:
-\`\`\`css
---page: #0e1c12       /* page background — shared with Racine */
---surface: #17281a    /* card/modal surface — shared with Racine */
---ink: #f3ead6        /* primary text — shared with Racine */
---ink2: #b8c4ac       /* secondary text — green, matches Racine's family */
---ink3: #6e7a62       /* muted text — green, matches Racine's family */
---accent: #9db08d     /* sage green, further desaturated in version 1 to match Verdure's more muted palette (was #9bbf7e; before that, dusty rose #c98fd4) */
---font-h: 'Lora'      /* headings, and (build 10) task-row names/times, matching Racine's chip font */
---font-b: 'DM Sans'   /* UI/body */
---font-note: 'Spectral' /* only the Repeats pane's task-name list now (build 10) — task rows themselves switched to --font-h */
---sn-default: #8fd9a0 /* build 10 — default task outline when no category is set */
---ts: 15px            /* used by the Repeats pane; task rows use their own .68rem, not this */
-\`\`\`
-
-**Fonts**: Lora (headings/UI labels), DM Sans (UI/body), Spectral (sticky note text, serif). Loaded from Google Fonts.
-
----
-
-## Task rows (build 10 — Racine-chip interaction model)
-
-Build 9 turned the sticky note into a plain outlined row. Build 10 goes further, on explicit request: task rows now look and behave almost exactly like Racine's read-only event chips (same border-radius, padding, font-size, and title font — Lora medium, \`--font-h\`), with three differences: they're outlined instead of solid-filled, the outline color follows different rules depending on *where* the task is sitting, and they're editable/completable (Racine's chips aren't).
-
-**Interaction model** (`.sn` in \`snHTML()\`, plus \`snDown\`/\`snUp\`/\`snClick\`/\`snDblclick\`):
-- **Single click** → opens the edit modal (\`openTask\`). Delayed ~260ms and canceled if a second click arrives, so a double-click doesn't flash the modal open first.
-- **Double-click** → marks done (\`chk\`). There's no check/pin button anymore — this replaces it entirely.
-- **Click-and-hold** (550ms, mouse *and* touch, via \`snDown\`/\`snUp\`) → fades the task for the rest of today (\`toggleFade\`). This replaces the old separate fade/curl button. Visual feedback: \`.sn.pressing\` brightens the row while held. \`dstart()\` (drag start) cancels any pending press timer so a hesitant drag doesn't also trigger a fade.
-- There is **no more separate note button** — notes are now a field (📝 pill) inside the same edit modal, not a standalone popover. See "Notes" below.
-- The old **global touch long-press → "Move task" menu is gone** (build 10, explicit request) — it collided with the new hold-to-fade gesture on touch. Moving a task on mobile is now drag-and-drop (where it works) or editing the task's date/category directly in the modal.
-- ⏳ (wait-reveal toggle) and 🔗 (open link) remain as small inline icons in \`.sn-actions\` — neither maps to a click/hold/double-click gesture, so they kept their own tap targets (with \`stopPropagation\` on both \`mousedown\`/\`touchstart\` *and* \`click\`, so tapping them doesn't also arm the row's long-press timer).
-
-**Outline color** — \`snColor(task, ctx)\`, not \`ensureColor()\` (removed):
-- \`ctx==='cat'\` (task sitting in a category box): the box already shows category identity via its own border, so the *task* shows due-date urgency instead — \`colStyles[task.col].bg\`, the same green/yellow/orange/red system the boxes use.
-- Any other \`ctx\` (\`'day'\`, \`'wait'\`, \`'casual'\`): the task's own category color, or \`--sn-default\` (light green, \`#8fd9a0\`) if it has none.
-- \`task.urgent\` always overrides to \`#e05a5a\` regardless of context.
-- **There is no more per-task custom color picker.** The 🎨 pill and its color-dot UI (\`mkDots\`/\`pickDot\`/\`getDot\`, \`.cdots\`/\`.cdot\` CSS) are gone from both the add and edit modals — color is fully rule-based now, so a free-choice picker had nothing left to control. \`stickyColor\`/\`paletteColor\` fields still exist on the task object (for old-export compatibility) but are never read for rendering. \`PASTELS\`/\`nxtP()\` still exist and are still used — but only for auto-picking a new *category's* default color, unrelated to tasks.
-
-**Notes** (build 10): moved from a standalone popover (\`openNotePopover\`, positioned near the sticky's corner) into a 📝 pill + textarea inside the regular add/edit task modals (\`#anotes\`/\`#enotes\`), read/written in \`addManual()\`/\`saveTask()\` exactly like every other field. No separate popover system, no separate save path.
-
-**Structure inside \`.sn\`**: \`.sn-actions\` (⏳/🔗, floated right) → optional \`.sn-time\` (only if \`deadlineTime\` is set) → \`.sn-name\` (single line, ellipsis-truncated around the floated actions) → optional \`.sn-badges\` (date badge — suppressed entirely when \`ctx==='day'\` since the day column already IS the date; repeat badge) → optional \`.sn-wait-reveal\`.
-
-**Completion animation**: \`.completing\` → \`sn-done\` keyframe (scale+fade, 300ms), then state commits.
-**Blocked rows**: \`.sn-blocked\` (\`opacity:.4\`) — see "Day grid" below for how this now works inline rather than via a segregated section.
-**Faded rows**: \`.sn-faded\` (\`opacity:.4\`, via hold-to-fade).
-
----
-
-## Day grid + Wait/Casual (build 10 — replaces the 3-box Today/Tomorrow/Upcoming layout)
-
-**The single biggest structural change in build 10**: Today/Tomorrow/Upcoming are gone as boxes entirely. In their place is a **7-day grid** (\`.week-grid\`, \`grid-template-columns:repeat(7,1fr)\`) — today plus the next six days — deliberately built to mirror Racine's own week grid (same \`repeat(7,1fr)\`, same \`.page\` \`max-width:1160px\` centering) so Fleur's day columns line up directly underneath Racine's when Verdure stacks the two iframes, with nothing in between.
-
-**Each day column (\`.daycol\`) is genuinely invisible** — no border, no background, no minimize button, no add button, on explicit request ("basically invisible"). It's just \`tasks.filter(t=>t.deadlineDate===thatDate)\` (excluding wait/casual/done), sorted, and rendered as plain task rows (\`dayColHTML()\`/\`weekDates()\`). There's no per-day chrome left for a minimize/add button to attach to, matching the old cork-nail buttons' reasoning in reverse — they needed a visible box to sit on, and there isn't one anymore. Adding a task to a specific day now happens through the global add dock (🌸) or by dragging; there's no per-day inline add.
-
-**Auto-fade for blocked-but-due tasks** (build 10, explicit request — e.g. "due Sunday but has a wait of Sunday night"): a day-column task that \`isBlocked()\` is *not* segregated into a separate section anymore (the old Today/Tomorrow/Upcoming boxes showed active tasks, then a divider, then blocked ones). It just stays in its natural sorted position within its day, rendered with \`.sn-blocked\` (faded). Once the wait resolves and \`isBlocked()\` goes false, the next render shows it at full opacity automatically — nothing manual needed. Wait and Casual still use the old divider-segregated approach internally (unchanged) since those are still real boxes with their own active/blocked distinction.
-
-**A task with a \`deadlineDate\` beyond day 6 simply doesn't render yet** — same as the old Upcoming box not showing tasks more than a week out. It appears on its own once the date rolls into the 7-day window; \`dayTrans()\` (midnight rollover) is unaffected by any of this.
-
-**Dropping onto a day column** (\`dropDay(e, dateStr)\`) sets \`deadlineDate\` directly and recomputes \`col\` via \`d2col()\` — no date-prompt modal needed (unlike the old Upcoming-box drop, which had to prompt for a date since it had none to infer). \`corkHTML(col)\` is now **only ever called with \`'wait'\`/\`'casual'\`** — the old cross-day \`blockedHere\` lookup it used to do for Today/Tomorrow/Upcoming was removed as dead code rather than left in place (it could never match once those boxes were rendered by \`dayColHTML\` instead).
-
-**A real bug fixed while touching this**: \`snDrop\`'s within-bucket reorder logic called a bare \`sortTasks()\` that was never defined at that scope (a pre-existing crash on every drag-reorder, present since well before build 9) — replaced with a proper \`cmpTasks\` comparator. Also: since \`col==='upcoming'\` now spans five different day columns, matching *just* on \`col\` for reordering was no longer enough — two different days' tasks could both be \`'upcoming'\`. Reordering now also requires matching \`deadlineDate\` for day-bucketed tasks (\`sameBucket()\`), so drag-to-reorder only reorders within the same actual day.
-
-**Casual + Wait**: still real boxes, unchanged from build 9 (outline = \`colStyles[col].bg\`, minimize/add/pin-zone all intact) — just laid out side by side now (\`.cw-row\`, Casual left / Wait right) instead of stacked full-width, sitting below the day grid.
-
-**TBOX colors** (unchanged from build 9 — still the source for Wait/Casual's own outline *and* for category-box task outlines by due date):
-| Col | Color | Hue |
-|-----|-------|-----|
-| today | \`#5db075\` | green |
-| tomorrow | \`#d6b93e\` | yellow |
-| upcoming | \`#d98f3e\` | orange |
-| wait | \`#c85c5c\` | red |
-| casual | \`#9b72c9\` | purple |
-
-\`colStyles\` still merges a user's custom pick (Categories pane → "Time box colors") over these defaults, unchanged — that picker still works exactly as before; its effect now shows up as Wait/Casual's own border color and as category-box task outline colors, rather than as a Today/Tomorrow/Upcoming box border (those boxes no longer exist to have one).
-
-**Category boxes**: unchanged from build 9 — \`border: 1.5px solid <cat.color>\`, plain dark fill, vertical flex list (\`.cbox-body\`). The only build-10 change is what color the *tasks inside* use (due-date color instead of their own category color — see "Outline color" above), since the box border already carries the category identity.
-
-**Corner buttons** (Wait/Casual/category boxes only, day columns have none): still exactly two \`.cork-nail\` buttons — top-left (\`.cork-float-l\`) Minimize, top-right (\`.cork-float\`) Add. Unchanged from build 9.
-
-**Empty boxes**: still render with no placeholder text.
-
----
-
-## Casual minimize
-
-\`colMin['casual']\` is binary like every other time box: \`0\` (full) or \`1\` (minimized). When minimized, pinned (\`casuPin\`) notes keep showing — only unpinned/blocked notes hide. One minimize button, same as the rest.
-
----
-
-## Header
-
-\`.hdr\`: single full-width SVG (\`.hdr-svg\`, \`width:100%\`, \`viewBox="0 0 560 80"\`, \`overflow:visible\` so diagonal petals never clip) containing 7 flowers in a row, all the same 8-petal rosette shape (groups \`#hdr-f0\` through \`#hdr-f6\`). Petals alternate front/back: the 4 cardinal-angle petals (0°/90°/180°/270°) render on top at full opacity; the 4 diagonal petals (45°/135°/225°/315°) render first, slightly smaller, at reduced opacity — this is what gives the alternating above/below depth, NOT a left-to-right or clockwise gradient. Each flower's 8 petals share one \`class="fp{N}"\` for JS to recolor as a group.
-
-**Daily color cycling**: \`ra()\` colors all 7 flowers every render. The center flower (\`#hdr-f3\`, index 3) is always TODAY's color from \`DOW_FULL\`. The three to its left are yesterday, two days ago, three days ago (in that order); the three to its right are tomorrow, day after, three days out. Each day the whole row visually shifts by one as the date changes — this is deliberate, not a bug.
-
-**Day-of-week color order**: \`DOW_FULL\`/\`DOW_CLR\`/\`DOW_DARK\` are indexed by JS \`getDay()\` (0=Sun..6=Sat). The color sequence is Monday=blue, then a rainbow cycle (teal, green, yellow-green, orange, pink) ending at Sunday=purple. If you ever need to re-derive these, anchor on Monday=blue and Sunday=purple — do not assume Sunday-first ordering just because \`getDay()\` returns 0 for Sunday.
-
-**Center flower is the calendar button AND the date display**: the center flower's disk (\`circle\` inside \`#hdr-f3\`) is drawn larger than the background flowers' disks specifically so the day number fits inside it. The day number itself (\`#hdr-daynum\`) is a separate \`<text>\` element positioned at the same coordinates as the center flower, rendered after all the flowers (so it sits visually on top of the disk). Its fill is a FIXED dark ink color, deliberately never tied to \`DOW_FULL\` — it always sits on the same light cream disk color regardless of the day, so a fixed dark fill is what stays legible; do not "fix" this by making it match the day color, that was tried before and made it unreadable. There is no separate weekday-letter element anymore (\`#hdr-dow\` was removed) — the weekday is communicated only through which flower is centered and its color, not through text.
-
-**Background flowers** (\`#hdr-f0\`,\`#hdr-f1\`,\`#hdr-f2\`,\`#hdr-f4\`,\`#hdr-f5\`,\`#hdr-f6\`) render at \`opacity:.32\` on their outer group so they recede behind the center flower, which renders at \`opacity:.95\`.
-
-The entire \`#hdr-f3\` group has \`onclick="openCalendar()"\`.
-
-Mobile: the SVG scales proportionally via \`viewBox\` + \`width:100%\` — no separate breakpoint needed.
-
----
-
-## Page layout (top to bottom)
-
-1. Header
-2. Board: Today / Tomorrow / Upcoming (\`align-items:stretch\` for uniform heights)
-3. Casual (full-width cork)
-4. Wait (full-width cork)
-5. **Dock**:
-   - Row 1 — 7 master icons (44×44px circles): 🌸 Add, 🌿 Categories, 🌼 AI, 🍃 Pile, 🌾 Repeating, 🪴 Presets, 🌱 Import/Export
-   - Row 2 — Preset buttons (same 44×44px size, grid layout computed by JS)
-   - Pane opens downward below dock
-6. Category boxes
-
-**Note**: Casual appears above Wait in the layout (changed from original order).
-
----
-
-## Dock panes
-
-| Icon | Pane ID | Purpose |
-|------|---------|---------|
-| 🌸 | pane-add | Add task |
-| 🌿 | pane-cat | Manage categories |
-| 🌼 | pane-ai | AI assistant + context doc download |
-| 🍃 | pane-pile | Completed today / pile |
-| 🌾 | pane-rep | Repeating tasks manager |
-| 🪴 | pane-pre | Preset tasks manager |
-| 🌱 | transfer-mo modal | Import / Export |
-
-**AI pane extras**: Contains a "Download context doc" button that generates and downloads the current project context as a \`.md\` file.
-
----
-
-## Date <-> column routing (single source of truth)
-
-A task's \`col\` and \`deadlineDate\` must always agree with each other, and for a long stretch of versions they didn't — every add/drag/edit path had its own slightly-different logic for deciding both, which caused real bugs: tasks created in Upcoming with no date that could never sort themselves, date badges suppressed on stickies just because the date value happened to equal tomorrow's date even though the sticky wasn't actually sitting in the Tomorrow box, and tasks landing in the wrong column on a second device after sync.
-
-**The fix is \`routeTask(task, requestedCol)\`** (defined right next to \`d2col\`). Every single code path that creates, drags, drops, pins, or edits a task into a new column MUST call this instead of writing its own date/col logic inline. Rules it enforces:
-- \`today\` → forces \`deadlineDate\` to today
-- \`tomorrow\` → forces \`deadlineDate\` to tomorrow
-- \`upcoming\` → REQUIRES \`deadlineDate\` to already be set; returns \`null\` if it isn't, which the caller MUST check and respond to by prompting for a date (via the \`dm\` modal) rather than proceeding. Never let an Upcoming task be created or moved into existence without a date — it can't sort itself without one.
-- \`casual\` → clears \`deadlineDate\`/\`deadlineTime\` to \`null\`. Casual is explicitly dateless.
-- \`wait\` → leaves \`deadlineDate\` untouched. Wait status is orthogonal to date; a task can have both a deadline and an active wait (it shows blocked/faded in its date column rather than moving to the Wait box — only a PURE wait with no deadline at all lives in Wait).
-
-Current call sites: \`corkAddKey\`, \`confirmDrop\` (handles both new-task creation that got paused for a date prompt via \`pendingNewTask\`, and drag-and-drop moves via \`pendingDrop\`), \`drop()\` for the simple wait/casual cases, \`dropDay()\` for the 7-day grid (build 10 — sets deadlineDate directly, never needs to prompt), \`casuPinDrop\`. \`saveTask()\` (the edit modal) has its own extended version of the same rules inline because it has to handle the wait-with-date nuance above — if you touch it, keep that nuance, don't replace it with a bare \`routeTask\` call.
-
-\`addManual()\` and \`cboxKey()\` (quick-add inside a category box) still have their own inline logic rather than calling \`routeTask\` directly, but they independently enforce the same Upcoming-requires-a-date rule. If you're touching either of these, prefer migrating them to call \`routeTask\` for consistency rather than maintaining a third copy of the same rules.
-
-**\`fmtDate(dateStr, renderCol)\`** takes a second parameter: the column the sticky is actually being rendered in. It only suppresses the date badge when \`renderCol\` genuinely matches the date (today's box showing today's date, tomorrow's box showing tomorrow's date) — never based on the date value alone. A task can carry a "tomorrow" date while sitting in Upcoming, Wait, or a category box, where the badge is the only way to know when it's due — always pass \`task.col\` as the second argument when calling \`fmtDate\` from sticky-rendering code (\`snHTML\`).
-
-**Task ID collisions**: \`ap()\` now derives \`tid\` as \`Math.max(saved tid, every existing task id + 1, 100)\` rather than trusting the saved counter blindly, and runs a de-duplication pass that reassigns a fresh id to any task that shares an id with an earlier one in the array. This matters because two devices creating tasks offline before syncing can end up with the same locally-incremented id; without this, completing one of the colliding tasks would visually/logically affect the other (a real bug that shipped once — "completing task A also completes unrelated task B, and vice versa"). Don't remove this safety net even if it looks redundant in normal single-device use.
-
----
-
-## State shape
-
-\`\`\`js
-// Task
-{
-  id,                   // int
-  name,                 // string
-  col,                  // 'today'|'tomorrow'|'upcoming'|'wait'|'casual'
-  deadlineDate,         // 'YYYY-MM-DD' or null
-  deadlineTime,         // 'HH:MM' or null
-  waitingFor,           // string label -- purely a manual, informational text tag. NOT auto-cleared by time passing, ever (see chkTimeWaits() note in Wait system section) -- only waitUntil is.
-  waitTaskId,           // int or null
-  waitUntil,            // ISO datetime string or null -- the only field chkTimeWaits() auto-releases by clock time
-  repeatWaitTime,       // "HH:MM" string or null -- the RULE, not the live state: "rebuild waitUntil from today's date + this time every time shouldRep(tk) fires." Only meaningful alongside a real waitUntil (not waitTaskId) on a task that also has repeat set. See Wait system section.
-  done,                 // bool
-  urgent,               // bool — red thumbtack signifier
-  repeat,               // ''|'daily'|'weekly'|'biweekly'|'MWF'|'TTS'|'weekdays'|'custom'|'monthly-start'|'monthly-mid'|'monthly-end'|'monthly-day'
-  repeatDays,           // [0-6] for 'custom'
-  repeatStart,          // 'YYYY-MM-DD' or null
-  repeatMonthDay,       // 1-31 for 'monthly-day', else null
-  categoryId,           // int or null
-  stickyColor,          // hex string or ''
-  paletteColor,         // hex string (auto-assigned from PASTELS cycle)
-  link,                 // URL string or null
-  casuPin,              // bool — pinned to top section of Casual
-}
-
-// Category
-{ id, name, color, defaultDate, defaultWait, showBox, minimized, colGroup }
-
-// Preset
-{
-  id, emoji, label,
-  tasks: [{ name, col, deadlineDate, waitingFor, waitUntilTime, waitTaskIndex, categoryId, repeat, repeatDays, repeatMonthDay, link }]
-}
-
-// Top-level state
-{ tasks, cats, presets, completedToday, colStyles, colMin, gTheme, tid, cid, pid }
-\`\`\`
-
----
-
-## Key functions
-
-### State / persistence
-- \`sn()\` — serializes full state
-- \`ap(s)\` — loads state; migrates missing fields including \`urgent\`
-- \`save()\` — localStorage + Supabase, via \`syncPush()\` (see Sync robustness below)
-- \`load()\` — Supabase → current key → old keys → any \`fleur_*\` key
-
-### Sync robustness (added in Lavender Stem)
-\`save()\` used to be pure fire-and-forget (\`fetch(...).catch(()=>{})\`) — no retry, no confirmation. The real-world failure mode: a task gets completed, then the tab/app is closed or backgrounded right after (extremely common — finishing a task is often the last thing someone does before putting the phone away), and the in-flight \`fetch\` gets killed mid-request. localStorage on that device still looks right, but Supabase never got it, so the next device to \`load()\` silently pulls the stale cloud copy and the change looks lost.
-- \`PKEY\` (\`KEY+'_pending'\`) is set in localStorage BEFORE every network save and only cleared once the save actually confirms (\`r.ok\`).
-- \`syncPush(d, attempt)\` retries up to 3 times with backoff (600ms × attempt) before giving up and leaving \`PKEY\` set for next launch to retry.
-- A \`visibilitychange\` listener fires a best-effort \`navigator.sendBeacon\` flush when the tab is hidden while \`PKEY\` is still set — \`sendBeacon\` is built specifically to survive page unload, unlike \`fetch\`.
-- \`load()\` checks \`PKEY\` first: if the last session's save never confirmed, it pushes that local copy up BEFORE pulling from Supabase, so a genuinely newer local state can't get silently overwritten by a stale cloud one.
-
-### Rendering
-- \`ra()\` — re-renders everything
-- \`snHTML(task, ctx)\` — builds task-row HTML. \`ctx\` is \`'day'\`/\`'wait'\`/\`'casual'\`/\`'cat'\`. Outline color: \`snColor(task, ctx)\`, not \`ensureColor()\` (removed in build 10)
-- \`corkHTML(col)\` — builds Wait or Casual only now (build 10). Border color: \`colStyles[col].bg\`
-- \`dayColHTML(dateStr)\`, \`weekDates()\` — build 10's 7-day grid, replaces the old Today/Tomorrow/Upcoming corkHTML calls
-- \`renderCatSection()\`, \`renderPresetRow()\`, \`renderRepPane()\`, \`renderPresetPane()\`
-
-### Task actions
-- \`chk(id)\` — marks done with animation; advances repeating tasks
-- \`liberateDeps(id)\` — clears waitTaskId on dependent tasks
-- \`isBlocked(task)\` — waitTaskId → incomplete OR waitUntil in future
-- \`openTask(id)\` — opens edit modal; populates \`urgent\` checkbox
-- \`saveTask()\` — reads \`urgent\` checkbox from \`#eurgent\`
-
----
-
-## Wait system
-
-A task is **blocked** when:
-1. \`waitTaskId\` exists and that task is not done, OR
-2. \`waitUntil\` exists and is in the future
-
-**Wait ribbons** (torn paper scraps above Wait stickies): only for text \`waitingFor\` groups. Style: \`background:#dfc99a; color:#2a1f0e\`, Spectral (NOT italic — see no-italics rule), irregular torn \`clip-path\` polygon edges (~50 points, heavily jagged top and bottom). Hidden when Wait is minimized.
-
-**⏳ icon tooltip**: shows the actual wait text (\`task.waitingFor\`) on hover, not a generic label.
-
-**Edit-modal wait datetime input (fixed in Lavender Petal)**: \`#ewu\` is a *hidden* field now, kept in sync by \`syncWaitUntilEdit()\` from two visible inputs, \`#ewu-date\` (date) and \`#ewu-time\` (time) — same pattern the Add-task modal already used for its \`#awu\`. A bare single \`<input type="datetime-local">\` only ever reports a value once BOTH sub-fields are filled; picking just a date (very natural — "must be done Sunday", no specific hour in mind) left the browser reporting an empty string and the wait silently never saved. \`syncWaitUntilEdit()\` defaults to midnight (\`\${d}T00:00\`) when only a date is given, so a date-only pick still saves. \`openTask()\` populates \`#ewu-date\`/\`#ewu-time\` (split from \`task.waitUntil\`) instead of writing directly into a single field.
-
-**Clearing a date out of Upcoming (fixed in Lavender Vine)**: \`saveTask()\` refuses to save a task into the \`upcoming\` box without a \`deadlineDate\` (see Date↔column routing). The "✕ Clear date & time" button in the edit modal used to only blank the date/time inputs — it never touched \`#eco\` (the hidden box selector), so a task left sitting on "upcoming" after its date was cleared would bounce forever: save → validation fails → date panel reopens → clear again → same result. The button now calls \`emClearDate()\`, which blanks the date fields AND, if \`#eco\` is currently \`'upcoming'\`, calls \`emSetCol('casual')\` — same fallback \`routeTask\`/\`saveTask\` already use elsewhere when Upcoming has no date to route by.
-
-**Time-only wait-until (fixed in Marigold Root)**: \`syncWaitUntil()\`/\`syncWaitUntilEdit()\` previously only defaulted a *date-only* pick to midnight — a *time-only* pick (very natural: "wait until 3pm" almost always means later today) produced an empty \`awu\`/\`ewu\` value and the wait silently never saved. Both functions now default to \`today()\` when only a time is given, and also backfill the visible date input so the UI doesn't look like nothing happened.
-
-**CORK_GFX glyph-pattern textures and time-box badges (fixed after version 3 shipped)**: both desaturation passes above only ever touched \`TBOX\`/\`TBOX_UI\`/\`CORK_FRAME\`/the dead \`:root\` vars/\`applyTheme()\` — all plain hex strings. \`CORK_GFX\`, the repeating glyph-pattern texture layered over every cork board's background, stores its colors as \`rgba(...)\` values **inside a base64/URL-encoded SVG data URI**, not a plain hex code — so neither pass ever found or touched it, and it kept rendering at its original, much higher saturation the whole time, sitting visually on top of the now-duller \`TBOX\` background underneath. This was the actual cause of the colors still looking "the same oversaturated" after two rounds of hex-value edits: the fix was in a completely different, non-hex place. The four \`.badge-wait\`/\`.badge-tmrw\`/\`.badge-upco\`/\`.badge-today\` date-pill colors were separately un-desaturated \`rgba()\` values too, fixed in the same pass. If TBOX colors are ever revisited again, grep for \`rgba(\` and data-URI-embedded colors too, not just hex strings — this file has at least two color systems that don't share a common format.
-
-**Persisted \`colStyles\` silently overriding every code-level color fix (fixed in version 6, then given a real purpose in version 8)**: \`ap()\`'s load path used to merge whatever \`colStyles\` was saved in Supabase/localStorage on top of the live \`TBOX\` object (\`Object.assign({},TBOX[k],saved[k])\`) — meaning whatever bg/txt values got saved to an account's cloud state the very first time (potentially the *original*, oversaturated colors, saved long before any desaturation pass ever ran) would permanently keep overriding every subsequent code-level color change, on every device, forever. At the time, there was no editing UI anywhere that legitimately wrote custom values into \`colStyles\`, so version 6 fixed this by ignoring saved \`colStyles\` entirely and always taking \`TBOX\` fresh from code.
-
-**Version 8 added the missing editing UI** ("Time box colors" in the Categories pane — see below), which makes merging saved \`colStyles\` over \`TBOX\` legitimate again: it's now an intentional user customization, not accidental staleness. The version-6 fix was reverted back to the original merge (\`colStyles[k]=Object.assign({},TBOX[k],saved[k]||{})\`) now that there's a real feature behind it. If \`colStyles\` is ever a source of confusion again, the deciding question is simply: *is there a UI that writes to it right now?* If yes (as of version 8, there is), the merge is correct. If a future refactor ever removes that UI without also reverting this merge, the version-6 bug will silently come back.
-
-**Time box color editing** (Categories pane, "Time box colors" section, version 8): one color picker per box (background only — text color is auto-derived via \`con()\`, the same contrast function every sticky already uses, so there's no second field to keep in sync and no way to accidentally pick an unreadable combination). Writes into \`colStyles[k]\`, which is what \`corkHTML()\` already read for cork board backgrounds — but \`snHTML()\`'s sticky-tab \`streakBg\`/\`tackColor\` (the color a task's tab shows when sitting in a *category* box, not a time box directly) used to read \`TBOX\` directly instead, bypassing any customization entirely. Both now read \`colStyles\`, so a custom time-box color reaches everywhere that color is supposed to show, matching what the cork board itself already did. \`TBOX_UI\`, the previously-separate, hand-maintained copy of these colors used only for the box-picker pills in the Add/Edit task modals, has been removed entirely — every former \`TBOX_UI\` reference now reads \`colStyles\` directly, which permanently removes the "keep TBOX_UI in sync with TBOX by hand" maintenance burden this doc flagged more than once before. \`colStyles\` is already part of \`sn()\`'s serialized shape, so a custom color scheme is automatically included in every export/cloud-sync without any separate wiring.
-
-**Green tint pass (version 7)**: after two rounds of pure desaturation, the boards read as flat neutral gray rather than fitting Verdure/Racine/Branche's own green-tinted dark palette — very low saturation makes hue essentially imperceptible regardless of a color's original hue family. Fixed by blending every \`TBOX\`/\`CORK_FRAME\`/\`CORK_GFX\`/badge color's hue substantially toward Racine's own root-green hue (\`--root:#7f9767\`, ≈100°) and nudging saturation back up slightly (capped at 22%, well below the original vivid values) so the green tint actually reads rather than looking gray again. Lightness was left untouched throughout, so relative light/dark relationships between boxes are unchanged — only hue and saturation moved.
-
-**Today/Tomorrow + same-day wait incorrectly routing to Wait (fixed in Marigold Root)**: Today/Tomorrow tasks only ever get an explicit \`deadlineDate\` written if the date sub-panel is opened directly — the pill alone was always meant to be enough. \`addManual()\`'s and \`saveTask()\`'s wait-routing checks (\`if((wait...)&&!date)col='wait'\`) didn't know that, so a Today task with no separately-typed date that also had a same-day wait added looked "dateless" to that check and got moved into the Wait box outright, instead of staying in Today shown blocked/faded (the documented, intended behavior — see the comment directly above that check in both functions). Both functions now resolve Today→\`today()\`/Tomorrow→\`tomorrow()\` as an implied date *before* the wait-routing check runs, and \`addManual()\` persists that resolved date onto the new task rather than the possibly-empty raw field.
-
-**Recurring wait didn't survive past its first occurrence (fixed in version 2)**: a repeating task with a wait (e.g. "Take out the trash" every Sunday, wait until 9pm) only ever waited *once*.
-
-**Root cause was two-layered.** The obvious layer: the repeat engine (the \`shouldRep(tk)\`-gated block in \`dayTrans()\`) only ever reset \`done\` on a task's next occurrence — it never re-armed any wait state or routed the task back into \`col:'wait'\`, so the second and later occurrences just sat wherever \`d2col()\` put them, permanently un-waited. The less obvious layer, found while fixing the first one: **this file used to contain two separate \`function chkTimeWaits(){}\` declarations** — an old one (parsing free-text \`waitingFor\` clock strings like \`"9pm"\`) and a newer one (auto-releasing based on the real \`waitUntil\` datetime field). Two top-level function declarations sharing a name in JS silently resolve to whichever is later in source order for every call site — so the old text-parsing version was **completely dead code**, never running for any task, ever. It's been deleted (see the note left in its place, just above the real \`chkTimeWaits()\` definition further down) rather than left in place, since dead logic that looks live right next to the real thing is exactly what led to an initial wrong fix here (an earlier pass at this bug keyed the new recurring-wait field off \`waitingFor\`, which never actually auto-releases anything — only \`waitUntil\` does).
-
-Fixed with a new field, **\`repeatWaitTime\`** — a plain \`"HH:MM"\` time-of-day, the persistent *rule* ("rebuild the wait for this time, every time this recurs"), kept separate from \`waitUntil\` (the live, one-fire datetime \`chkTimeWaits()\` is allowed to null out). Set via a new "Re-apply this wait time every time it repeats" checkbox next to the \`waitUntil\` date/time sub-fields in both the Add-task (\`#arwait\`) and Edit-task (\`#erwait\`) modals — captured as just the time portion (\`waitUntil.slice(11,16)\`) when checked, and only meaningful alongside a real \`waitUntil\` (not a task-dependency). When \`shouldRep(tk)\` fires in \`dayTrans()\`'s new-day block (i.e. today is a real occurrence, not just any day), a task with \`repeatWaitTime\` set gets a fresh \`waitUntil\` rebuilt as \`\${today()}T\${repeatWaitTime}\`, \`waitingFor\` cleared, and \`col\` forced back to \`'wait'\`, in the same pass \`done\` already gets reset — this happens *before* the later re-routing \`forEach\` in \`dayTrans()\`, which already leaves \`col==='wait'\` tasks alone, so the re-arm sticks, and the real \`chkTimeWaits()\` naturally releases it again once that rebuilt \`waitUntil\` passes.
-
-**Left-unchecked edge case (deliberately NOT special-cased)**: if the wait fires and frees the task (say Sunday 9pm) but it's never checked off, it just sits in Today as a normal overdue item through the rest of the week — \`shouldRep\` is false on those days, so nothing re-touches it. It does **not** re-wait early, and it does **not** get force-completed or hidden. The *next* real occurrence (next Sunday) re-arms the wait normally regardless of whether last week's copy was ever finished, since the re-arm is keyed off \`shouldRep(tk)\` being true today, not off the previous cycle's completion state. This was a deliberate choice between two options (surfaced before writing any code): re-wait immediately, or sit open until the next real occurrence — the latter matches how a person actually thinks about a missed recurring chore ("I still owe last Sunday's trash, AND Sunday's coming up again"), and requires no extra state to implement since it falls straight out of \`shouldRep\`'s existing gating.
-
----
-
-## Export / Import
-
-\`exportData()\` → JSON with \`sn()\` + \`{version:'${vkey}', exported: ISO string}\`
-\`importData(event)\` → **replaces everything**: parses JSON, calls \`ap()\` which overwrites \`tasks\`/\`cats\`/etc. wholesale. This is the original import path — destructive by design, used for restoring a full backup.
-
-\`mergeImportData(event)\` → **adds without replacing** (introduced in Marigold). Built for the workflow where the user hands a plain-English paragraph to an AI (e.g. Claude in a separate chat) and gets back a small \`.json\` file of new tasks to drop onto their existing board — the whole point is the user's current agenda must survive the import untouched.
-- Reads \`{ categories: [{name, color}], tasks: [{name, deadlineDate, deadlineTime, category, repeat, repeatDays, repeatStart, repeatMonthDay, waitingFor, waitUntil, repeatWaitTime, urgent, link, notes}] }\`.
-- \`category\` is a **plain name string**, not a numeric id — the source paragraph has no way of knowing Fleur's internal category ids. Matched case-insensitively against existing categories first; if no match, a new category is created (using the given \`color\`, or the next palette color if omitted). A task can reference a category name that was never declared in the top-level \`categories[]\` array at all — it still gets created on the fly rather than silently dropping the task's category.
-- Every incoming task gets a **fresh id off the live \`tid\` counter** — this is what makes the merge safe; nothing can collide with a task already on the board.
-- \`col\` is derived the same way normal task creation derives it if not explicitly given: dated tasks route by date via \`d2col\`, a pure wait (waitingFor/waitUntil with no date) goes to Wait, everything else lands in Casual.
-- Existing categories' colors are never overwritten by an incoming file — only brand-new categories get the imported color.
-- **\`repeatWaitTime\` passthrough (fixed after version 2 shipped)**: the initial recurring-wait feature (see Wait system section) added \`repeatWaitTime\` to every other task-creation path but missed this one — a task brought in via merge-import with a repeat pattern and a wait could never re-arm past its first occurrence, silently behaving like a one-shot wait even though \`waitUntil\` was set. Fixed by accepting an optional \`repeatWaitTime\` ("HH:MM") on the incoming task JSON and writing it straight onto the created task, same as every other passthrough field here. Matches \`saveTask()\`'s own convention: only meaningful alongside a real \`waitUntil\`, though this function trusts the incoming file's value directly rather than cross-validating the pairing (same trust level every other field here already gets).
-- UI: the 🌱 transfer modal now has two distinct, clearly-labeled buttons — "➕ Add tasks (merge)" (calls \`mergeImportData\`) and "Import tasks (replace all)" (calls \`importData\`, with a warning line underneath since it wipes everything first).
-
-**Context doc download** (in AI pane): generates and downloads \`fleur-context.md\`. The version name/storage key in this doc are interpolated from the live \`KEY\` constant at download time (\`vkey=KEY.split('_')[1]\`), so they can never go stale — but the rest of this doc (header/UI/layout description) is still a hand-maintained snapshot and MUST be re-synced whenever the UI changes.
-
-### ap() migration:
-\`\`\`js
-tasks.forEach(t => {
-  if(t.waitUntil === undefined)     t.waitUntil = null;
-  if(t.link === undefined)          t.link = null;
-  if(t.repeatMonthDay === undefined) t.repeatMonthDay = null;
-  if(t.casuPin === undefined)       t.casuPin = false;
-  if(t.urgent === undefined)        t.urgent = false;
-});
-\`\`\`
-
----
-
-## CSS rules — never violate
-
-- **NO ITALICS, ANYWHERE, EVER.** This is a major standing Fleur rule, not a one-off preference. No \`font-style:italic\`, no italic Google Fonts variants, no slanted lettering of any kind — not in the header, not on stickies, not in modals, not in the AI pane, nowhere. If a font choice only looks distinctive in its italic form, pick a different font or weight instead. This has been mistakenly reintroduced before (e.g. the header day number briefly shipped in italic Lora) — always grep the file for \`italic\` before sending a new version and remove any hits.
-- \`.sn\` (build 9/10): bordered row, \`border-color\` set via \`snColor(task,ctx)\` — never go back to a fixed \`width:140px; aspect-ratio:1/1\` tile (old sticky shape) or a filled background (build 9's outline requirement still stands)
-- \`.week-grid\`/\`.daycol\` (build 10): NO border, NO background, NO minimize/add button on day columns — that invisibility was explicit. Don't add box chrome back onto them without a new explicit request
-- \`.cork\`, \`.cbox\` (Wait/Casual/category boxes): border-color set inline to the box's own color — don't reintroduce a filled/tinted background or texture image on either
-- \`.cork-body\`, \`.cbox-body\`, \`.daycol\`: \`display:flex; flex-direction:column\` — a plain vertical list, not a tile grid. Don't revert to \`display:grid; grid-template-columns:repeat(auto-fill,140px)\`
-- \`.sn-blocked\`, \`.sn-faded\`: \`opacity:.4\`. Build 10: a blocked day-column task stays inline with this class, it is NOT segregated into a separate section (Wait/Casual still do segregate — don't unify those two behaviors without being asked)
-- No check/pin button, no separate note button, no separate fade button on \`.sn\` (build 10) — double-click finishes, click-and-hold fades, single click opens the edit modal. Don't add standalone buttons back for these without an explicit request
-- No per-task color picker (build 10) — \`snColor()\` is fully rule-based (category color or due-date color). Don't re-add a color-dot UI without being asked
-- \`textarea\`, date/time inputs: \`font-size:16px\` minimum
-- \`CORK_FRAME\` and \`CORK_GFX\` are deleted, not just unused — don't re-add either without an explicit request
-
----
-
-## Working method (critical)
-
-- **Read before editing**: always \`view\` the exact lines before any \`str_replace\` or Python replace
-- **Use Python string replace** via bash for edits — exact string matching, verify after
-- **Run a verification pass** after every batch of changes
-- **Never send test files** — final output only, named \`[VersionName].html\`
-- **Always bump the version number** on every version sent (plain numbers now, not flower names — see "Naming convention" above) — update \`<title>\`, \`KEY\`, \`version:\`, and add new key to \`oldKeys\` in \`load()\`
-- **Keep this doc in sync, every version**: this entire file is generated by \`dlContextDoc()\` in the HTML. Version/storage-key fields are auto-derived from \`KEY\` and can't drift, but every other section (Header, Cork boards, Sticky notes, Dock panes, etc.) is hand-written prose that WILL go stale if a UI change isn't mirrored here in the same edit pass. Before sending a new version, diff what changed against this doc's relevant section and update it in the same response — this has drifted multiple versions behind before and should not happen again.
-- **Update this in-app template, not a separate file**: the context doc is downloaded from the AI pane in the app itself (this function). Don't send \`fleur-context.md\` as a separate chat attachment each version — just make sure this template (\`dlContextDoc()\`) reflects every change, so the in-app download button stays accurate.
-- **Never add busy UI text** — no counts, no labels, no extra tooltips unless explicitly requested
-- **\`CORK_GFX\`/\`CORK_FRAME\` no longer exist** (removed in build 9's outline redesign) — don't try to "preserve" or reference them in future edits
-- The user has **limited 5-hour message credits** — no test files, no unnecessary clarifying questions
-- User's GitHub: \`maximvino\`, repo: \`fleur\`
-
----
-
-## Sticky-note backup (build 9)
-
-The old paper sticky-note look (torn/ruled paper body, folded corner, tab header, \`CORK_GFX\` cork-board texture, \`color-mix\` category-box tint, metal frame) was fully scrapped in build 9 in favor of the plain outlined task rows described above. A separate backup file with the complete removed CSS/JS was generated alongside build 9 specifically so it can be handed to a future AI session if the old look is ever wanted back — ask the user for that backup file rather than trying to reconstruct the old design from memory or from this doc's historical notes, which describe it but don't contain the full working code. (Build 10's changes — the 7-day grid, the color-dot picker removal, the double-click/hold-to-fade interaction model — are NOT in that backup file; it only covers the build-9-and-earlier sticky-note look.)
-`;
-  const b=new Blob([md],{type:'text/markdown'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fleur-context.md';a.click();
-}
+// dlContextDoc() removed in build 11 -- no longer needed. Project context now lives inline as code comments throughout this file (see the notes near TBOX, snColor, dayTrans, the repeat picker, etc.) rather than in a separately generated/downloaded doc.
 function openCalendar(){
   const dated=tasks.filter(t=>t.deadlineDate&&!t.done)
     .sort((a,b)=>a.deadlineDate<b.deadlineDate?-1:a.deadlineDate>b.deadlineDate?1:0);
@@ -2898,7 +2716,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'10',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'11',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -2982,20 +2800,14 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.
 
 
 
+// ── Notes pane (build 11 — was "AI", trimmed to just notes+save) ───
+// The old AI-chat-link button, GitHub-edit link, and context-doc download
+// button are all gone from this pane on explicit request — only the save
+// icon remains, now sitting in the textarea's own bottom-right corner.
+// dlContextDoc() itself was removed entirely later in build 11 (not just
+// orphaned) — project context now lives as inline code comments
+// throughout this file instead of a separately generated/downloaded doc.
 const AI_NOTES_KEY='fleur_ai_notes';
-const AI_LINK_KEY='fleur_ai_link';
-function openAiLink(){
-  const saved=localStorage.getItem(AI_LINK_KEY)||'https://claude.ai/new';
-  const inp=document.getElementById('ai-link-input');
-  if(inp.style.display==='none'){inp.value=saved;inp.style.display='block';inp.focus();}
-  else{window.open(saved,'_blank');}
-}
-function saveAiLink(url){
-  if(url)localStorage.setItem(AI_LINK_KEY,url);
-  const inp=document.getElementById('ai-link-input');
-  if(inp)inp.style.display='none';
-  window.open(url||'https://claude.ai/new','_blank');
-}
 async function saveAiNotes(){
   const v=document.getElementById('ai-notes').value;
   aiNotes=v;
