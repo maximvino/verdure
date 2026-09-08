@@ -95,10 +95,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* Build 11: a real header row (minimize / middle content / add) replaces
    the old absolutely-positioned corner buttons, so the middle can hold
    the wait pills (Wait) or the quick-add input (Casual). */
+/* Category boxes (cbox) still use absolute-positioned corner buttons —
+   only Wait/Casual moved to the .cork-hdr-row flex layout above. */
+.cork-float{position:absolute;top:6px;right:6px;display:flex;gap:6px;z-index:10}
+.cork-float-l{position:absolute;top:6px;left:6px;display:flex;gap:6px;z-index:10}
 .cork-hdr-row{display:flex;align-items:center;gap:6px;padding:6px 8px 0}
 .cork-hdr-mid{flex:1;min-width:0;display:flex;align-items:center;overflow-x:auto;gap:5px}
 .cork-hdr-pills{display:flex;gap:5px;align-items:center;overflow-x:auto;width:100%}
-.cork.minimized .cork-hdr-mid{display:none}
 /* Wait scraps — faded pill chips, in the header row (build 11) */
 .wait-ribbon{
   display:inline-block;border-radius:99px;padding:3px 11px;
@@ -155,8 +158,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   overflow:hidden;line-height:1.32;max-height:2.65em;
-  -webkit-mask-image:linear-gradient(to bottom,#000 65%,transparent 100%);
-  mask-image:linear-gradient(to bottom,#000 65%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to right,#000 88%,transparent 100%);
+  mask-image:linear-gradient(to right,#000 88%,transparent 100%);
 }
 .sn-badges{margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;clear:both}
 .sn-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;float:right;margin-left:4px}
@@ -511,9 +514,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             <span style="flex:1;font-size:12px;color:var(--ink2)">Default task color (no category)</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <input type="checkbox" id="theme-repeat-color-on" onchange="toggleRepeatColor(this.checked)">
-            <input type="color" id="theme-repeat-color" value="#7fb8d9" onchange="setThemeColor('repeat-color',this.value)" disabled style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
+            <input type="color" id="theme-repeat-color" value="#7fb8d9" onchange="setThemeColor('repeat-color',this.value)" style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
             <span style="flex:1;font-size:12px;color:var(--ink2)">Repeating task color</span>
+            <button onclick="clearRepeatColor()" title="Reset to normal rules" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px">↺</button>
           </div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:12px"></div>
@@ -1555,7 +1558,7 @@ function corkHTML(col){
   // unmarked (see .cork-nail CSS — no glyph, just a plain small circle).
   const midHTML=col==='wait'
     ?(wchipsHTML?`<div class="cork-hdr-pills">${wchipsHTML}</div>`:'')
-    :`<input class="casu-quickadd" placeholder="Quick add — pins to top…" onkeydown="casuQuickAdd(event)">`;
+    :`<input class="casu-quickadd" placeholder="" onkeydown="casuQuickAdd(event)">`;
   return`<div class="cork${bodyHidden?' minimized':''}" data-col="${col}"
     style="border-color:${cs.bg}"
     ondragover="dover(event,'${col}')" ondrop="drop(event,'${col}')" ondragleave="dleave(event)">
@@ -1820,7 +1823,7 @@ function savePreset(){
 // meaningfully match an id like "mdi:egg-fried", it never could match
 // against a raw emoji character). Generalized with a target so the same
 // modal serves both preset icons and the 6 dock "plant" icons.
-const ICONIFY_ICONS=['mdi:egg-fried','mdi:silverware-fork-knife','mdi:food-apple','mdi:noodles','mdi:pot-steam','mdi:pot','mdi:cupcake','mdi:coffee','mdi:basket','mdi:tshirt-crew','mdi:dumbbell','mdi:bike','mdi:yoga','mdi:cart','mdi:book-open-page-variant','mdi:pencil','mdi:laptop','mdi:phone','mdi:hospital-box','mdi:pill','mdi:dog','mdi:leaf','mdi:flower','mdi:sprout','mdi:music-note','mdi:movie-open','mdi:controller-classic','mdi:home','mdi:wrench','mdi:car','mdi:airplane','mdi:target','mdi:star','mdi:lightbulb-on','mdi:note-text','mdi:calendar','mdi:cash','mdi:broom','mdi:bathtub','mdi:sleep','mdi:weather-night','mdi:weather-sunset','mdi:email','mdi:cellphone','mdi:handshake','mdi:gift','mdi:weight-lifter','mdi:soccer','mdi:tennis','mdi:guitar-acoustic','mdi:palette','mdi:flask','mdi:microscope','mdi:chart-bar','mdi:folder','mdi:pin','mdi:key','mdi:magnet','mdi:arm-flex','mdi:heart-pulse','mdi:tooth','mdi:glasses','mdi:bag-personal','mdi:shopping'];
+const ICONIFY_ICONS=['mdi:egg-fried','mdi:silverware-fork-knife','mdi:food-apple','mdi:noodles','mdi:pot-steam','mdi:pot','mdi:cupcake','mdi:coffee','mdi:basket','mdi:tshirt-crew','mdi:dumbbell','mdi:bike','mdi:yoga','mdi:cart','mdi:book-open-page-variant','mdi:pencil','mdi:laptop','mdi:phone','mdi:hospital-box','mdi:pill','mdi:dog','mdi:leaf','mdi:flower','mdi:sprout','mdi:music-note','mdi:movie-open','mdi:controller-classic','mdi:home','mdi:wrench','mdi:car','mdi:airplane','mdi:target','mdi:star','mdi:lightbulb-on','mdi:note-text','mdi:calendar','mdi:calendar-month','mdi:cash','mdi:broom','mdi:bathtub','mdi:sleep','mdi:weather-night','mdi:weather-sunset','mdi:email','mdi:cellphone','mdi:handshake','mdi:gift','mdi:weight-lifter','mdi:soccer','mdi:tennis','mdi:guitar-acoustic','mdi:palette','mdi:flask','mdi:microscope','mdi:chart-bar','mdi:folder','mdi:pin','mdi:key','mdi:magnet','mdi:arm-flex','mdi:heart-pulse','mdi:tooth','mdi:glasses','mdi:bag-personal','mdi:shopping','mdi:import','mdi:export'];
 // Old EMOJIS array (same length/order) kept only so existing presets
 // saved with a raw emoji character can be translated to the matching
 // Iconify id once, on load — see the migration loop in load().
@@ -1877,12 +1880,26 @@ function renderRepPane(){
   if(!reps.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No repeating tasks yet.</div>';return;}
   const catOpts='<option value="">—</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   el.innerHTML=reps.map(t=>{
-    const bg=snColor(t,'day');const tx=con(bg);
+    const bg=snColor(t,'day');
+    const freq=repFreqOf(t.repeat);
+    const days=repDaysOf(t.repeat,t.repeatDays);
+    const isLast=t.repeat==='monthly-end';
+    let freqExtra='';
+    if(freq==='weekly'){
+      freqExtra=`<div style="display:flex;gap:3px">${DAYS.map((d,i)=>`<span onclick="repPaneToggleDay(${t.id},${i})" style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;border:1px solid rgba(255,255,255,${days.includes(i)?'.4':'.14'});background:${days.includes(i)?'rgba(190,220,170,.25)':'rgba(0,0,0,.25)'};color:var(--ink2)">${d[0]}</span>`).join('')}</div>`;
+    }else if(freq==='monthly'){
+      freqExtra=`<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);white-space:nowrap"><input type="checkbox" ${isLast?'checked':''} onchange="repPaneLastDay(${t.id},this.checked)">last day</label>`
+        +(isLast?'':`<input type="number" min="1" max="31" value="${t.repeatMonthDay||1}" onchange="repPaneMonthDay(${t.id},this.value)" style="width:44px;font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px">`);
+    }
     return`<div class="rep-row" data-tid="${t.id}" style="background:${bg}22;border:1px solid ${bg}44;border-radius:8px;padding:6px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       <span style="flex:1;min-width:80px;font-size:13px;color:var(--ink);font-family:var(--font-note)">${esc(t.name)}</span>
-      <select style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:2px 4px" onchange="updRepField(${t.id},'repeat',this.value)">
-        ${['daily','MWF','TTS','weekdays','weekly','biweekly','monthly-start','monthly-mid','monthly-end','monthly-day'].map(r=>`<option value="${r}"${t.repeat===r?' selected':''}>${repLabel(r)||r}</option>`).join('')}
+      <select style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:2px 4px" onchange="repPaneFreq(${t.id},this.value)">
+        <option value="daily"${freq==='daily'?' selected':''}>Daily</option>
+        <option value="weekly"${freq==='weekly'?' selected':''}>Weekly</option>
+        <option value="biweekly"${freq==='biweekly'?' selected':''}>Every 2 wks</option>
+        <option value="monthly"${freq==='monthly'?' selected':''}>Monthly</option>
       </select>
+      ${freqExtra}
       <select style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:2px 4px" onchange="updRepField(${t.id},'categoryId',this.value?parseInt(this.value):null)">
         ${catOpts.replace(`value="${t.categoryId||''}"`,`value="${t.categoryId||''}" selected`)}
       </select>
@@ -1894,6 +1911,32 @@ function renderRepPane(){
       <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
     </div>`;
   }).join('');
+}
+function repPaneFreq(id,freq){
+  const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');
+  if(freq==='daily')t.repeat='daily';
+  else if(freq==='biweekly'){t.repeat='biweekly';t.repeatStart=t.repeatStart||t.deadlineDate||today();}
+  else if(freq==='weekly'){t.repeat='custom';if(!t.repeatDays||!t.repeatDays.length)t.repeatDays=[new Date().getDay()];}
+  else if(freq==='monthly'){t.repeat='monthly-day';if(!t.repeatMonthDay)t.repeatMonthDay=1;}
+  save();ra();renderRepPane();
+}
+function repPaneToggleDay(id,day){
+  const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');
+  if(!t.repeatDays)t.repeatDays=[];
+  const i=t.repeatDays.indexOf(day);
+  if(i>=0)t.repeatDays.splice(i,1);else t.repeatDays.push(day);
+  save();ra();renderRepPane();
+}
+function repPaneLastDay(id,checked){
+  const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');
+  t.repeat=checked?'monthly-end':'monthly-day';
+  if(!checked&&!t.repeatMonthDay)t.repeatMonthDay=1;
+  save();ra();renderRepPane();
+}
+function repPaneMonthDay(id,val){
+  const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');
+  t.repeatMonthDay=parseInt(val)||1;
+  save();ra();renderRepPane();
 }
 function updRepField(id,field,val){const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');t[field]=val;save();ra();}
 function updRepWaitToggle(id,on){
@@ -1984,14 +2027,8 @@ function renderCatSection(){
 function renderThemeColorControls(){
   const dc=document.getElementById('theme-default-color');
   if(dc)dc.value=SN_DEFAULT;
-  const rcOn=document.getElementById('theme-repeat-color-on');
   const rc=document.getElementById('theme-repeat-color');
-  if(rcOn&&rc){
-    const has=!!REPEAT_COLOR;
-    rcOn.checked=has;
-    rc.disabled=!has;
-    rc.value=REPEAT_COLOR||'#7fb8d9';
-  }
+  if(rc)rc.value=REPEAT_COLOR||'#7fb8d9';
 }
 function setThemeColor(key,val){
   gTheme[key]=val;
@@ -2000,11 +2037,10 @@ function setThemeColor(key,val){
   document.documentElement.style.setProperty('--'+key,val);
   save();ra();
 }
-function toggleRepeatColor(on){
-  const inp=document.getElementById('theme-repeat-color');
-  inp.disabled=!on;
-  if(on){setThemeColor('repeat-color',inp.value);}
-  else{delete gTheme['repeat-color'];REPEAT_COLOR=null;save();ra();}
+function clearRepeatColor(){
+  delete gTheme['repeat-color'];REPEAT_COLOR=null;
+  document.getElementById('theme-repeat-color').value='#7fb8d9';
+  save();ra();
 }
 
 function renderCatChips(){
