@@ -45,22 +45,35 @@ html,body{background:#000}
 //   id      — internal key, used for DOM ids
 //   label   — used only in the (normally invisible) load-error message
 //   path    — relative path to the app's own index.html
-//   version — appended as a ?v= query string on the iframe src. Bump this
-//            every time (and ONLY when) that app's file actually changes.
-//            Browsers/CDNs can keep serving a stale cached copy of an
-//            iframe's content after a real update; a different URL
-//            forces a genuinely fresh fetch instead.
 //   height  — initial/fallback pixel height, used before the app's own
 //            reported height (via postMessage) arrives.
+// No `version` field anymore (build 30) — see PAGE_LOAD_TS below for why.
 const APPS=[
-  {id:'branche', label:'Branche', path:'branche/', height:'220px', version:'16'},
-  {id:'racine', label:'Racine', path:'racine/', height:'170px', version:'9'},
-  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px', version:'11'},
+  {id:'branche', label:'Branche', path:'branche/', height:'220px'},
+  {id:'racine', label:'Racine', path:'racine/', height:'170px'},
+  {id:'fleur',  label:'Fleur',  path:'fleur/', height:'900px'},
 ];
+
+// Build 30: cache-busting switched from a manually-bumped per-app version
+// number to a plain page-load timestamp. Browsers/CDNs can keep serving a
+// stale cached copy of an iframe's content after a real update, which is
+// what the per-app `version` field used to exist to fix — but that meant
+// Verdure itself had to be re-sent and re-deployed every single time
+// *any* sub-app changed, just to bump one string, even when nothing about
+// Verdure itself was different. Using the current timestamp instead means
+// every fresh page load always fetches every app fresh, full stop —
+// trading a small amount of repeat-visit caching (each app is a small
+// single HTML file; re-fetching all three on every load is a trivial cost
+// on any real connection) for never needing to touch this file again just
+// because Branche/Racine/Fleur changed. Verdure only needs to be re-sent
+// now when Verdure's OWN behavior changes — its stacking, resize/modal
+// logic, or this registry's actual contents (an app added/removed/
+// renamed/repathed).
+const PAGE_LOAD_TS=Date.now();
 
 const stack=document.getElementById('stack');
 stack.innerHTML=APPS.map(app=>{
-  const src=app.path+(app.version?`?v=${encodeURIComponent(app.version)}`:'');
+  const src=app.path+`?v=${PAGE_LOAD_TS}`;
   return `
   <div class="app" id="app-${app.id}" style="height:${app.height||'400px'}">
     <iframe src="${src}" title="${app.label}" onerror="showLoadError('${app.id}')"></iframe>
