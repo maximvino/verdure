@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 13</title>
+<title>Fleur · 14</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -115,7 +115,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .wait-ribbon.faded:hover{opacity:.9}
 .wait-ribbon:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
 /* Casual persistent quick-add (build 11) */
-.casu-quickadd{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:4px 10px;font-size:12px;font-family:var(--font-b);color:var(--ink);outline:none}
+.casu-quickadd{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);border-radius:0;padding:4px 2px;font-size:12px;font-family:var(--font-b);color:var(--ink);outline:none}
 .casu-quickadd::placeholder{color:var(--ink3)}
 /* highlighted task rows when hovering a wait-group pill */
 .sn.wait-highlight{outline:1.5px solid rgba(255,255,255,.5);z-index:10}
@@ -624,6 +624,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   <div class="mo hidden" id="transfer-mo">
     <div class="md" style="max-width:280px">
       <h2 style="text-align:center">🌱</h2>
+      <div style="text-align:center;margin-bottom:10px">
+        <span id="sync-badge" style="display:none;font-size:11px;font-family:var(--font-b)"></span>
+      </div>
+      <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="forceSyncPush()">Force sync to cloud</button>
+      <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="forceSyncPull()">Pull latest from cloud</button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:4px 0 10px"></div>
       <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="exportData();closeM('transfer-mo')">Export tasks</button>
       <label class="add-submit" style="width:100%;text-align:center;cursor:pointer;display:block;margin-bottom:2px">➕ Add tasks (merge)<input type="file" accept=".json" onchange="mergeImportData(event);closeM('transfer-mo')" style="display:none"></label>
       <div style="font-size:10px;color:var(--ink3);text-align:center;margin-bottom:8px">Adds new tasks/categories to what you already have</div>
@@ -788,7 +794,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_13_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_14_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -910,13 +916,26 @@ async function syncPush(d,attempt){
   attempt=attempt||0;
   try{
     const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',state:d})});
-    if(r.ok){localStorage.removeItem(PKEY);return true;}
+    if(r.ok){localStorage.removeItem(PKEY);setSyncStatus('ok');return true;}
   }catch(e){}
   if(attempt<3){await new Promise(res=>setTimeout(res,600*(attempt+1)));return syncPush(d,attempt+1);}
+  // Build 14: this used to fail completely silently — PENDING stayed set,
+  // and the only sign anything was wrong was data seeming to vanish on
+  // another device (or after a cold reload) days later. Now it's visible
+  // immediately so it can be manually retried (see the Import/Export
+  // pane's "Force sync now" button) instead of discovered by loss.
+  setSyncStatus('failed');
   return false; // stays marked pending; load() will retry it next launch
 }
+function setSyncStatus(state){
+  const el=document.getElementById('sync-badge');if(!el)return;
+  if(state==='failed'){el.textContent='⚠ not synced';el.style.display='inline';el.style.color='#e0a05a';}
+  else if(state==='ok'){el.style.display='none';}
+}
 function save(){
-  const d=sn();localStorage.setItem(KEY,JSON.stringify(d));
+  const d=sn();
+  d.savedAt=Date.now(); // build 14 — see load() for why this exists now
+  localStorage.setItem(KEY,JSON.stringify(d));
   localStorage.setItem(PKEY,'1');
   syncPush(d);
 }
@@ -940,6 +959,9 @@ async function load(){
     const raw=localStorage.getItem(KEY);
     if(raw){try{await syncPush(JSON.parse(raw));}catch(e){}}
   }
+  const localRaw=localStorage.getItem(KEY);
+  let localState=null;
+  try{localState=localRaw?JSON.parse(localRaw):null;}catch(e){}
   // Try Supabase first — shared across all devices
   try{
     const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'load'})});
@@ -949,7 +971,29 @@ async function load(){
       let state=d?.state;
       if(typeof state==='string'){try{state=JSON.parse(state);}catch(e){state=null;}}
       if(state&&typeof state==='object'){
-        ap(state);localStorage.setItem(KEY,JSON.stringify(state));ok=true;
+        // Build 14 fix: NEVER blindly trust the cloud copy. This used to
+        // unconditionally overwrite local state with whatever Supabase
+        // returned -- but syncPush() (the thing that actually writes to
+        // Supabase) is fire-and-forget from save(), not awaited. Any save
+        // whose push hadn't landed yet by the time the app next cold-
+        // started (closing the tab right after finishing a task, a flaky
+        // connection, a slow Netlify cold start) would get silently
+        // overwritten by the older cloud copy on the very next load --
+        // which looked exactly like "the task just disappeared, even
+        // locally." Comparing savedAt (stamped on every save(), carried
+        // inside the state blob itself so no schema change to Supabase/
+        // sync.js is needed) and keeping whichever side is actually
+        // newer closes that gap. Equal/missing timestamps favor remote,
+        // same as before, so cross-device sync still works normally.
+        const remoteTs=state.savedAt||0;
+        const localTs=localState?.savedAt||0;
+        if(remoteTs>=localTs){
+          ap(state);localStorage.setItem(KEY,JSON.stringify(state));ok=true;
+        }else{
+          console.warn('Fleur sync: local state is newer than Supabase — keeping local and re-pushing instead of overwriting it.');
+          ap(localState);ok=true;
+          syncPush(localState);
+        }
       }
     } else {
       console.warn('Fleur sync load failed:',r.status,await r.text().catch(()=>''));
@@ -961,7 +1005,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1054,8 +1098,16 @@ function dayTrans(loadedOk){
       // time every time shouldRep() says today is a real occurrence -- this
       // must go through waitUntil, not waitingFor: waitUntil is the only
       // field the live chkTimeWaits() actually auto-releases by clock time.
-      if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';tk.col='wait';}
-      else{tk.col=d2col(t,tk.repeat);}
+      // Build 14 — explicit preference: col is NEVER forced to 'wait' here
+      // anymore. It used to be, which hid a repeat-wait task in the Wait
+      // box entirely until its wait resolved; the day grid already shows a
+      // blocked task faded in its correct day (isBlocked() + .sn-blocked),
+      // so a repeating task with a wait now stays visible ahead of time in
+      // its normal day column the whole time, just faded, and un-fades on
+      // its own once the wait clears -- consistent with how a one-off wait
+      // on a dated task already behaved.
+      tk.col=d2col(t,tk.repeat);
+      if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';}
     }
   });tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
   else{_day=t;}
@@ -1240,7 +1292,7 @@ function parseNL(text){
 // there's nothing left for a manual color picker to control. PASTELS/
 // nxtP() below are unrelated and stay: they're still used to auto-assign
 // a new CATEGORY's default color when one isn't specified.
-function buildDays(cid2,sel){const el=document.getElementById(cid2);if(!el)return;el.innerHTML=DAYS.map((d,i)=>`<label class="dclbl"><input type="checkbox" value="${i}"${(sel||[]).includes(i)?' checked':''}>${d}</label>`).join('');}
+function buildDays(cid2,sel,selectId){const el=document.getElementById(cid2);if(!el)return;el.innerHTML=DAYS.map((d,i)=>`<label class="dclbl"><input type="checkbox" value="${i}"${(sel||[]).includes(i)?' checked':''}${selectId?` onchange=\"document.getElementById('${selectId}').value='custom'\"`:''}>${d}</label>`).join('');}
 function getDays(cid2){return[...document.querySelectorAll(`#${cid2} input:checked`)].map(c=>parseInt(c.value));}
 // ── Repeat picker (build 11) ─────────────────────────────────────────
 // Replaces the flat MWF/TTS/weekdays/monthly-start/mid/end enum with a
@@ -1285,7 +1337,7 @@ function renderRepPicker(prefix,existingDays,existingMonthDay){
   document.getElementById(ids.weekly).style.display=freq==='weekly'?'block':'none';
   document.getElementById(ids.biweekly).style.display=freq==='biweekly'?'block':'none';
   document.getElementById(ids.monthly).style.display=freq==='monthly'?'block':'none';
-  if(freq==='weekly')buildDays(ids.days,repDaysOf(cur,existingDays));
+  if(freq==='weekly')buildDays(ids.days,repDaysOf(cur,existingDays),ids.sel);
   if(freq==='monthly'){
     const isLast=cur==='monthly-end';
     document.getElementById(ids.lastday).checked=isLast;
@@ -1341,7 +1393,40 @@ function switchPane(name){
   if(name==='rep'){renderRepPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
   if(name==='pre'){renderPresetPane();renderDockIconPicker();}
 }
-function showTransferMenu(){document.getElementById('transfer-mo').classList.remove('hidden');}
+function showTransferMenu(){
+  document.getElementById('transfer-mo').classList.remove('hidden');
+  setSyncStatus(localStorage.getItem(PKEY)==='1'?'failed':'ok');
+}
+// Build 14 — explicit request: a manual way to force a push to (or pull
+// from) Supabase, for troubleshooting when something doesn't seem to have
+// synced, rather than only relying on the automatic background retries.
+async function forceSyncPush(){
+  const badge=document.getElementById('sync-badge');
+  badge.style.display='inline';badge.style.color='var(--ink2)';badge.textContent='Syncing…';
+  const d=sn();d.savedAt=Date.now();
+  localStorage.setItem(KEY,JSON.stringify(d));
+  const ok=await syncPush(d);
+  badge.style.color=ok?'#8fd9a0':'#e0a05a';
+  badge.textContent=ok?'✓ Synced to cloud':'⚠ Sync failed — check connection';
+}
+async function forceSyncPull(){
+  const badge=document.getElementById('sync-badge');
+  badge.style.display='inline';badge.style.color='var(--ink2)';badge.textContent='Pulling…';
+  try{
+    const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'load'})});
+    if(r.ok){
+      const d=await r.json();
+      let state=d?.state;
+      if(typeof state==='string'){try{state=JSON.parse(state);}catch(e){state=null;}}
+      if(state&&typeof state==='object'){
+        ap(state);localStorage.setItem(KEY,JSON.stringify(state));save();ra();
+        badge.style.color='#8fd9a0';badge.textContent='✓ Pulled latest from cloud';
+        return;
+      }
+    }
+    badge.style.color='#e0a05a';badge.textContent='⚠ Pull failed — check connection';
+  }catch(e){badge.style.color='#e0a05a';badge.textContent='⚠ Pull failed — check connection';}
+}
 
 // ── Add task pill helpers ─────────────────────────────────────────
 function togglePillExtra(extId,pillId){const el=document.getElementById(extId);const on=el.classList.toggle('open');document.getElementById(pillId).classList.toggle('on',on);}
@@ -1930,7 +2015,17 @@ function repPaneFreq(id,freq){
 }
 function repPaneToggleDay(id,day){
   const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');
-  if(!t.repeatDays)t.repeatDays=[];
+  // Legacy day-set values (MWF/TTS/weekdays/weekly) don't read repeatDays
+  // at all -- toggling a day on one of those used to silently do nothing
+  // visible, since the display was still computed from the hardcoded
+  // legacy pattern. Convert to 'custom' on first interaction, seeded with
+  // the equivalent day-set so existing days aren't lost.
+  if(t.repeat!=='custom'){
+    t.repeatDays=repDaysOf(t.repeat,t.repeatDays);
+    t.repeat='custom';
+  }else if(!t.repeatDays){
+    t.repeatDays=[];
+  }
   const i=t.repeatDays.indexOf(day);
   if(i>=0)t.repeatDays.splice(i,1);else t.repeatDays.push(day);
   save();ra();renderRepPane();
@@ -2760,7 +2855,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'13',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'14',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -2857,10 +2952,11 @@ async function saveAiNotes(){
   aiNotes=v;
   const btn=document.getElementById('ai-notes-save-btn');
   const orig=btn.textContent;btn.textContent='Saving…';
+  const d=sn();d.savedAt=Date.now();
   // save() is fire-and-forget; for notes we do a targeted sync to confirm
-  localStorage.setItem(KEY,JSON.stringify(sn()));
+  localStorage.setItem(KEY,JSON.stringify(d));
   try{
-    const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',state:sn()})});
+    const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',state:d})});
     btn.textContent=r.ok?'Saved ✓':'Saved locally';
   }catch(e){btn.textContent='Saved locally';}
   setTimeout(()=>btn.textContent=orig,2000);
