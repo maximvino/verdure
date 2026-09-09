@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 14</title>
+<title>Fleur · 15</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -67,7 +67,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    outlined-box treatment (border, minimize, add, casual's pin zone),
    just side by side now instead of stacked full-width. */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:11px}
-.daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0}
+.daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0;min-height:40px}
+.day-inline-add{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);border-radius:0;padding:3px 1px;font-size:.68rem;font-family:var(--font-h);color:var(--ink);outline:none}
 .cw-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:11px}
 @media(max-width:660px){.daycol{padding:1px 2px 3px}}
 
@@ -794,7 +795,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_14_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_15_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -859,7 +860,13 @@ function ap(s){
   // value into it. The merge below is harmless no-op busywork now but is
   // left in place rather than removed, since colStyles' shape is still
   // expected by import/export code.
-  colStyles={};for(const k of Object.keys(TBOX))colStyles[k]=Object.assign({},TBOX[k],(s.colStyles||{})[k]||{});
+  // Build 15: colStyles always equals TBOX now, full stop. The editing UI
+  // for this was removed a few builds ago (no longer needed), but old
+  // custom values saved from before that removal were still being merged
+  // in here with no way left to reset them -- that's exactly how a
+  // long-gone accidental neon-green got stuck. There's no path left that
+  // writes a custom value into colStyles anymore, so this can't recur.
+  colStyles={};for(const k of Object.keys(TBOX))colStyles[k]=Object.assign({},TBOX[k]);
   plantIcons=s.plantIcons||{};
   // Ensure new fields exist on all tasks
   tasks.forEach(t=>{if(t.waitUntil===undefined)t.waitUntil=null;if(t.link===undefined)t.link=null;if(t.repeatMonthDay===undefined)t.repeatMonthDay=null;if(t.casuPin===undefined)t.casuPin=false;if(t.urgent===undefined)t.urgent=false;if(t.fadedUntil===undefined)t.fadedUntil=null;if(t.notes===undefined)t.notes='';if(t.sortOrder===undefined)t.sortOrder=null;});
@@ -1005,7 +1012,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1666,19 +1673,60 @@ function corkHTML(col){
     </div>
   </div>`;
 }
+const DOW_NAMES=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+// Build 15 — recognizes a leading or trailing "today"/"tomorrow"/weekday
+// name (full or 3-letter abbreviation) in a typed task name and pulls it
+// out as a real date, e.g. "Tomorrow call dentist" or "call dentist
+// wednesday" both become deadlineDate = that day, with the date word
+// removed from the task name. Returns null if no such word is found (or
+// if removing it would leave nothing else in the name).
+function parseNaturalDate(text){
+  const words=text.trim().split(/\s+/);
+  if(words.length<2)return null;
+  function matchWord(w){
+    w=w.toLowerCase().replace(/[.,!?]+$/,'');
+    if(w==='today')return today();
+    if(w==='tomorrow'||w==='tmrw')return tomorrow();
+    const dowIdx=DOW_NAMES.findIndex(d=>d===w||d.slice(0,3)===w);
+    if(dowIdx>=0){
+      const base=new Date();base.setHours(0,0,0,0);
+      const delta=(dowIdx-base.getDay()+7)%7;
+      const d=new Date(base);d.setDate(base.getDate()+delta);
+      return fmt(d);
+    }
+    return null;
+  }
+  let dateStr=matchWord(words[words.length-1]);
+  if(dateStr){const name=words.slice(0,-1).join(' ').trim();if(name)return{name,dateStr};}
+  dateStr=matchWord(words[0]);
+  if(dateStr){const name=words.slice(1).join(' ').trim();if(name)return{name,dateStr};}
+  return null;
+}
+function blankTask(name){
+  return{id:tid++,name,col:'casual',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,repeatWaitTime:null,done:false,urgent:false,casuPin:false,repeat:'',repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:null,stickyColor:'',paletteColor:'',link:null,notes:'',sortOrder:null,fadedUntil:null};
+}
 function casuQuickAdd(e){
   // Build 11: persistent quick-add for Casual, always visible in the header
-  // row. Creates an uncategorized, dateless, casuPin:true task — same as
-  // dragging a new task onto the pin zone, but by typing instead. Drag it
-  // onto a day afterward to give it a due date; dropDay() auto-unpins it
-  // at that point, since a task with a real due date doesn't belong in the
-  // "watching, no date yet" pinned list anymore.
+  // row. Build 15: a recognized date word (see parseNaturalDate) routes
+  // the task straight to that day instead of pinning it to Casual — a
+  // task with a real due date doesn't belong in the "watching, no date
+  // yet" pinned list. No date word found still pins to Casual as before.
   if(e.key!=='Enter')return;
-  const name=e.target.value.trim();if(!name)return;
+  const raw=e.target.value.trim();if(!raw)return;
   pu('add');
-  tasks.push({id:tid++,name,col:'casual',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,repeatWaitTime:null,done:false,urgent:false,casuPin:true,repeat:'',repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:null,stickyColor:'',paletteColor:'',link:null,notes:'',sortOrder:null,fadedUntil:null});
+  const parsed=parseNaturalDate(raw);
+  if(parsed){
+    const t=blankTask(parsed.name);
+    t.deadlineDate=parsed.dateStr;t.col=d2col(parsed.dateStr,'');t.casuPin=false;
+    tasks.push(t);
+    showU('Added');
+  }else{
+    const t=blankTask(raw);t.casuPin=true;
+    tasks.push(t);
+    showU('Pinned ★');
+  }
   e.target.value='';
-  save();ra();showU('Pinned ★');
+  save();ra();
 }
 
 // ── Day grid (build 10) ──────────────────────────────────────────────
@@ -1717,6 +1765,7 @@ function dayColHTML(dateStr){
   const html=sorted.map(t=>snHTML(t,'day')).join('');
   return`<div class="daycol" data-date="${dateStr}"
     ondragover="dover(event,'${dateStr}')" ondrop="dropDay(event,'${dateStr}')" ondragleave="dleave(event)"
+    ondblclick="dayColDblClick(event,'${dateStr}')"
     >${html}</div>`;
 }
 function renderBoard(){
@@ -1733,6 +1782,37 @@ function dropDay(e,dateStr){
   // "watching, no date yet" pinned list anymore — auto-unpin.
   task.casuPin=false;
   save();ra();showU('Moved');
+}
+// Build 15 — explicit request: double-click empty space in a day column
+// to get an inline "type a task" input right there, Enter creates it
+// assigned to that exact day. Only fires on genuinely empty space (a
+// double-click that lands on an existing task row is handled by that
+// row's own snDblclick instead, via the e.target!==e.currentTarget guard).
+function dayColDblClick(e,dateStr){
+  if(e.target!==e.currentTarget)return;
+  const col=e.currentTarget;
+  if(col.querySelector('.day-inline-add'))return;
+  const inp=document.createElement('input');
+  inp.className='day-inline-add';
+  col.appendChild(inp);
+  inp.focus();
+  inp.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'){
+      const name=inp.value.trim();
+      if(name){
+        pu('add');
+        const t=blankTask(name);
+        t.deadlineDate=dateStr;t.col=d2col(dateStr,'');t.casuPin=false;
+        tasks.push(t);
+        save();ra();
+      }else{
+        inp.remove();
+      }
+    }else if(ev.key==='Escape'){
+      inp.remove();
+    }
+  });
+  inp.addEventListener('blur',()=>{setTimeout(()=>{if(document.body.contains(inp))inp.remove();},150);});
 }
 
 // ── Preset row ──────────────────────────────────────────────────────
@@ -1999,7 +2079,7 @@ function renderRepPane(){
       <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);white-space:nowrap">
         <input type="checkbox" ${t.repeatWaitTime?'checked':''} onchange="updRepWaitToggle(${t.id},this.checked)">
         wait until
-        <input type="time" value="${t.repeatWaitTime||'21:00'}" ${!t.repeatWaitTime?'disabled':''} style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px;width:78px" onchange="updRepField(${t.id},'repeatWaitTime',this.value)">
+        <input type="time" value="${t.repeatWaitTime||'21:00'}" ${!t.repeatWaitTime?'disabled':''} style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px;width:78px" onchange="updRepWaitTime(${t.id},this.value)">
       </label>
       <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
     </div>`;
@@ -2042,22 +2122,42 @@ function repPaneMonthDay(id,val){
   save();ra();renderRepPane();
 }
 function updRepField(id,field,val){const t=tasks.find(t=>t.id==id);if(!t)return;pu('edit');t[field]=val;save();ra();}
+function applyRepeatWaitNow(t){
+  // Build 15 — (re)computes THIS occurrence's wait immediately, instead of
+  // only ever being set by dayTrans()'s once-per-calendar-day check. That
+  // once-a-day gate means a task whose occurrence already rolled over
+  // earlier today (possibly under old/buggy logic, e.g. right before a fix
+  // landed) would otherwise stay wrong until tomorrow — there was no way
+  // to fix a currently-broken occurrence without waiting. Only applies
+  // when today is genuinely a real occurrence day for this task.
+  if(!t.repeat||!shouldRep(t))return;
+  t.deadlineDate=today();
+  t.col=d2col(today(),t.repeat);
+  if(t.repeatWaitTime){t.waitUntil=`${today()}T${t.repeatWaitTime}`;t.waitingFor='';}
+}
 function updRepWaitToggle(id,on){
-  // Build 11 — direct editing of the repeating-wait rule right in this
-  // pane (previously only reachable via the edit modal's Wait sub-panel),
-  // so it's easy to tell whether the feature itself works or was just
-  // hard to find. Turning it off also releases the task immediately if
-  // it's currently sitting in Wait purely because of this rule.
+  // Direct editing of the repeating-wait rule right in this pane
+  // (previously only reachable via the edit modal's Wait sub-panel), so
+  // it's easy to tell whether the feature itself works or was just hard
+  // to find. Turning it off also releases the task immediately if it's
+  // currently sitting in Wait purely because of this rule.
   const t=tasks.find(t=>t.id==id);if(!t)return;
   pu('edit');
-  if(on){t.repeatWaitTime=t.repeatWaitTime||'21:00';}
-  else{
+  if(on){
+    t.repeatWaitTime=t.repeatWaitTime||'21:00';
+    applyRepeatWaitNow(t);
+  }else{
     t.repeatWaitTime=null;
-    if(t.col==='wait'&&!t.waitingFor&&!t.waitTaskId){
-      t.waitUntil=null;
-      t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'today';
-    }
+    if(!t.waitingFor&&!t.waitTaskId)t.waitUntil=null;
+    if(t.col==='wait')t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'today';
   }
+  save();ra();renderRepPane();
+}
+function updRepWaitTime(id,val){
+  const t=tasks.find(t=>t.id==id);if(!t)return;
+  pu('edit');
+  t.repeatWaitTime=val;
+  applyRepeatWaitNow(t);
   save();ra();renderRepPane();
 }
 function addRepTask(){
@@ -2855,7 +2955,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'14',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'15',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
