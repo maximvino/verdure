@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 15</title>
+<title>Fleur · 16</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -127,6 +127,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    counterparts and look like a different size entirely even though the
    CSS is identical. Capping width here keeps them visually consistent. */
 .cork-body>.sn{max-width:min(220px,90%)}
+/* Build 16 — pinned Casual strip: hangs just below the (collapsed) box,
+   three thin chips per row, no border/background of its own so it reads
+   as loose chips rather than a second box. */
+.casu-pin-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:5px;padding:0 2px}
+.casu-pin-strip .sn{max-width:100%}
 /* Inline add */
 .cork-add{padding:6px 9px 8px;background:rgba(0,0,0,.12);display:none}
 .cork-add.open{display:block}
@@ -795,7 +800,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_15_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_16_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -1012,7 +1017,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1162,6 +1167,37 @@ function nextMonthlyDate(tk){
   // Next month, same day
   const next=new Date(d.getFullYear(),d.getMonth()+1,targetDay);
   return fmt(next);
+}
+// Build 16 — real bug fix. A repeating task ALWAYS needs a real anchor
+// deadlineDate for shouldRep()/dayTrans() to work at all, regardless of
+// whether it also has a wait configured. But addManual()/saveTask()'s
+// routing only ever considered "is there a wait, and is there a date" —
+// if a repeat pattern was set alongside a wait but no explicit date was
+// typed into the date field, the task got routed to col:'wait' with
+// deadlineDate left null and just... stuck there, permanently invisible
+// in the day grid, since nothing else ever assigns it a date. This is
+// what actually happened to more than one real repeating+wait task.
+// Called only when a repeat pattern is set and no date was given —
+// picks the soonest date that's a real occurrence of the pattern (today
+// itself if the pattern already matches today).
+function nextOccurrenceDate(rep,repeatDays,repeatMonthDay,repeatStart){
+  if(['monthly-start','monthly-mid','monthly-end','monthly-day'].includes(rep)){
+    const dom=new Date().getDate();
+    const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+    const isToday=(rep==='monthly-start'&&dom===1)||(rep==='monthly-mid'&&dom===15)||(rep==='monthly-end'&&dom===daysInMonth)||(rep==='monthly-day'&&dom===(repeatMonthDay||1));
+    return isToday?today():nextMonthlyDate({repeat:rep,repeatMonthDay});
+  }
+  if(rep==='biweekly')return repeatStart||today();
+  if(rep==='daily')return today();
+  const days=rep==='custom'?(repeatDays||[]):repDaysOf(rep,repeatDays);
+  if(days.length){
+    const base=new Date();base.setHours(0,0,0,0);
+    for(let i=0;i<7;i++){
+      const d=new Date(base);d.setDate(base.getDate()+i);
+      if(days.includes(d.getDay()))return fmt(d);
+    }
+  }
+  return today();
 }
 function chkDay(){if(today()!==_day){dayTrans(true);ra();}}
 
@@ -1647,11 +1683,15 @@ function corkHTML(col){
     const pinnedBlockedItems=pinnedBlocked.map(t=>snHTML(t,col));
     const hasPinnedBlocked=pinnedBlockedItems.length>0;
     if(minLevel===0)bodyHTML=pinZone+(hasPins?pinnedItems.join(''):'')+(hasPinnedBlocked?pinnedBlockedItems.join(''):'')+(( hasPins||hasPinnedBlocked)&&unpinnedItems.length?`<div class="casu-pin-divider"></div>`:'')+unpinnedItems.join('')+blockDiv+blockedItems2.join('');
-    else bodyHTML=(pinnedItems.join('')+pinnedBlockedItems.join(''))||'';
+    // Build 16: collapsed Casual shows NOTHING inside the box anymore —
+    // pinned tasks render in a separate strip below/outside it instead
+    // (casuPinStripHTML(), called from renderFull()), so the box itself
+    // stays one line tall, matching Wait's collapsed height. They only
+    // move back inside once expanded (the minLevel===0 branch above).
   } else {
     bodyHTML=content;
   }
-  const bodyHidden=isCasu?false:!!minLevel;
+  const bodyHidden=!!minLevel;
   // Build 11: a real flex header row replaces the old absolutely-positioned
   // corner buttons for Wait/Casual — minimize (left), middle content (wait
   // pills / casual quick-add), add (right). Both nail buttons are visually
@@ -2167,7 +2207,30 @@ function addRepTask(){
   pu('add');tasks.push({id:tid++,name,col:'today',deadlineDate:null,deadlineTime:null,waitingFor:'',waitTaskId:null,waitUntil:null,repeatWaitTime:null,done:false,repeat:rep,repeatDays:[],repeatStart:null,repeatMonthDay:null,categoryId:catId?parseInt(catId):null,stickyColor:'',link:null,paletteColor:nxtP()});
   document.getElementById('new-rep-name').value='';save();ra();renderRepPane();showU('Added');
 }
-function renderFull(col){document.getElementById(col==='casual'?'casu-row':'wait-row').innerHTML=`<div style="border-radius:14px;overflow:hidden">${corkHTML(col)}</div>`;}
+function renderFull(col){
+  if(col==='casual'){
+    document.getElementById('casu-row').innerHTML=`<div style="border-radius:14px;overflow:visible">${corkHTML('casual')}${casuPinStripHTML()}</div>`;
+  } else {
+    document.getElementById('wait-row').innerHTML=`<div style="border-radius:14px;overflow:hidden">${corkHTML(col)}</div>`;
+  }
+}
+// Build 16 — pinned Casual tasks, shown as a thin 3-per-row strip hanging
+// just below the Casual box, only while it's collapsed (the normal case).
+// Once expanded, pins render inside the box itself instead (see
+// corkHTML()'s isCasu branch) and this returns nothing, so they're never
+// shown in both places at once.
+function casuPinStripHTML(){
+  if((colMin['casual']||0)===0)return'';
+  const pinned=tasks.filter(t=>t.casuPin&&!t.done&&!t.categoryId)
+    .sort((a,b)=>{
+      const ao=a.sortOrder,bo=b.sortOrder;
+      if(ao!=null&&bo!=null)return ao-bo;
+      if(ao!=null)return -1;if(bo!=null)return 1;
+      return a.name.localeCompare(b.name);
+    });
+  if(!pinned.length)return'';
+  return`<div class="casu-pin-strip">${pinned.map(t=>snHTML(t,'casual')).join('')}</div>`;
+}
 
 // ── Cat section ───────────────────────────────────────────────────
 function renderCatSection(){
@@ -2530,6 +2593,11 @@ function addManual(){
   let effDate=date;
   if(!effDate&&chosenCol==='today')effDate=today();
   else if(!effDate&&chosenCol==='tomorrow')effDate=tomorrow();
+  // Build 16 fix: a repeating task always needs a real anchor date —
+  // assign one BEFORE the wait-routing check below, otherwise a repeat
+  // pattern set alongside a wait (with no explicit date typed) got routed
+  // to col:'wait' with deadlineDate left null, permanently invisible.
+  if(rep&&!effDate)effDate=nextOccurrenceDate(rep,repDays,repMonthDay,repStart);
   // Route: if wait with no date, go to wait col; if date given, route by date
   if((wait||waitTaskId||waitUntil)&&!effDate)col='wait';
   else if(effDate)col=d2col(effDate,rep);
@@ -2812,6 +2880,9 @@ function saveTask(){
   // it in Today, shown blocked/faded there.
   if(!t.deadlineDate&&chosenCol==='today')t.deadlineDate=today();
   else if(!t.deadlineDate&&chosenCol==='tomorrow')t.deadlineDate=tomorrow();
+  // Build 16 fix: same root cause as addManual() — a repeating task always
+  // needs a real anchor date, regardless of which column was picked.
+  if(t.repeat&&!t.deadlineDate)t.deadlineDate=nextOccurrenceDate(t.repeat,t.repeatDays,t.repeatMonthDay,t.repeatStart);
   // Casual is explicitly dateless — but only when the user hasn't supplied a date.
   // If they're editing a Casual task AND entered a date, that's an explicit intent
   // to give the task a deadline and move it out of Casual; honour it.
@@ -2955,7 +3026,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'15',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'16',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -3000,7 +3071,7 @@ function mergeImportData(e){
           const nc={id:cid++,name:rawT.category.trim(),color:nxtP(),showBox:1,minimized:false,colGroup:1};
           cats.push(nc);catByName[catKey]=nc;cat=nc;
         }
-        const date=rawT.deadlineDate||null;
+        const date=rawT.deadlineDate||(rawT.repeat?nextOccurrenceDate(rawT.repeat,rawT.repeatDays,rawT.repeatMonthDay,rawT.repeatStart):null);
         const wait=rawT.waitingFor||'';
         const waitUntil=rawT.waitUntil||null;
         const repeatWaitTime=rawT.repeatWaitTime||null; // "HH:MM" -- lets an imported recurring task re-arm its wait on later occurrences instead of behaving like a one-shot (see Wait system doc section)
