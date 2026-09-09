@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 11</title>
+<title>Fleur · 13</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -121,6 +121,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn.wait-highlight{outline:1.5px solid rgba(255,255,255,.5);z-index:10}
 /* Cork body — vertical task-row list */
 .cork-body{padding:4px 8px 10px;display:flex;flex-direction:column;gap:5px;flex:1}
+/* Wait/Casual's box is roughly half the page wide (vs. a day column's
+   ~1/7), which made task rows stretch much wider than their day-grid
+   counterparts and look like a different size entirely even though the
+   CSS is identical. Capping width here keeps them visually consistent. */
+.cork-body>.sn{max-width:min(220px,90%)}
 /* Inline add */
 .cork-add{padding:6px 9px 8px;background:rgba(0,0,0,.12);display:none}
 .cork-add.open{display:block}
@@ -157,9 +162,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn-time{font-family:var(--font-h);font-weight:500;font-size:.85em;opacity:.85;display:block;color:var(--ink)}
 .sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
-  overflow:hidden;line-height:1.32;max-height:2.65em;
+  overflow:hidden;text-overflow:clip;line-height:1.32;max-height:2.65em;
   -webkit-mask-image:linear-gradient(to right,#000 88%,transparent 100%);
   mask-image:linear-gradient(to right,#000 88%,transparent 100%);
+}
+@media(max-width:660px){
+  .sn-name{-webkit-line-clamp:3;max-height:3.97em}
 }
 .sn-badges{margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;clear:both}
 .sn-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;float:right;margin-left:4px}
@@ -429,8 +437,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today"></div>
         <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks"></div>
         <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets"></div>
-        <label class="dock-icon" title="Import / Export" style="cursor:pointer" onclick="showTransferMenu()">🌱</label>
-        <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar">🍂</div>
+        <label class="dock-icon" id="di-transfer" title="Import / Export" style="cursor:pointer" onclick="showTransferMenu()"></label>
+        <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar"></div>
       </div>
       <div class="dock-sep"></div>
       <div class="preset-row" id="preset-row"></div>
@@ -780,7 +788,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_11_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_13_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -953,7 +961,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1853,7 +1861,7 @@ function pickEmoji(ic){
 // Default to text initials until a real icon is picked, on explicit
 // request — no default Iconify icon is pre-assigned to any slot.
 let plantIcons={};
-const DOCK_SLOTS=[['add','Add','AD'],['cat','Categories','CT'],['ai','Notes','NT'],['pile','Completed','CO'],['rep','Repeat','RP'],['pre','Presets','PR']];
+const DOCK_SLOTS=[['add','Add','AD'],['cat','Categories','CT'],['ai','Notes','NT'],['pile','Completed','CO'],['rep','Repeat','RP'],['pre','Presets','PR'],['transfer','Import/Export','IE'],['cal','Calendar','CA']];
 function renderDockIcons(){
   DOCK_SLOTS.forEach(([key,label,initials])=>{
     const el=document.getElementById('di-'+key);if(!el)return;
@@ -1994,7 +2002,7 @@ function renderCatSection(){
       html+=`<div class="cbox${isMin?' minimized':''}" id="cbox-${cat.id}" data-catid="${cat.id}" style="border-color:${cat.color}"
         draggable="true" ondragstart="catDs(event,${cat.id})" ondragend="catDe(event)"
         ondragover="cboxOver(event,${cat.id})" ondrop="cboxDrop(event,${cat.id})" ondragleave="catDl(event)">
-        <div class="cork-float-l"><button class="cork-nail" style="position:absolute;top:6px;left:6px" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}">${isMin?'▸':'▾'}</button></div>
+        <div class="cork-float-l"><button class="cork-nail" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}">${isMin?'▸':'▾'}</button></div>
         <div class="cork-float"><button class="cork-nail" onclick="event.stopPropagation();toggleCboxAdd(${cat.id})" title="Add">+</button></div>
         <div class="cbox-body">${content}</div>
         <div class="cbox-add" id="${addId}">
@@ -2752,7 +2760,7 @@ function openCalendar(){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'11',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'13',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
