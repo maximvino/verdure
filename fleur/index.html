@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 16</title>
+<title>Fleur · 17</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -167,13 +167,14 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn.completing{animation:sn-done .3s ease-in forwards;pointer-events:none}
 .sn-time{font-family:var(--font-h);font-weight:500;font-size:.85em;opacity:.85;display:block;color:var(--ink)}
 .sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
-  overflow:hidden;text-overflow:clip;line-height:1.32;max-height:2.65em;
+  display:block;overflow:hidden;line-height:1.32;max-height:2.65em;
+}
+.sn-name.sn-name-overflow{
   -webkit-mask-image:linear-gradient(to right,#000 88%,transparent 100%);
   mask-image:linear-gradient(to right,#000 88%,transparent 100%);
 }
 @media(max-width:660px){
-  .sn-name{-webkit-line-clamp:3;max-height:3.97em}
+  .sn-name{max-height:3.97em}
 }
 .sn-badges{margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;clear:both}
 .sn-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;float:right;margin-left:4px}
@@ -257,9 +258,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 @media (max-width:480px){
   .dock-icons{max-width:216px;margin:0 auto}
 }
-.dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--ink)}
+.dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--sage)}
 .dock-icon iconify-icon{font-size:22px}
-.dock-initials{font-size:10px;font-weight:700;letter-spacing:.02em;font-family:var(--font-b);color:var(--ink2);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.dock-initials{font-size:10px;font-weight:700;letter-spacing:.02em;font-family:var(--font-b);color:var(--sage);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
 .dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
 .dock-panel{background:rgba(20,15,30,.96);border:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
@@ -270,7 +271,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    flex-wrap; falls back to stacking below on narrow/mobile widths purely
    because it no longer fits, no separate media query needed. */
 .preset-row{display:grid;gap:8px;justify-content:center}
-.preset-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,background .12s;flex-shrink:0}
+.preset-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,background .12s;flex-shrink:0;color:var(--sage)}
 .preset-btn:hover{transform:scale(1.1);background:rgba(255,255,255,.05)}
 .preset-btn:active{transform:scale(.94)}
 /* Preset task row in editor */
@@ -800,7 +801,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_16_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_17_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -1017,7 +1018,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1437,9 +1438,22 @@ function switchPane(name){
   if(name==='pre'){renderPresetPane();renderDockIconPicker();}
 }
 function showTransferMenu(){
-  document.getElementById('transfer-mo').classList.remove('hidden');
+  const mo=document.getElementById('transfer-mo');
+  if(!mo.classList.contains('hidden')){mo.classList.add('hidden');return;}
+  mo.classList.remove('hidden');
   setSyncStatus(localStorage.getItem(PKEY)==='1'?'failed':'ok');
 }
+// Build 17 — explicit request: clicking/tapping outside an open dock pane
+// closes it, same as an open modal already does. Re-invoking switchPane
+// with the currently-active name reuses its own toggle-off branch rather
+// than duplicating that logic here.
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('dock-panel');
+  if(!panel||!panel.classList.contains('open')||!_activePane)return;
+  if(panel.contains(e.target))return;
+  if(e.target.closest('.dock-icon'))return; // the icon's own onclick already toggles
+  switchPane(_activePane);
+});
 // Build 14 — explicit request: a manual way to force a push to (or pull
 // from) Supabase, for troubleshooting when something doesn't seem to have
 // synced, rather than only relying on the automatic background retries.
@@ -1526,7 +1540,25 @@ function ra(){
   const _daynumEl=document.getElementById('hdr-daynum');
   if(_daynumEl)_daynumEl.textContent=_dn; // fill stays fixed dark ink — always sits on the cream flower disk, never on the day's color
   renderBoard();renderFull('wait');renderFull('casual');renderCatSection();renderCatChips();syncSelects();renderPile();renderPresetRow();renderDockIcons();
+  updateNameOverflowFades();
 }
+// Build 17 — explicit request: the right-edge fade should only appear
+// when a task name is actually being clipped, never on a name that fits
+// entirely. CSS alone can't conditionally detect overflow, so this
+// measures each .sn-name after render (scrollHeight > clientHeight means
+// there's more content than the clamped box shows) and toggles a class
+// that carries the mask-image. Debounced on resize too, since which
+// names wrap/overflow depends on the day column's width.
+function updateNameOverflowFades(){
+  document.querySelectorAll('.sn-name').forEach(el=>{
+    el.classList.toggle('sn-name-overflow',el.scrollHeight>el.clientHeight+1);
+  });
+}
+let _nameOverflowResizeT=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_nameOverflowResizeT);
+  _nameOverflowResizeT=setTimeout(updateNameOverflowFades,200);
+});
 
 function repLabel(r){return{daily:'↻',weekly:'↻W',biweekly:'↻2W',MWF:'MWF',TTS:'TTS',weekdays:'M–F',custom:'↻?','monthly-start':'↻M1','monthly-mid':'↻M15','monthly-end':'↻M▸','monthly-day':'↻M#'}[r]||r||'';}
 
@@ -1548,14 +1580,16 @@ function snHTML(task,ctx){
   else if(task.col==='tomorrow')dateCls+=' badge-tmrw';
   else if(task.col==='upcoming')dateCls+=' badge-upco';
   else if(task.col==='today')dateCls+=' badge-today';
-  // Wait text: text label, dep name, or time label
-  const wn=task.waitingFor||(task.waitTaskId?('until '+getDepName(task)+' done'):'')
-          ||(task.waitUntil?waitUntilLabel(task):'');
+  // Wait text: only a genuine text label or task dependency gets an icon —
+  // a pure time-based wait (just waitUntil, no label) shows no icon at
+  // all now, per explicit request. The fade already signals "waiting";
+  // the icon+reveal is for when there's an actual reason worth reading.
+  const wn=task.waitingFor||(task.waitTaskId?('until '+getDepName(task)+' done'):'');
   const blocked=isBlocked(task);
   const waitIcon=wn?`<button class="sn-wait-btn" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${esc(wn)}">◷</button>`:'';
   const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()" title="Open link">↗</a>`:'';
   const dateBadge=dateStr?`<span class="${dateCls}">${esc(dateStr)}</span>`:'';
-  const repBadge=task.repeat?`<span class="badge badge-rep">${repLabel(task.repeat)}</span>`:'';
+  // Build 17 — explicit request: no repeat symbol badge on task rows.
   const timeStr=task.deadlineTime?fmtTime(task.deadlineTime):'';
   const isFaded=task.fadedUntil&&new Date(task.fadedUntil)>new Date();
   return`<div class="sn${ctx==='cat'?' cat-sn':''}${blocked?' sn-blocked':''}${isFaded?' sn-faded':''}" draggable="true"
@@ -1567,7 +1601,7 @@ function snHTML(task,ctx){
     <div class="sn-actions">${waitIcon}${linkIcon}</div>
     ${timeStr?`<span class="sn-time">${esc(timeStr)}</span>`:''}
     <span class="sn-name">${esc(task.name)}</span>
-    ${(dateBadge||repBadge)?`<div class="sn-badges">${dateBadge}${repBadge}</div>`:''}
+    ${dateBadge?`<div class="sn-badges">${dateBadge}</div>`:''}
     ${wn?`<div class="sn-wait-reveal">${esc(wn)}</div>`:''}
   </div>`;
 }
@@ -1886,10 +1920,21 @@ function firePreset(pid){
     const id=tid++;
     createdIds.push(id);
     const waitUntil=tmpl.waitUntilTime?(today()+'T'+tmpl.waitUntilTime):null;
+    const col=tmpl.col||'today';
+    // Build 17 fix: the day grid matches tasks to a column by EXACT
+    // deadlineDate — a col:'today' task with no date was invisible
+    // everywhere, created and saved but unrenderable. This never showed
+    // up until now because nothing else ever exercised this path with a
+    // dateless "today"/"tomorrow" template.
+    let deadlineDate=tmpl.deadlineDate||null;
+    if(!deadlineDate){
+      if(col==='today')deadlineDate=today();
+      else if(col==='tomorrow')deadlineDate=tomorrow();
+    }
     tasks.push({
       id,name:tmpl.name,
-      col:tmpl.col||'today',
-      deadlineDate:tmpl.deadlineDate||null,
+      col,
+      deadlineDate,
       deadlineTime:tmpl.deadlineTime||null,
       waitingFor:tmpl.waitingFor||'',
       waitTaskId:null,// resolved in second pass
@@ -1903,7 +1948,8 @@ function firePreset(pid){
       stickyColor:'',
       link:tmpl.link||null,
       casuPin:false,
-      paletteColor:nxtP()
+      paletteColor:nxtP(),
+      urgent:false,notes:'',sortOrder:null,fadedUntil:null,repeatWaitTime:null
     });
   });
   // Second pass: resolve waitTaskIndex → real waitTaskId
@@ -2372,6 +2418,13 @@ function toggleFade(id){
   const t=tasks.find(t=>t.id==id);if(!t)return;
   const isFaded=t.fadedUntil&&new Date(t.fadedUntil)>new Date();
   if(isFaded){t.fadedUntil=null;}
+  else if(t.deadlineDate&&t.deadlineDate>today()){
+    // Build 17 — explicit request: fade until the actual due date, not
+    // just end of today. Only meaningful for a future date; a task due
+    // today (or with no date at all) falls back to the old end-of-today
+    // behavior since there's nothing later to anchor to.
+    t.fadedUntil=t.deadlineDate+'T00:00:00';
+  }
   else{const d=new Date();d.setHours(23,59,59,999);t.fadedUntil=d.toISOString();}
   save();ra();
 }
@@ -2614,7 +2667,18 @@ function addManual(){
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';if(document.getElementById('anotes'))document.getElementById('anotes').value='';
   aemReset();aemClose();save();ra();showU('Added');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='an'&&!(e.ctrlKey||e.metaKey)){e.preventDefault();addManual();}});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const el=document.activeElement;
+  if(!el)return;
+  // Build 17 — explicit request: Enter finishes/submits from anywhere in
+  // the Add pane, not just the name field. Excludes the notes textarea,
+  // where Enter should insert a newline like any normal textarea.
+  if(el.tagName==='TEXTAREA')return;
+  if(el.id==='an'||document.getElementById('pane-add')?.contains(el)){
+    e.preventDefault();addManual();
+  }
+});
 
 
 // ── Cat CRUD ──────────────────────────────────────────────────────
@@ -2903,9 +2967,9 @@ function saveTask(){
   else if(t.deadlineDate){t.col=d2col(t.deadlineDate,t.repeat);} // always route by date when one exists
   else{t.col=chosenCol;}
   closeM('tm');save();ra();showU('Updated');
-  if(_returnToCalendar){_returnToCalendar=false;openCalendar();}
+  if(_returnToCalendar){_returnToCalendar=false;openCalendar(false);}
 }
-function delTask(){pu('del');tasks=tasks.filter(t=>t.id!==editTid);closeM('tm');save();ra();showU('Deleted');if(_returnToCalendar){_returnToCalendar=false;openCalendar();}}
+function delTask(){pu('del');tasks=tasks.filter(t=>t.id!==editTid);closeM('tm');save();ra();showU('Deleted');if(_returnToCalendar){_returnToCalendar=false;openCalendar(false);}}
 
 // ── Drag tasks ────────────────────────────────────────────────────
 function dstart(e,id){
@@ -3002,7 +3066,10 @@ function cboxDrop(e,targetId){
 // ── Export / Import ───────────────────────────────────────────────
 
 // dlContextDoc() removed in build 11 -- no longer needed. Project context now lives inline as code comments throughout this file (see the notes near TBOX, snColor, dayTrans, the repeat picker, etc.) rather than in a separately generated/downloaded doc.
-function openCalendar(){
+function openCalendar(isToggleClick){
+  isToggleClick=isToggleClick===undefined?true:isToggleClick;
+  const mo=document.getElementById('cal-mo');
+  if(isToggleClick&&mo&&!mo.classList.contains('hidden')){mo.classList.add('hidden');return;}
   const dated=tasks.filter(t=>t.deadlineDate&&!t.done)
     .sort((a,b)=>a.deadlineDate<b.deadlineDate?-1:a.deadlineDate>b.deadlineDate?1:0);
   let html='';let lastDate='';
@@ -3023,10 +3090,11 @@ function openCalendar(){
   if(lastDate)html+=`</div>`;
   if(!dated.length)html=`<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">No dated tasks</div>`;
   document.getElementById('cal-list').innerHTML=html;
+  updateNameOverflowFades();
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'16',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'17',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -3102,7 +3170,7 @@ function closeM(id){
   const mo=document.getElementById(id);
   mo.classList.add('hidden');
   mo.querySelector('.dp-btns')?.remove();
-  if(id==='tm'&&_returnToCalendar){_returnToCalendar=false;openCalendar();}
+  if(id==='tm'&&_returnToCalendar){_returnToCalendar=false;openCalendar(false);}
 }
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeM(o.id);}));
 
