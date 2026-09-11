@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 17</title>
+<title>Fleur · 18</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -16,7 +16,7 @@
   --ink3:#6e7a62;
   --border:rgba(190,220,170,.1);
   --accent:#9db08d;
-  --sage:#a6bba7;
+  --sage:#7fb894;
   --amber:#bea58a;
   --font-h:'Lora',Georgia,serif;
   --font-b:'DM Sans',sans-serif;
@@ -168,6 +168,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sn-time{font-family:var(--font-h);font-weight:500;font-size:.85em;opacity:.85;display:block;color:var(--ink)}
 .sn-name{font-family:var(--font-h);font-weight:500;color:var(--ink);
   display:block;overflow:hidden;line-height:1.32;max-height:2.65em;
+  overflow-wrap:break-word;word-break:break-word;
 }
 .sn-name.sn-name-overflow{
   -webkit-mask-image:linear-gradient(to right,#000 88%,transparent 100%);
@@ -259,7 +260,8 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   .dock-icons{max-width:216px;margin:0 auto}
 }
 .dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--sage)}
-.dock-icon iconify-icon{font-size:22px}
+.dock-icon iconify-icon{font-size:22px;color:var(--sage)}
+.preset-btn iconify-icon{color:var(--sage)}
 .dock-initials{font-size:10px;font-weight:700;letter-spacing:.02em;font-family:var(--font-b);color:var(--sage);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
 .dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
@@ -801,7 +803,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_17_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_18_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -875,7 +877,7 @@ function ap(s){
   colStyles={};for(const k of Object.keys(TBOX))colStyles[k]=Object.assign({},TBOX[k]);
   plantIcons=s.plantIcons||{};
   // Ensure new fields exist on all tasks
-  tasks.forEach(t=>{if(t.waitUntil===undefined)t.waitUntil=null;if(t.link===undefined)t.link=null;if(t.repeatMonthDay===undefined)t.repeatMonthDay=null;if(t.casuPin===undefined)t.casuPin=false;if(t.urgent===undefined)t.urgent=false;if(t.fadedUntil===undefined)t.fadedUntil=null;if(t.notes===undefined)t.notes='';if(t.sortOrder===undefined)t.sortOrder=null;});
+  tasks.forEach(t=>{if(t.waitUntil===undefined)t.waitUntil=null;if(t.link===undefined)t.link=null;if(t.repeatMonthDay===undefined)t.repeatMonthDay=null;if(t.casuPin===undefined)t.casuPin=false;if(t.urgent===undefined)t.urgent=false;if(t.fadedUntil===undefined)t.fadedUntil=null;if(t.notes===undefined)t.notes='';if(t.sortOrder===undefined)t.sortOrder=null;if(t.lastArmedDate===undefined)t.lastArmedDate=null;});
   // Safety net: if two tasks ever ended up sharing the same id (can happen if two
   // devices created tasks offline before syncing and their local tid counters hadn't
   // caught up to each other yet), reassign the later one(s) a fresh id so completing
@@ -1018,7 +1020,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_17_v1','fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1084,44 +1086,17 @@ function dayTrans(loadedOk){
   // Just record today as "seen" without touching tasks, and skip save().
   if(newDay&&loadedOk===false){_day=t;localStorage.setItem(KDAY,t);chkTimeWaits();return;}
   if(newDay){_day=t;localStorage.setItem(KDAY,t);completedToday=[];tasks.forEach(tk=>{
-    if(tk.repeat&&shouldRep(tk)){
-      tk.done=false;
-      // Build 11 fix: keep deadlineDate synced to the ACTUAL occurrence
-      // date (today). This block used to only touch waitUntil/col, never
-      // deadlineDate — chk() (manual completion) was the only place that
-      // ever advanced deadlineDate for a repeating task. That's fine for a
-      // task the user diligently checks off every cycle, but a repeating
-      // task with a wait attached activates HERE, automatically, not via
-      // chk() — so its deadlineDate stayed stuck on a stale prior-cycle
-      // date. The day grid matches tasks to a column by EXACT deadlineDate,
-      // so a stale date meant the task silently never appeared in today's
-      // column even after its wait resolved. This was the real bug behind
-      // "the wait-repeat function doesn't work" — the wait mechanism
-      // itself was fine, the date just never advanced to match.
-      tk.deadlineDate=t;
-      // Recurring wait: chkTimeWaits() (below) permanently clears waitingFor
-      // to '' the moment a wait fires -- that's correct for a one-off wait,
-      // but for a repeat task it meant the SECOND and every later occurrence
-      // silently lost its wait entirely (chkTimeWaits has nothing left to
-      // clear, so the task just sits wherever d2col() puts it, un-waited).
-      // repeatWaitTime is the persistent RULE ("always wait until this time
-      // when this recurs") -- just a "HH:MM" time-of-day, kept separate from
-      // waitUntil (the live, one-fire datetime chkTimeWaits() is allowed to
-      // null out). Rebuild a fresh waitUntil from *today's* date + that
-      // time every time shouldRep() says today is a real occurrence -- this
-      // must go through waitUntil, not waitingFor: waitUntil is the only
-      // field the live chkTimeWaits() actually auto-releases by clock time.
-      // Build 14 — explicit preference: col is NEVER forced to 'wait' here
-      // anymore. It used to be, which hid a repeat-wait task in the Wait
-      // box entirely until its wait resolved; the day grid already shows a
-      // blocked task faded in its correct day (isBlocked() + .sn-blocked),
-      // so a repeating task with a wait now stays visible ahead of time in
-      // its normal day column the whole time, just faded, and un-fades on
-      // its own once the wait clears -- consistent with how a one-off wait
-      // on a dated task already behaved.
-      tk.col=d2col(t,tk.repeat);
-      if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';}
-    }
+    if(tk.repeat&&shouldRep(tk))tk.done=false;
+    // Date/col/waitUntil computation for a firing repeat task moved to
+    // armRepeatWaits() (build 18) — it runs every 60s AND once at startup,
+    // keyed off a per-task lastArmedDate rather than this single once-a-
+    // day gate. That fixes the actual recurring bug: if this gate had
+    // already fired once today under stale/older logic (e.g. right
+    // before a fix landed, or the tab was open across a fix being
+    // shipped), it would never fire again until tomorrow — leaving a
+    // task's date/wait wrong for the rest of the day with no way to
+    // self-correct except a manual toggle. armRepeatWaits() catches that
+    // within a minute of any load, no waiting for the next day boundary.
   });tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
   else{_day=t;}
   // Re-route date-based tasks.
@@ -2671,12 +2646,14 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||e.ctrlKey||e.metaKey||e.shiftKey)return;
   const el=document.activeElement;
   if(!el)return;
-  // Build 17 — explicit request: Enter finishes/submits from anywhere in
-  // the Add pane, not just the name field. Excludes the notes textarea,
-  // where Enter should insert a newline like any normal textarea.
+  // Build 17/18 — explicit request: Enter finishes/submits from anywhere
+  // in the Add pane OR the edit-task modal, not just the name field.
+  // Excludes textareas, where Enter should insert a newline as normal.
   if(el.tagName==='TEXTAREA')return;
   if(el.id==='an'||document.getElementById('pane-add')?.contains(el)){
     e.preventDefault();addManual();
+  }else if(document.getElementById('tm')?.contains(el)&&!document.getElementById('tm').classList.contains('hidden')){
+    e.preventDefault();saveTask();
   }
 });
 
@@ -3028,8 +3005,31 @@ function confirmDrop(){
 
 
 // ── Time-wait checker ────────────────────────────────────────────
+// Build 18 — self-healing repeat-wait arming, runs every 60s (via
+// chkTimeWaits) and once at startup, independent of dayTrans()'s once-
+// per-calendar-day gate. That gate is what kept causing this exact class
+// of bug to resurface: if it had already fired once today under stale
+// state (an older build, or right before a fix shipped), it wouldn't run
+// again until tomorrow, leaving a task's date/wait wrong all day with no
+// way to self-correct short of a manual toggle. This checks a per-task
+// lastArmedDate instead, so it catches up any time during the day, and
+// only touches a task ONCE per calendar day (checked via lastArmedDate)
+// so it never stomps a manual same-day override to waitUntil made after
+// the initial arming.
+function armRepeatWaits(){
+  const t=today();let changed=false;
+  tasks.forEach(tk=>{
+    if(!tk.repeat||tk.done)return;
+    if(!shouldRep(tk))return;
+    if(tk.lastArmedDate===t)return;
+    tk.lastArmedDate=t;changed=true;
+    if(tk.deadlineDate!==t){tk.deadlineDate=t;tk.col=d2col(t,tk.repeat);}
+    if(tk.repeatWaitTime){tk.waitUntil=`${t}T${tk.repeatWaitTime}`;tk.waitingFor='';}
+  });
+  return changed;
+}
 function chkTimeWaits(){
-  const now=new Date();let changed=false;
+  const now=new Date();let changed=armRepeatWaits();
   tasks.forEach(t=>{
     if(t.waitUntil&&new Date(t.waitUntil)<=now){
       t.waitUntil=null;changed=true;
@@ -3094,7 +3094,7 @@ function openCalendar(isToggleClick){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'17',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'18',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
@@ -3234,7 +3234,7 @@ setTimeout(reportFleurHeight,300); // catch late web-font reflow
   <div class="md" style="max-width:92vw;width:860px">
     <h2 style="text-align:center;font-size:1.4rem">📅</h2>
     <div id="cal-list" style="display:flex;flex-direction:column;gap:12px;max-height:70vh;overflow-y:auto;padding-right:4px"></div>
-    <div class="mf"><button class="mcan" onclick="document.getElementById('cal-mo').classList.add('hidden')">Close</button></div>
+    <div class="mf"><button class="mcan" onclick="closeM('cal-mo')">Close</button></div>
   </div>
 </div>
 </body>
