@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 18</title>
+<title>Fleur · 19</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -16,7 +16,7 @@
   --ink3:#6e7a62;
   --border:rgba(190,220,170,.1);
   --accent:#9db08d;
-  --sage:#7fb894;
+  --sage:#8fb87a;
   --amber:#bea58a;
   --font-h:'Lora',Georgia,serif;
   --font-b:'DM Sans',sans-serif;
@@ -803,7 +803,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_18_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_19_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -1020,7 +1020,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_17_v1','fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_18_v1','fleur_17_v1','fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -1399,7 +1399,17 @@ function repMonthlyToggle(prefix){
 let _activePane=null;
 function switchPane(name){
   const panel=document.getElementById('dock-panel');
-  if(_activePane===name){_activePane=null;panel.classList.remove('open');document.querySelectorAll('.dock-icon').forEach(d=>d.classList.remove('active'));return;}
+  // Build 19 — check actual DOM state (is this icon's pane currently the
+  // active one, and is the panel actually open) rather than solely
+  // trusting the _activePane variable, which could in principle drift
+  // out of sync with the DOM. This is strictly more robust regardless.
+  const isCurrentlyOpen=panel.classList.contains('open')&&document.getElementById('di-'+name)?.classList.contains('active');
+  if(isCurrentlyOpen||_activePane===name){
+    _activePane=null;panel.classList.remove('open');
+    document.querySelectorAll('.dock-icon').forEach(d=>d.classList.remove('active'));
+    document.querySelectorAll('.dock-pane').forEach(p=>p.classList.remove('active'));
+    return;
+  }
   _activePane=name;
   document.querySelectorAll('.dock-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('pane-'+name)?.classList.add('active');
@@ -1801,7 +1811,17 @@ function weekDates(){
   return days;
 }
 function dayColHTML(dateStr){
-  const dayTasks=tasks.filter(t=>t.deadlineDate===dateStr&&t.col!=='wait'&&t.col!=='casual'&&!t.done);
+  const isToday=dateStr===today();
+  const dayTasks=tasks.filter(t=>{
+    if(t.col==='wait'||t.col==='casual'||t.done)return false;
+    if(t.deadlineDate===dateStr)return true;
+    // Build 19 fix: an overdue task (date passed, never completed, not
+    // repeating so nothing else ever advances its date) had no exact
+    // date match against any rendered day column and simply vanished.
+    // Today's column now also catches anything overdue.
+    if(isToday&&t.deadlineDate&&t.deadlineDate<dateStr)return true;
+    return false;
+  });
   const sorted=dayTasks.slice().sort((a,b)=>{
     const ao=a.sortOrder,bo=b.sortOrder;
     if(ao!=null&&bo!=null)return ao-bo;
@@ -3094,7 +3114,7 @@ function openCalendar(isToggleClick){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'18',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'19',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
