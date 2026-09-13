@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 19</title>
+<title>Fleur · 20</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -803,7 +803,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 <div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
 
 <script>
-const KEY='fleur_19_v1',KDAY='fleur_marigold_day';
+const KEY='fleur_20_v1',KDAY='fleur_marigold_day';
 
 // Build 9 — outline redesign. Every prior pass here (Marigold Root,
 // version 1, version 3) was about desaturating a FILLED box color down to
@@ -1020,7 +1020,7 @@ async function load(){
     if(raw)try{ap(JSON.parse(raw));ok=true;}catch(e){}
   }
   if(!ok){
-    const oldKeys=['fleur_18_v1','fleur_17_v1','fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
+    const oldKeys=['fleur_19_v1','fleur_18_v1','fleur_17_v1','fleur_16_v1','fleur_15_v1','fleur_14_v1','fleur_13_v1','fleur_12_v1','fleur_11_v1','fleur_10_v1','fleur_9_v1','fleur_8_v1','fleur_7_v1','fleur_6_v1','fleur_5_v1','fleur_4_v1','fleur_3_v1','fleur_2_v1','fleur_1_v1','fleur_marigold_root_v1','fleur_marigold_bud_v1','fleur_marigold_vine_v1','fleur_marigold_petal_v1','fleur_marigold_stem_v1','fleur_marigold_v1','fleur_lavender_vine_v1','fleur_lavender_petal_v1','fleur_lavender_stem_v1','fleur_lavender_v1','fleur_kalmia_vine_v1','fleur_kalmia_bloom_v1','fleur_kalmia_stem_v1','fleur_kalmia_leaf_v1','fleur_kalmia_bud_v1','fleur_kalmia_v1','fleur_jasmine_root_v1','fleur_jasmine_leaf_v1','fleur_jasmine_thorn_v1','fleur_jasmine_vine_v1','fleur_jasmine_bloom_v1','fleur_jasmine_bud_v1','fleur_jasmine_petal_v1','fleur_jasmine_stem_v1','fleur_jasmine_v1','fleur_iris_v1','fleur_hyacinth_v1','fleur_gentian_v1','fleur_foxglove_v1','fleur_wisteria_v1','fleur_xeranthemum_v1','fleur_verbena_v1','fleur_tulip_v1','fleur_sunflower_v1','fleur_rose_v1','fleur_quince_v1','fleur_peony_v1'];
     for(const k of oldKeys){
       const raw=localStorage.getItem(k);
       if(raw)try{ap(JSON.parse(raw));ok=true;break;}catch(e){}
@@ -2657,7 +2657,12 @@ function addManual(){
   }
   const notes=document.getElementById('anotes')?.value||'';
   pu('add');
-  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null});
+  // Build 20 — explicit request: a task that ends up in Casual (whether
+  // chosen explicitly or by falling through to the default) is pinned
+  // automatically, same as the dedicated Casual quick-add already does.
+  // Dragging it onto a day still auto-unpins it via dropDay(), unchanged.
+  const finalCasuPin=casuPin||col==='casual';
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin:finalCasuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null});
   // Reset
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';if(document.getElementById('anotes'))document.getElementById('anotes').value='';
   aemReset();aemClose();save();ra();showU('Added');
@@ -3114,7 +3119,7 @@ function openCalendar(isToggleClick){
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
-function exportData(){const d={version:'19',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
+function exportData(){const d={version:'20',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
