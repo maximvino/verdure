@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 20</title>
+<title>Fleur · 21</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -2721,6 +2721,18 @@ function chk(id){
           if(t.deadlineDate){const nd=new Date(t.deadlineDate+'T12:00');nd.setDate(nd.getDate()+daysAhead);t.deadlineDate=fmt(nd);}
           t.col=daysAhead===1?'tomorrow':'upcoming';
         }
+        // Build 21 fix: re-arm the wait against the NEW deadlineDate right
+        // now, not just on the day it actually fires. Previously waitUntil
+        // was left untouched here, so it still held this cycle's (now-past)
+        // timestamp -- isBlocked() then saw a wait that had already
+        // "expired" and stopped treating the future occurrence as blocked,
+        // so it rendered at full opacity in the week grid days ahead of
+        // time instead of faded, even though a wait was genuinely
+        // configured for it. armRepeatWaits() only ever closes this gap on
+        // the actual occurrence day (gated by shouldRep()), which is too
+        // late for the week-ahead view. Re-arming here keeps every future
+        // occurrence's wait state correct the moment it's projected.
+        if(t.repeatWaitTime){t.waitUntil=`${t.deadlineDate}T${t.repeatWaitTime}`;t.waitingFor='';}
       }
       save();ra();showU('Done ✓');
     },430);
