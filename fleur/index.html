@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 23</title>
+<title>Fleur · 24</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -257,7 +257,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 @media (max-width:480px){.dock-sep{display:none}}
 .dock-icons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 @media (max-width:480px){
-  .dock-icons{max-width:216px;margin:0 auto}
+  .dock-icons{gap:4px}
+  .dock-icons .dock-icon,.dock-icons .dock-initials{width:34px;height:34px;font-size:18px}
+  .dock-icons .dock-icon iconify-icon{font-size:18px}
 }
 .dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--sage)}
 .dock-icon iconify-icon{font-size:22px;color:var(--sage)}
@@ -1781,8 +1783,8 @@ function corkHTML(col){
   const isCasu=col==='casual';
   let bodyHTML='';
   if(isCasu){
-    // Pinned = ALL uncategorized tasks across every col with casuPin=true (watch list)
-    const allPinned=sortTasks(tasks.filter(t=>t.casuPin&&!t.done&&!t.categoryId));
+    // Pinned = ALL tasks across every col with casuPin=true (watch list) — categorized tasks included
+    const allPinned=sortTasks(tasks.filter(t=>t.casuPin&&!t.done));
     const pinned=allPinned.filter(t=>!isBlocked(t));
     const pinnedBlocked=allPinned.filter(t=>isBlocked(t));
     // Unpinned = tasks actually assigned to casual col (not pinned ones — they'd duplicate)
@@ -2371,7 +2373,7 @@ function renderFull(col){
 // shown in both places at once.
 function casuPinStripHTML(){
   if((colMin['casual']||0)===0)return'';
-  const pinned=tasks.filter(t=>t.casuPin&&!t.done&&!t.categoryId)
+  const pinned=tasks.filter(t=>t.casuPin&&!t.done)
     .sort((a,b)=>{
       const ao=a.sortOrder,bo=b.sortOrder;
       if(ao!=null&&bo!=null)return ao-bo;
@@ -2404,6 +2406,25 @@ function renderCatSection(){
       const items=[...activeT,catDiv,...blockedT];
       const content=items.length&&(activeT.length||blockedT.length)?items.join(''):`<div class="empty">—</div>`;
       const addId=`cba-${cat.id}`;
+      // Wait pill row for this category — only in the expanded box, at the
+      // top, so you can cross off a text-reason wait right here instead of
+      // opening the task to edit it. (Only covers text waits, same as the
+      // Wait box's own pill — a wait tied to another task or a specific
+      // time shows on the task itself instead.)
+      let wchipsHTML='';
+      if(!isMin){
+        const byR=new Map();ct.forEach(t=>{if(!t.waitingFor||t.waitTaskId)return;const k=t.waitingFor;if(!byR.has(k))byR.set(k,[]);byR.get(k).push(t.id);});
+        wchipsHTML=[...byR.entries()].map(([k,ids])=>{
+          const idsJson=JSON.stringify(ids);
+          return`<button class="wait-ribbon faded"
+            onclick="clrWaitGroup(${idsJson})"
+            onmouseenter="hlWait(${idsJson})"
+            onmouseleave="unhlWait()"
+            ontouchstart="hlWait(${idsJson})" ontouchend="unhlWait()"
+            >${esc(k)}</button>`;
+        }).join('');
+      }
+      const wchipsRow=wchipsHTML?`<div class="cork-hdr-pills">${wchipsHTML}</div>`:'';
       // Build 9: outline instead of fill — border-color is the category's own
       // color (set here), background is the same plain dark surface every
       // other box now uses. No more color-mix()'d tint fill.
@@ -2412,7 +2433,7 @@ function renderCatSection(){
         ondragover="cboxOver(event,${cat.id})" ondrop="cboxDrop(event,${cat.id})" ondragleave="catDl(event)">
         <div class="cork-float-l"><button class="cork-nail" onclick="event.stopPropagation();toggleCatMin(${cat.id})" title="${isMin?'Expand':'Minimize'}">${isMin?'▸':'▾'}</button></div>
         <div class="cork-float"><button class="cork-nail" onclick="event.stopPropagation();toggleCboxAdd(${cat.id})" title="Add">+</button></div>
-        <div class="cbox-body">${content}</div>
+        <div class="cbox-body">${wchipsRow}${content}</div>
         <div class="cbox-add" id="${addId}">
           <input id="${addId}-i" placeholder="" onkeydown="cboxKey(event,${cat.id})">
         </div>
