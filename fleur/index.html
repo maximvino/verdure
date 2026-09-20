@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 24</title>
+<title>Fleur · 26</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -842,9 +842,10 @@ let undos=[],uTimer=null,editTid=null,editCid=null,dragTid=null,catDragId=null,p
 let completedToday=[];  // {id,name,color} — tasks completed this session
 
 // ── Persist ──────────────────────────────────────────────────────
-function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,plantIcons}));}
+function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,plantIcons,deletedIds}));}
 function ap(s){
   tasks=s.tasks||[];
+  deletedIds=s.deletedIds||[];
   cats=(s.cats||s.categories||[]).map(c=>({showBox:1,minimized:false,colGroup:1,...c}));
   colMin=s.colMin||{};if(colMin['wait']===undefined)colMin['wait']=1;if(colMin['casual']===undefined)colMin['casual']=1;gTheme=s.gTheme||{};cid=s.cid||10;
   if(gTheme['sn-default'])SN_DEFAULT=gTheme['sn-default'];
@@ -918,16 +919,31 @@ function ap(s){
   }
 }
 // ── Sync robustness ──────────────────────────────────────────────
-// Build 23: 3-way merge on save. baseTasksSnapshot is "what we last
-// successfully synced against" -- set after every successful load() and
-// after every successful merged push. See mergeTaskArrays() below for
-// why this exists: the old sync model compared whole-state savedAt
-// timestamps and had the newer FULL save win outright, which silently
-// discarded whatever the OTHER browser had changed in the meantime --
-// finish task A on browser A, finish task B on browser B without
-// refreshing either first, and whichever one saved second would wipe
-// out the other's completion, not just fail to see it.
-let baseTasksSnapshot=null;
+// deletedIds: an explicit record of "this task was actually removed" --
+// every real deletion (task completed off a non-repeating list, or
+// deleted outright) adds its id here via markDeleted(). This is what the
+// merge below checks, instead of guessing that a missing task means it
+// was deleted. Build 24 fix (see explanation below): the earlier version
+// of this merge treated "this browser has no record of the task" the
+// same as "this browser deleted the task" -- so a browser tab that had
+// simply been open since before a whole new category was added on
+// another device had no record of those tasks at all, and its next save
+// silently wiped them out everywhere, reading "I've never seen this" as
+// "I must have deleted this." Tombstones remove that guesswork entirely:
+// nothing is ever dropped without an explicit record of why.
+let deletedIds=[];
+function markDeleted(ids){
+  const now=Date.now();
+  (Array.isArray(ids)?ids:[ids]).forEach(id=>{
+    if(!deletedIds.some(d=>d.id===id))deletedIds.push({id,at:now});
+  });
+  // Keep this list from growing forever -- a deletion only needs to be
+  // remembered long enough to out-live any stale, not-yet-synced tab.
+  // 1000 entries or 6 months, whichever is more generous, is far beyond
+  // any realistic gap between syncs.
+  const cutoff=now-1000*60*60*24*180;
+  deletedIds=deletedIds.filter(d=>d.at>=cutoff).slice(-1000);
+}
 function taskSig(t){
   // Stable signature for equality checks in the merge below -- sorts
   // keys so two logically-identical tasks can't compare unequal purely
@@ -935,45 +951,31 @@ function taskSig(t){
   // that).
   return JSON.stringify(t,Object.keys(t).sort());
 }
-function mergeTaskArrays(base,ours,theirs){
-  // base   = tasks as they were the last time THIS browser successfully
-  //          synced (loaded or saved)
-  // ours   = tasks as they are in THIS browser right now
-  // theirs = tasks as they are on the server right now (may already
-  //          include another browser's changes made after our base)
-  // Per task id: if only one side actually changed it relative to base,
-  // that side's version wins -- so an edit/completion/deletion made on
-  // the OTHER browser survives even though this browser never saw it.
-  // If both sides genuinely diverged from base in a way that can't be
-  // cleanly attributed to only one of them, this browser's current
-  // state wins (a real simultaneous-edit conflict is rare and "keep
-  // what I'm looking at right now" is the least surprising outcome).
-  const bMap=new Map((base||[]).map(t=>[t.id,t]));
+function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted){
+  // ours/theirs = this browser's current tasks vs. whatever's on the
+  // server right now. A task is dropped ONLY if its id is an explicit,
+  // recorded deletion on either side (ourDeleted/theirDeleted) -- never
+  // just because it's absent from one side's array. Everything else is
+  // a straightforward union: if both sides have a task and it differs,
+  // this browser's current version wins (simplest predictable rule for
+  // a genuine simultaneous edit, which is rare).
+  const deadIds=new Set([...(ourDeleted||[]).map(d=>d.id),...(theirDeleted||[]).map(d=>d.id)]);
   const oMap=new Map((ours||[]).map(t=>[t.id,t]));
   const tMap=new Map((theirs||[]).map(t=>[t.id,t]));
-  const ids=new Set([...bMap.keys(),...oMap.keys(),...tMap.keys()]);
+  const ids=new Set([...oMap.keys(),...tMap.keys()]);
   const result=[];
   ids.forEach(id=>{
-    const b=bMap.get(id),o=oMap.get(id),t=tMap.get(id);
-    if(!o&&!t)return; // both sides no longer have it -- drop
-    if(o&&!t){
-      const oUnchanged=b&&taskSig(o)===taskSig(b);
-      if(oUnchanged)return; // we never touched it since base, they deleted it -- respect that
-      result.push(o);return; // we changed it (or it's new here) -- keep it
-    }
-    if(!o&&t){
-      const tUnchanged=b&&taskSig(t)===taskSig(b);
-      if(tUnchanged)return; // they never touched it since base, we deleted it -- respect our deletion
-      return; // they changed it but we deleted it -- our deletion still wins (see rule above)
-    }
-    // both sides have it
-    if(taskSig(o)===taskSig(t)){result.push(o);return;}
-    const oUnchanged=b&&taskSig(o)===taskSig(b);
-    const tUnchanged=b&&taskSig(t)===taskSig(b);
-    if(oUnchanged&&!tUnchanged){result.push(t);return;} // only they changed it
-    result.push(o); // we changed it, or a genuine conflict -- ours wins
+    if(deadIds.has(id))return; // explicitly, recorded-ly deleted on one side -- drop everywhere
+    const o=oMap.get(id),t=tMap.get(id);
+    if(o&&t)result.push(taskSig(o)===taskSig(t)?o:o);// both have it -- ours wins on any difference
+    else result.push(o||t); // only one side has it -- keep it, no guessing
   });
   return result;
+}
+function mergeDeletedIds(a,b){
+  const map=new Map();
+  [...(a||[]),...(b||[])].forEach(d=>{if(!map.has(d.id)||map.get(d.id).at<d.at)map.set(d.id,d);});
+  return[...map.values()];
 }
 // PENDING marks "this device has a save that hasn't been confirmed to reach
 // Supabase yet." It's set BEFORE the network call and only cleared once the
@@ -988,10 +990,10 @@ function mergeTaskArrays(base,ours,theirs){
 const PKEY=KEY+'_pending';
 async function syncPush(d,attempt){
   attempt=attempt||0;
-  // Build 23: merge against fresh server state before the first push
+  // Build 24: merge against fresh server state before the first push
   // attempt of a save (only once per save -- not on retries) so a
   // concurrent change from another browser isn't blindly overwritten.
-  // See mergeTaskArrays() above.
+  // Never deletes a task based on absence alone -- see mergeTaskArrays().
   if(attempt===0&&Array.isArray(d.tasks)){
     try{
       const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'load'})});
@@ -1000,10 +1002,11 @@ async function syncPush(d,attempt){
         let remote=resp?.state;
         if(typeof remote==='string'){try{remote=JSON.parse(remote);}catch(e){remote=null;}}
         if(remote&&Array.isArray(remote.tasks)){
-          const merged=mergeTaskArrays(baseTasksSnapshot||[],d.tasks,remote.tasks);
-          d.tasks=merged;
+          const mergedDeleted=mergeDeletedIds(d.deletedIds,remote.deletedIds);
+          const merged=mergeTaskArrays(d.tasks,remote.tasks,d.deletedIds,remote.deletedIds);
+          d.tasks=merged;d.deletedIds=mergedDeleted;
           d.savedAt=Date.now();
-          tasks=merged; // reflect the merge in this browser's UI immediately
+          tasks=merged;deletedIds=mergedDeleted; // reflect the merge in this browser's UI immediately
           localStorage.setItem(KEY,JSON.stringify(d));
           ra();
         }
@@ -1014,7 +1017,6 @@ async function syncPush(d,attempt){
     const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',state:d})});
     if(r.ok){
       localStorage.removeItem(PKEY);setSyncStatus('ok');
-      if(Array.isArray(d.tasks))baseTasksSnapshot=JSON.parse(JSON.stringify(d.tasks));
       return true;
     }
   }catch(e){}
@@ -1121,9 +1123,6 @@ async function load(){
   }
   if(!ok)ap({}); // truly fresh install — still apply defaults (e.g. Wait/Casual start minimized)
   console.log('Fleur load:',ok?'ok':'empty',tasks.length,'tasks');
-  // Build 23: baseline for the next save's 3-way merge (see
-  // mergeTaskArrays()) -- "what we last synced against" starts here.
-  baseTasksSnapshot=JSON.parse(JSON.stringify(tasks));
   dayTrans(ok);applyTheme();
 }
 
@@ -1185,7 +1184,8 @@ function dayTrans(loadedOk){
     // task's date/wait wrong for the rest of the day with no way to
     // self-correct except a manual toggle. armRepeatWaits() catches that
     // within a minute of any load, no waiting for the next day boundary.
-  });tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
+  });{const dying=tasks.filter(tk=>!(tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done)).map(tk=>tk.id);if(dying.length)markDeleted(dying);}
+  tasks=tasks.filter(tk=>tk.col==='casual'||tk.col==='wait'||tk.repeat||!tk.done).map(tk=>({...tk,done:false}));}
   else{_day=t;}
   // Re-route date-based tasks.
   // For repeat tasks: if deadlineDate <= today, route normally (task has reached start date).
@@ -2266,7 +2266,7 @@ function renderRepPane(){
         wait until
         <input type="time" value="${t.repeatWaitTime||'21:00'}" ${!t.repeatWaitTime?'disabled':''} style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px;width:78px" onchange="updRepWaitTime(${t.id},this.value)">
       </label>
-      <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
+      <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');markDeleted(${t.id});tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
     </div>`;
   }).join('');
 }
@@ -2832,7 +2832,7 @@ function chk(id){
     setTimeout(()=>{
       t.done=true;liberateDeps(id);
       completedToday.push({id:t.id,name:t.name,color:snColor(t,'day'),categoryId:t.categoryId});
-      if(!t.repeat){tasks=tasks.filter(x=>x.id!==id);}
+      if(!t.repeat){markDeleted(id);tasks=tasks.filter(x=>x.id!==id);}
       else{
         // Repeating: advance to next occurrence
         t.done=false;
@@ -3113,7 +3113,7 @@ function saveTask(){
   closeM('tm');save();ra();showU('Updated');
   if(_returnToCalendar){_returnToCalendar=false;openCalendar(false);}
 }
-function delTask(){pu('del');tasks=tasks.filter(t=>t.id!==editTid);closeM('tm');save();ra();showU('Deleted');if(_returnToCalendar){_returnToCalendar=false;openCalendar(false);}}
+function delTask(){pu('del');markDeleted(editTid);tasks=tasks.filter(t=>t.id!==editTid);closeM('tm');save();ra();showU('Deleted');if(_returnToCalendar){_returnToCalendar=false;openCalendar(false);}}
 
 // ── Drag tasks ────────────────────────────────────────────────────
 function dstart(e,id){
@@ -3277,7 +3277,22 @@ function openCalendar(isToggleClick){
 }
 
 function exportData(){const d={version:'20',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);pu('import');ap(d);save();ra();applyTheme();showU('Imported');}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{
+  const d=JSON.parse(ev.target.result);
+  pu('import');
+  // "Replace all" needs to actually record every task it's dropping as a
+  // real deletion -- otherwise the sync merge (see mergeTaskArrays) has
+  // no way to tell "intentionally replaced" apart from "this browser
+  // just doesn't know about it yet", and would quietly bring the old
+  // tasks back on the next save.
+  const newIds=new Set((d.tasks||[]).map(t=>t.id));
+  const dropped=tasks.filter(t=>!newIds.has(t.id)).map(t=>t.id);
+  if(dropped.length)markDeleted(dropped);
+  const tombstonesFromDrop=deletedIds; // ap() below would otherwise overwrite these with the imported file's own (older/empty) list
+  ap(d);
+  deletedIds=mergeDeletedIds(deletedIds,tombstonesFromDrop);
+  save();ra();applyTheme();showU('Imported');
+}catch(err){alert('Could not read file.');}};r.readAsText(f);e.target.value='';}
 // Merge import — for files built to ADD to what's already in Fleur rather than
 // replace it (e.g. a batch of tasks converted from a plain-English paragraph by
 // an AI). Same .json wrapper as a normal export, but:
