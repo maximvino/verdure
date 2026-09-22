@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 26</title>
+<title>Fleur · 27</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -951,14 +951,15 @@ function taskSig(t){
   // that).
   return JSON.stringify(t,Object.keys(t).sort());
 }
-function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted){
-  // ours/theirs = this browser's current tasks vs. whatever's on the
-  // server right now. A task is dropped ONLY if its id is an explicit,
-  // recorded deletion on either side (ourDeleted/theirDeleted) -- never
-  // just because it's absent from one side's array. Everything else is
-  // a straightforward union: if both sides have a task and it differs,
-  // this browser's current version wins (simplest predictable rule for
-  // a genuine simultaneous edit, which is rare).
+function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted,preferOurs){
+  // ours/theirs = this browser's tasks vs. whatever's on the server. A
+  // task is dropped ONLY if its id is an explicit, recorded deletion on
+  // either side (ourDeleted/theirDeleted) -- never just because it's
+  // absent from one side's array. Everything else is a straightforward
+  // union: if both sides have the SAME task differing, preferOurs
+  // decides which copy wins that one task (defaults to true — used when
+  // this browser is the one actively saving right now).
+  if(preferOurs===undefined)preferOurs=true;
   const deadIds=new Set([...(ourDeleted||[]).map(d=>d.id),...(theirDeleted||[]).map(d=>d.id)]);
   const oMap=new Map((ours||[]).map(t=>[t.id,t]));
   const tMap=new Map((theirs||[]).map(t=>[t.id,t]));
@@ -967,7 +968,7 @@ function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted){
   ids.forEach(id=>{
     if(deadIds.has(id))return; // explicitly, recorded-ly deleted on one side -- drop everywhere
     const o=oMap.get(id),t=tMap.get(id);
-    if(o&&t)result.push(taskSig(o)===taskSig(t)?o:o);// both have it -- ours wins on any difference
+    if(o&&t)result.push(taskSig(o)===taskSig(t)?o:(preferOurs?o:t));
     else result.push(o||t); // only one side has it -- keep it, no guessing
   });
   return result;
@@ -1073,29 +1074,35 @@ async function load(){
       let state=d?.state;
       if(typeof state==='string'){try{state=JSON.parse(state);}catch(e){state=null;}}
       if(state&&typeof state==='object'){
-        // Build 14 fix: NEVER blindly trust the cloud copy. This used to
-        // unconditionally overwrite local state with whatever Supabase
-        // returned -- but syncPush() (the thing that actually writes to
-        // Supabase) is fire-and-forget from save(), not awaited. Any save
-        // whose push hadn't landed yet by the time the app next cold-
-        // started (closing the tab right after finishing a task, a flaky
-        // connection, a slow Netlify cold start) would get silently
-        // overwritten by the older cloud copy on the very next load --
-        // which looked exactly like "the task just disappeared, even
-        // locally." Comparing savedAt (stamped on every save(), carried
-        // inside the state blob itself so no schema change to Supabase/
-        // sync.js is needed) and keeping whichever side is actually
-        // newer closes that gap. Equal/missing timestamps favor remote,
-        // same as before, so cross-device sync still works normally.
+        // Build 27 fix: this used to be an all-or-nothing pick -- whichever
+        // side (this browser's local copy, or Supabase) had the later
+        // savedAt timestamp won COMPLETELY, and the other side's whole
+        // copy was thrown away (a stale browser would even re-upload its
+        // old copy over the newer cloud one). A browser that's been idle
+        // for days could end up "winning" that comparison for reasons
+        // that have nothing to do with which data is actually current --
+        // and when it did, brand-new tasks it never knew about would
+        // vanish, and completions made elsewhere would get reverted.
+        // Now it's a real merge instead of a pick: every task that exists
+        // on either side is kept unless something explicitly recorded
+        // deleting it (see mergeTaskArrays/deletedIds above) -- so a
+        // stale browser can never make a task it hasn't heard about
+        // disappear, and can never un-complete a task that was finished
+        // on a device that's already synced. Only when the SAME task
+        // genuinely differs on both sides does one copy of it win, and
+        // that's decided by whichever side was actually saved more
+        // recently, not an arbitrary "local always wins" rule.
         const remoteTs=state.savedAt||0;
         const localTs=localState?.savedAt||0;
-        if(remoteTs>=localTs){
-          ap(state);localStorage.setItem(KEY,JSON.stringify(state));ok=true;
-        }else{
-          console.warn('Fleur sync: local state is newer than Supabase — keeping local and re-pushing instead of overwriting it.');
-          ap(localState);ok=true;
-          syncPush(localState);
+        let merged=state;
+        if(localState){
+          const mergedTasks=mergeTaskArrays(localState.tasks||[],state.tasks||[],localState.deletedIds||[],state.deletedIds||[],localTs>remoteTs);
+          const mergedDel=mergeDeletedIds(localState.deletedIds||[],state.deletedIds||[]);
+          const base=remoteTs>=localTs?state:localState; // everything else (categories, colors, etc.) -- whichever side is more recent
+          merged={...base,tasks:mergedTasks,deletedIds:mergedDel,savedAt:Date.now()};
         }
+        ap(merged);localStorage.setItem(KEY,JSON.stringify(merged));ok=true;
+        if(localState)syncPush(merged); // push the merged result back up so every device converges
       }
     } else {
       console.warn('Fleur sync load failed:',r.status,await r.text().catch(()=>''));
