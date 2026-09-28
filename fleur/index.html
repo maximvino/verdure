@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 27</title>
+<title>Fleur · 28</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -968,7 +968,11 @@ function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted,preferOurs){
   ids.forEach(id=>{
     if(deadIds.has(id))return; // explicitly, recorded-ly deleted on one side -- drop everywhere
     const o=oMap.get(id),t=tMap.get(id);
-    if(o&&t)result.push(taskSig(o)===taskSig(t)?o:(preferOurs?o:t));
+    if(o&&t){
+      if(taskSig(o)===taskSig(t)){result.push(o);return;}
+      const ou=o.updatedAt||0,tu=t.updatedAt||0;
+      result.push(ou!==tu?(ou>tu?o:t):(preferOurs?o:t)); // newest change wins; tie falls back to preferOurs
+    }
     else result.push(o||t); // only one side has it -- keep it, no guessing
   });
   return result;
@@ -1007,7 +1011,7 @@ async function syncPush(d,attempt){
           const merged=mergeTaskArrays(d.tasks,remote.tasks,d.deletedIds,remote.deletedIds);
           d.tasks=merged;d.deletedIds=mergedDeleted;
           d.savedAt=Date.now();
-          tasks=merged;deletedIds=mergedDeleted; // reflect the merge in this browser's UI immediately
+          tasks=merged;deletedIds=mergedDeleted;snapSigs(); // reflect the merge in this browser's UI immediately
           localStorage.setItem(KEY,JSON.stringify(d));
           ra();
         }
@@ -1035,7 +1039,21 @@ function setSyncStatus(state){
   if(state==='failed'){el.textContent='⚠ not synced';el.style.display='inline';el.style.color='#e0a05a';}
   else if(state==='ok'){el.style.display='none';}
 }
+// Build 28: every task carries its own "last changed" time (updatedAt).
+// When the same task differs between two devices, the copy that was
+// actually changed most recently wins -- instead of the whole task list
+// being judged by one overall save time. This is what stops an older
+// browser from un-completing or un-fading repeating tasks.
+let taskSigs=new Map();
+function sigNoTs(t){const {updatedAt,...rest}=t;return taskSig(rest);}
+function snapSigs(){taskSigs=new Map(tasks.map(t=>[t.id,sigNoTs(t)]));}
+function stampChanges(){
+  const now=Date.now();
+  tasks.forEach(t=>{if(taskSigs.get(t.id)!==sigNoTs(t))t.updatedAt=now;});
+  snapSigs();
+}
 function save(){
+  stampChanges();
   const d=sn();
   d.savedAt=Date.now(); // build 14 — see load() for why this exists now
   localStorage.setItem(KEY,JSON.stringify(d));
@@ -1130,6 +1148,7 @@ async function load(){
   }
   if(!ok)ap({}); // truly fresh install — still apply defaults (e.g. Wait/Casual start minimized)
   console.log('Fleur load:',ok?'ok':'empty',tasks.length,'tasks');
+  snapSigs(); // loaded/merged tasks are the baseline -- only real changes after this get a new timestamp
   dayTrans(ok);applyTheme();
 }
 
@@ -2404,8 +2423,9 @@ function renderCatSection(){
       const ct=ctRaw.slice().sort((a,b)=>{const da=a.deadlineDate||'',db=b.deadlineDate||'';if(da&&db)return da<db?-1:da>db?1:0;if(da)return -1;if(db)return 1;return a.name.localeCompare(b.name);});
       const isMin=cat.minimized||false;
       function sortT(arr){return arr.slice().sort((a,b)=>{const da=a.deadlineDate||'',db=b.deadlineDate||'';if(da&&db)return da<db?-1:da>db?1:0;if(da)return -1;if(db)return 1;return a.name.localeCompare(b.name);});}
-      const activeT=sortT(ct.filter(t=>!isBlocked(t))).map(t=>snHTML(t,'cat'));
-      const blockedT=sortT(ct.filter(t=>isBlocked(t))).map(t=>{
+      const isWaitingT=t=>isBlocked(t)||!!t.waitingFor; // any kind of wait goes to the bottom
+      const activeT=sortT(ct.filter(t=>!isWaitingT(t))).map(t=>snHTML(t,'cat'));
+      const blockedT=sortT(ct.filter(t=>isWaitingT(t))).map(t=>{
         // No fade in cat boxes — just a divider
         return snHTML(t,'cat').replace(' sn-blocked','');
       });
