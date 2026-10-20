@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 17 -->
+<!-- Branche — build 18 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -58,9 +58,9 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
   #icon-grid-wrap{padding:0 8px}
   #icon-grid{gap:4px;padding:2px 0 8px}
   .grid-row{
-    grid-template-columns:repeat(var(--cols),calc((100vw - 16px)/var(--vis)));
+    grid-template-columns:repeat(var(--cols),calc(100% / var(--vis)));
     gap:0;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;scrollbar-width:none;
+    scroll-snap-type:x mandatory;scrollbar-width:none;
   }
   .grid-row::-webkit-scrollbar{display:none}
   .grid-row.empty{display:none}
@@ -393,7 +393,7 @@ document.getElementById('bday-knot-img').src=iconUrl(BDAY_KNOT_ICON,14,'#8a7c62'
 // ── Icon grid (live view) ─────────────────────────────────────────
 function renderGrid(){
   const grid=document.getElementById('icon-grid');
-  const vis=Math.min(gridCols,7.4); // mobile: how many icons are visible across (the .4 peeks the next one so it's clear you can swipe)
+  const vis=Math.min(gridCols,6); // mobile: exactly this many icons visible across, whole icons only (snaps so none sit half on-screen)
   let html='';
   for(let r=0;r<gridRows;r++){
     const rowIcons=icons.filter(ic=>ic.row===r);
@@ -906,7 +906,7 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reportHeight);
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='17';
+const BRANCHE_VERSION='18';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -926,7 +926,7 @@ Paste this at the start of a new Claude conversation, then upload the current \`
 
 **Greeting: no exclamation point, followed by the fully-written-out French date, worded as an actual sentence.** \`mainGreeting()\` produces e.g. "Bonjour, nous sommes le premier septembre." — the first version shipped as "Bonjour, le premier septembre.", which reads as a sentence fragment, not a sentence ("Hello, the first of September" isn't grammatical in English either); "nous sommes le [date]" ("we are the [date]", the standard idiomatic French way to state today's date) fixes that. \`frenchDate()\`/\`FR_DAYS\`/\`FR_MONTHS\` spell every day 1-31 out in French (with the correct "premier" ordinal for the 1st, cardinal numbers otherwise, "vingt et un"/"trente et un" using "et" rather than a hyphen per standard French orthography). This is scoped to the *main* greeting line only — individual holiday greetings ("Joyeux Noël !" etc.) deliberately keep their own exclamation points, since those are separate, specifically-requested nuanced phrases, not the "greeting + date" line this instruction was about.
 
-**Mobile grid (build 17):** at ≤600px each grid row is its own horizontal swipe strip (\`.grid-row\`, \`overflow-x:auto\`, scroll-snap) showing about 7 large icons with the next one peeking in; empty rows are hidden and the gaps are tightened. Display only — \`(col,row)\` data is unchanged and desktop looks as before. Rendering is one \`.grid-row\` per grid row (\`renderGrid()\`), each a CSS grid of \`gridCols\` columns.
+**Mobile grid (build 17):** at ≤600px each grid row is its own horizontal swipe strip (\`.grid-row\`, \`overflow-x:auto\`, scroll-snap) showing exactly 6 whole icons at a time (track widths are \`100% / 6\` of the row, scroll-snap mandatory, so no icon is ever cut off); empty rows are hidden and the gaps are tightened. Display only — \`(col,row)\` data is unchanged and desktop looks as before. Rendering is one \`.grid-row\` per grid row (\`renderGrid()\`), each a CSS grid of \`gridCols\` columns.
 
 ## Icon grid mechanics (unchanged from build 13 except the editing UI)
 
