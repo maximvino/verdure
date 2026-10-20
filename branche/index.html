@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 16 -->
+<!-- Branche — build 17 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -44,11 +44,29 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
    smaller cells at narrow widths (handled purely by the fixed column
    count shrinking cell size, no separate mobile code path needed). ── */
 #icon-grid-wrap{margin:6px auto 0;padding:0 16px}
-#icon-grid{display:grid;gap:16px 12px;padding:4px 0 16px;justify-items:center}
+#icon-grid{display:flex;flex-direction:column;gap:16px;padding:4px 0 16px}
+.grid-row{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:12px;justify-items:center}
 #icon-grid:empty{padding:0;margin:0}
 .grid-icon{cursor:pointer;background:none;border:none;padding:4px;display:flex;align-items:center;justify-content:center;
   width:100%;aspect-ratio:1;border-radius:10px}
 .grid-icon:hover{background:rgba(255,255,255,.06)}
+/* Build 17 — mobile: each row is its own horizontal swipe strip showing ~7
+   large icons at a time, rows with no icons are hidden, and the dead space
+   between icons/rows is tightened. Display only: stored icon positions
+   (col,row) are untouched, and desktop is unchanged. */
+@media(max-width:600px){
+  #icon-grid-wrap{padding:0 8px}
+  #icon-grid{gap:4px;padding:2px 0 8px}
+  .grid-row{
+    grid-template-columns:repeat(var(--cols),calc((100vw - 16px)/var(--vis)));
+    gap:0;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;scrollbar-width:none;
+  }
+  .grid-row::-webkit-scrollbar{display:none}
+  .grid-row.empty{display:none}
+  .grid-icon{scroll-snap-align:start;padding:2px}
+  .grid-icon img{width:68%;height:68%}
+}
 .grid-icon img{width:60%;height:60%;object-fit:contain}
 
 /* A little breathing room between the greeting and the icons (build 16, explicit request) */
@@ -375,13 +393,18 @@ document.getElementById('bday-knot-img').src=iconUrl(BDAY_KNOT_ICON,14,'#8a7c62'
 // ── Icon grid (live view) ─────────────────────────────────────────
 function renderGrid(){
   const grid=document.getElementById('icon-grid');
-  grid.style.gridTemplateColumns=`repeat(${gridCols},1fr)`;
-  grid.innerHTML=icons.map(ic=>{
-    const title=ic.name?ic.name:ic.url;
-    return `<button class="grid-icon" data-id="${ic.id}" title="${title}" style="grid-column:${ic.col+1};grid-row:${ic.row+1}">
-      <img src="${iconUrl(ic.icon,48,ic.iconColor)}" alt="" loading="lazy">
-    </button>`;
-  }).join('');
+  const vis=Math.min(gridCols,7.4); // mobile: how many icons are visible across (the .4 peeks the next one so it's clear you can swipe)
+  let html='';
+  for(let r=0;r<gridRows;r++){
+    const rowIcons=icons.filter(ic=>ic.row===r);
+    html+=`<div class="grid-row${rowIcons.length?'':' empty'}" style="--cols:${gridCols};--vis:${vis}">`+rowIcons.map(ic=>{
+      const title=ic.name?ic.name:ic.url;
+      return `<button class="grid-icon" data-id="${ic.id}" title="${title}" style="grid-column:${ic.col+1};grid-row:1">
+        <img src="${iconUrl(ic.icon,48,ic.iconColor)}" alt="" loading="lazy">
+      </button>`;
+    }).join('')+`</div>`;
+  }
+  grid.innerHTML=html;
   grid.querySelectorAll('.grid-icon').forEach(el=>{
     el.addEventListener('click',()=>{
       const ic=icons.find(x=>x.id===el.getAttribute('data-id'));
@@ -883,7 +906,7 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reportHeight);
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='16';
+const BRANCHE_VERSION='17';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
@@ -902,6 +925,8 @@ Paste this at the start of a new Claude conversation, then upload the current \`
 **Default grid is 10x3 now** (\`DEFAULT_GRID_COLS\`/\`DEFAULT_GRID_ROWS\`, was 5x4), sized/gapped specifically to fill the 1160px column at a comfortable icon size without cramping — see \`#icon-grid\`'s \`gap\`/padding in \`<style>\` if this ever needs re-tuning for a different column count.
 
 **Greeting: no exclamation point, followed by the fully-written-out French date, worded as an actual sentence.** \`mainGreeting()\` produces e.g. "Bonjour, nous sommes le premier septembre." — the first version shipped as "Bonjour, le premier septembre.", which reads as a sentence fragment, not a sentence ("Hello, the first of September" isn't grammatical in English either); "nous sommes le [date]" ("we are the [date]", the standard idiomatic French way to state today's date) fixes that. \`frenchDate()\`/\`FR_DAYS\`/\`FR_MONTHS\` spell every day 1-31 out in French (with the correct "premier" ordinal for the 1st, cardinal numbers otherwise, "vingt et un"/"trente et un" using "et" rather than a hyphen per standard French orthography). This is scoped to the *main* greeting line only — individual holiday greetings ("Joyeux Noël !" etc.) deliberately keep their own exclamation points, since those are separate, specifically-requested nuanced phrases, not the "greeting + date" line this instruction was about.
+
+**Mobile grid (build 17):** at ≤600px each grid row is its own horizontal swipe strip (\`.grid-row\`, \`overflow-x:auto\`, scroll-snap) showing about 7 large icons with the next one peeking in; empty rows are hidden and the gaps are tightened. Display only — \`(col,row)\` data is unchanged and desktop looks as before. Rendering is one \`.grid-row\` per grid row (\`renderGrid()\`), each a CSS grid of \`gridCols\` columns.
 
 ## Icon grid mechanics (unchanged from build 13 except the editing UI)
 
