@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 31</title>
+<title>Fleur · 32</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -69,7 +69,9 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:11px}
 .daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0;min-height:40px}
 .day-inline-add{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);border-radius:0;padding:3px 1px;font-size:.68rem;font-family:var(--font-h);color:var(--ink);outline:none}
-.cw-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px;margin-bottom:11px}
+.cw-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;margin-bottom:11px}
+.cw-row>div:nth-child(1){grid-column:1/4}   /* casual: 3 columns */
+.cw-row>div:nth-child(2){grid-column:5/8}   /* wait: 3 columns, with one empty column between so the row reads as seven */
 .cw-row>div,.cw-row .cork{min-width:0;max-width:100%}
 .ai-col{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;color:var(--ink);font-size:12px;font-family:var(--font-b);resize:vertical;min-height:170px;line-height:1.45;outline:none}
 .ai-cut{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--ink2);font-size:12px;padding:5px 4px;cursor:pointer}
@@ -269,10 +271,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dock-sep{width:1px;height:28px;background:rgba(190,220,170,.18);flex-shrink:0}
 @media (max-width:480px){.dock-sep{display:none}}
 .dock-icons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-@media (max-width:480px){
-  .dock-icons{gap:4px}
-  .dock-icons .dock-icon,.dock-icons .dock-initials{width:34px;height:34px;font-size:18px}
-  .dock-icons .dock-icon iconify-icon{font-size:18px}
+@media (max-width:600px){
+  /* seven tools, flush edge to edge in seven equal columns (same rhythm as Branche) */
+  .dock-top{gap:6px;padding:6px 0}
+  .dock-icons{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;width:100%;flex:1 1 100%;justify-items:center}
+  .dock-icon{width:100%;max-width:56px}
+  .dock-sep{display:none}
+}
 }
 .dock-icon{width:44px;height:44px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;color:var(--sage)}
 .dock-icon iconify-icon{font-size:22px;color:var(--sage)}
@@ -475,11 +480,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <div class="dock-top">
       <div class="dock-icons" id="dock-icons">
         <div class="dock-icon" id="di-add" onclick="switchPane('add')" title="Add task"></div>
-        <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Categories"></div>
+        <div class="dock-icon" id="di-cat" onclick="switchPane('cat')" title="Customize"></div>
         <div class="dock-icon" id="di-ai"  onclick="switchPane('ai')"  title="Notes"></div>
         <div class="dock-icon" id="di-pile" onclick="switchPane('pile')" title="Completed today"></div>
-        <div class="dock-icon" id="di-rep" onclick="switchPane('rep')" title="Repeating tasks"></div>
-        <div class="dock-icon" id="di-pre" onclick="switchPane('pre')" title="Presets"></div>
+        <div class="dock-icon" id="di-adv" onclick="switchPane('adv')" title="Advanced"></div>
         <label class="dock-icon" id="di-transfer" title="Import / Export (double-click to force sync)" style="cursor:pointer" onclick="transferIconClick()"></label>
         <div class="dock-icon" id="di-cal" onclick="openCalendar()" title="Calendar"></div>
       </div>
@@ -596,8 +600,35 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           </div>
           <button class="add-submit" onclick="addCat()" title="Add category"><iconify-icon icon="mdi:plus"></iconify-icon></button>
         </div>
+              <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
+        <div class="ico-head" title="Dock icons"><iconify-icon icon="mdi:view-grid-outline"></iconify-icon></div>
+        <div id="dock-icon-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        </div>
       </div>
-      <div class="dock-pane" id="pane-rep">
+      <div class="dock-pane" id="pane-ai">
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Branche</div>
+            <textarea id="ai-notes-b" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('b')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Racine</div>
+            <textarea id="ai-notes-r" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('r')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Fleur</div>
+            <textarea id="ai-notes" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('f')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save all three columns (⌘/Ctrl+S)" style="height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:13px;cursor:pointer;color:var(--ink)"><iconify-icon icon="mdi:content-save-outline"></iconify-icon></button>
+        </div>
+      </div>
+      <!-- Advanced pane (repeating + presets) -->
+      <div class="dock-pane" id="pane-adv">
         
         <div id="rep-task-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
@@ -622,33 +653,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           </div>
           <button class="add-submit" onclick="addRepTask()" style="margin-top:6px;width:100%" title="Add"><iconify-icon icon="mdi:plus"></iconify-icon></button>
         </div>
-      </div>
-      <div class="dock-pane" id="pane-ai">
-        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
-            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Branche</div>
-            <textarea id="ai-notes-b" class="ai-col" placeholder="…"></textarea>
-            <button class="ai-cut" onclick="cutNotes('b')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
-            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Racine</div>
-            <textarea id="ai-notes-r" class="ai-col" placeholder="…"></textarea>
-            <button class="ai-cut" onclick="cutNotes('r')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
-            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Fleur</div>
-            <textarea id="ai-notes" class="ai-col" placeholder="…"></textarea>
-            <button class="ai-cut" onclick="cutNotes('f')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:8px">
-          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save all three columns (⌘/Ctrl+S)" style="height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:13px;cursor:pointer;color:var(--ink)"><iconify-icon icon="mdi:content-save-outline"></iconify-icon></button>
-        </div>
-      </div></div>
-      <!-- Presets pane -->
-      <div class="dock-pane" id="pane-pre">
-        <div class="ico-head" title="Dock icons"><iconify-icon icon="mdi:view-grid-outline"></iconify-icon></div>
-        <div id="dock-icon-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      
         <div class="ico-head" title="Preset tasks" style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px"><iconify-icon icon="mdi:lightning-bolt-outline"></iconify-icon></div>
         <div id="pre-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px;display:flex;gap:6px;flex-wrap:wrap">
@@ -661,6 +666,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div id="pile-fan-inline" style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0"></div>
         <p id="pile-empty-msg" style="font-size:13px;color:var(--ink3);font-family:var(--font-h)">Nothing completed yet today.</p>
       </div>
+    </div>
     </div>
     <div class="cat-section" id="cat-section"></div>
 </div>
@@ -1677,9 +1683,8 @@ function switchPane(name){
   document.getElementById('di-'+name)?.classList.add('active');
   if(name==='pile')renderPilePane();
   if(name==='ai')loadAiNotes();
-  if(name==='cat')renderThemeColorControls();
-  if(name==='rep'){renderRepPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
-  if(name==='pre'){renderPresetPane();renderDockIconPicker();}
+  if(name==='cat'){renderThemeColorControls();renderDockIconPicker();}
+  if(name==='adv'){renderRepPane();renderPresetPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
 }
 function showTransferMenu(){
   const mo=document.getElementById('transfer-mo');
@@ -2345,7 +2350,7 @@ const ICONIFY_ICONS=['mdi:egg-fried','mdi:silverware-fork-knife','mdi:food-apple
 // Iconify id once, on load — see the migration loop in load().
 const EMOJIS=['🍳','🍽️','🥗','🍜','🥘','🫕','🧁','☕','🧺','👕','🏋️','🚴','🧘','🛒','📚','✏️','💻','📞','🏥','💊','🐕','🌿','🌸','🌱','🎵','🎬','🎮','🏠','🔧','🚗','✈️','🎯','⭐','💡','📝','🗓️','💰','🧹','🛁','😴','🌙','🌅','📧','📱','🤝','🎁','🏋️','⚽','🎾','🎸','🎨','🧪','🔬','📊','🗂️','📌','🔑','🧲','💪','🫀','🦷','👓','🎒','🛍️'];
 const EMOJI_TO_ICON=Object.fromEntries(EMOJIS.map((e,i)=>[e,ICONIFY_ICONS[i]]));
-let _iconPickTarget=null; // 'preset' | {dock:'add'|'cat'|'ai'|'pile'|'rep'|'pre'}
+let _iconPickTarget=null; // 'preset' | {dock:'add'|'cat'|'ai'|'pile'|'adv'}
 function openEmojiPick(target){
   _iconPickTarget=target||'preset';
   buildEmojiGrid(ICONIFY_ICONS);
@@ -2369,11 +2374,13 @@ function pickEmoji(ic){
 // Default to text initials until a real icon is picked, on explicit
 // request — no default Iconify icon is pre-assigned to any slot.
 let plantIcons={};
-const DOCK_SLOTS=[['add','Add','AD'],['cat','Categories','CT'],['ai','Notes','NT'],['pile','Completed','CO'],['rep','Repeat','RP'],['pre','Presets','PR'],['transfer','Import/Export','IE'],['cal','Calendar','CA']];
+const DOCK_SLOTS=[['add','Add','AD'],['cat','Customize','CU'],['ai','Notes','NT'],['pile','Completed','CO'],['adv','Advanced','AV'],['transfer','Import/Export','IE'],['cal','Calendar','CA']];
+// 'adv' replaced the old separate 'rep' and 'pre' slots -- reuse whichever icon was chosen before
+function curIcon(k){return plantIcons[k]||(k==='adv'?(plantIcons.pre||plantIcons.rep||null):null);}
 function renderDockIcons(){
   DOCK_SLOTS.forEach(([key,label,initials])=>{
     const el=document.getElementById('di-'+key);if(!el)return;
-    const icon=plantIcons[key];
+    const icon=curIcon(key);
     el.innerHTML=icon?`<iconify-icon icon="${icon}"></iconify-icon>`:`<span class="dock-initials">${initials}</span>`;
   });
 }
@@ -2383,9 +2390,9 @@ function renderDockIconPicker(){
     <div style="display:flex;align-items:center;gap:8px">
       <span style="flex:1;font-size:12px;color:var(--ink2)">${label}</span>
       <button onclick="openEmojiPick({dock:'${key}'})" style="width:34px;height:34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;cursor:pointer;color:var(--ink2);font-size:18px;display:flex;align-items:center;justify-content:center">
-        ${plantIcons[key]?`<iconify-icon icon="${plantIcons[key]}"></iconify-icon>`:`<span style="font-size:10px;font-weight:700">${initials}</span>`}
+        ${curIcon(key)?`<iconify-icon icon="${curIcon(key)}"></iconify-icon>`:`<span style="font-size:10px;font-weight:700">${initials}</span>`}
       </button>
-      ${plantIcons[key]?`<button onclick="event.stopPropagation();delete plantIcons['${key}'];save();renderDockIcons();renderDockIconPicker();" title="Reset to initials" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:16px;display:inline-flex"><iconify-icon icon="mdi:restore"></iconify-icon></button>`:'<span style="width:20px"></span>'}
+      ${curIcon(key)?`<button onclick="event.stopPropagation();delete plantIcons['${key}'];${key==='adv'?"delete plantIcons['pre'];delete plantIcons['rep'];":''}save();renderDockIcons();renderDockIconPicker();" title="Reset to initials" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:16px;display:inline-flex"><iconify-icon icon="mdi:restore"></iconify-icon></button>`:'<span style="width:20px"></span>'}
     </div>`).join('');
 }
 
