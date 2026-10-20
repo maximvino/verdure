@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 29</title>
+<title>Fleur · 31</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -69,7 +69,20 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:11px}
 .daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0;min-height:40px}
 .day-inline-add{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);border-radius:0;padding:3px 1px;font-size:.68rem;font-family:var(--font-h);color:var(--ink);outline:none}
-.cw-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:11px}
+.cw-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px;margin-bottom:11px}
+.cw-row>div,.cw-row .cork{min-width:0;max-width:100%}
+.ai-col{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;color:var(--ink);font-size:12px;font-family:var(--font-b);resize:vertical;min-height:170px;line-height:1.45;outline:none}
+.ai-cut{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--ink2);font-size:12px;padding:5px 4px;cursor:pointer}
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:4px}
+.cal-nav button{background:none;border:1px solid rgba(255,255,255,.2);color:var(--ink);border-radius:8px;padding:2px 14px;cursor:pointer;font-size:18px}
+.cal-title{font-family:var(--font-h);font-size:1.25rem;min-width:170px;text-align:center}
+.cal-dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center;font-size:11px;color:var(--ink3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal-cell{min-width:0;min-height:72px;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:2px}
+.cal-cell.today{border-color:rgba(190,220,170,.55)}
+.cal-cell.blank{border:none}
+.cal-num{font-size:11px;font-family:var(--font-h);padding:0 3px 2px}
+.ai-cut:hover{background:rgba(255,255,255,.12);color:var(--ink)}
 @media(max-width:660px){.daycol{padding:1px 2px 3px}}
 
 /* ── Time box (Wait/Casual only, build 10) ──
@@ -110,7 +123,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   color:var(--ink2);background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.14);
   cursor:pointer;transition:background .15s,border-color .15s,opacity .15s;
-  white-space:nowrap;flex-shrink:0;
+  white-space:nowrap;flex-shrink:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
 .wait-ribbon.faded{opacity:.5}
 .wait-ribbon.faded:hover{opacity:.9}
@@ -267,7 +280,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dock-initials{font-size:10px;font-weight:700;letter-spacing:.02em;font-family:var(--font-b);color:var(--sage);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .dock-icon:hover{filter:brightness(1.2);transform:scale(1.08);background:rgba(255,255,255,.05)}
 .dock-icon.active{transform:scale(1.1);background:rgba(255,255,255,.06)}
-.dock-panel{background:rgba(20,15,30,.96);border:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
+.dock-panel{background:rgba(14,28,18,.97);border:none;border-radius:0 0 16px 16px;backdrop-filter:blur(14px);overflow:hidden;max-height:0;transition:max-height .3s ease}
 .dock-panel.open{max-height:500px;border:1px solid rgba(190,220,170,.13);border-top:none}
 .dock-pane{display:none;padding:20px;flex-direction:column;gap:12px}
 .dock-pane.active{display:flex}
@@ -293,11 +306,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .pill .pill-val{font-size:11px;color:var(--ink2);max-width:0;overflow:hidden;transition:max-width .2s;white-space:nowrap}
 .pill.on .pill-val{max-width:140px}
 .pill select{background:transparent;border:none;color:var(--ink);font-size:12px;outline:none;cursor:pointer}
-.pill select option{background:#1c1528}
-.pill select option{background:#1c1528}
+.pill select option{background:#13241a}
+.pill select option{background:#13241a}
 .pill-extra{display:none;flex-direction:column;gap:9px;padding:4px 0}
 .pill-extra.open{display:flex}
-.add-submit{align-self:flex-end;padding:9px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b3d7a,#4a2d5e);color:#f0e8f5;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.add-submit{align-self:flex-end;padding:9px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f7a4a,#365a3a);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
 .add-submit:hover{opacity:.85}
 
 /* Cat pane */
@@ -328,7 +341,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .em-rep-opt.sel{background:rgba(190,220,170,.18);border-color:rgba(190,220,170,.4);color:var(--ink)}
 .fi{background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.14);border-radius:8px;padding:6px 10px;font-size:15px;font-family:var(--font-b);color:var(--ink);outline:none;width:100%;transition:border-color .13s}
 .fi:focus{border-color:rgba(190,220,170,.3)}
-.fi option{background:#1c1528}
+.fi option{background:#13241a}
 .fg{display:flex;flex-direction:column;gap:3px;flex:1;min-width:90px}
 .fl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3)}
 
@@ -345,10 +358,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .ai-row textarea{flex:1;font-size:16px;font-family:var(--font-b);padding:9px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(190,220,170,.15);border-radius:10px;color:var(--ink);outline:none;resize:none;line-height:1.5;min-height:40px;max-height:90px}
 .ai-row textarea::placeholder{color:var(--ink3)}
 .ai-btns{display:flex;flex-direction:column;gap:4px}
-.sb{padding:7px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,#6b3d7a,#4a2d5e);color:#f0e8f5;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.sb{padding:7px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f7a4a,#365a3a);color:var(--ink);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
 .code-block{position:relative;background:rgba(0,0,0,.35);border:1px solid rgba(190,220,170,.12);border-radius:10px;padding:10px 12px;margin:4px 0;font-size:11px;font-family:monospace;color:var(--ink2);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;line-height:1.5}
-.copy-btn{position:sticky;top:0;float:right;background:rgba(107,61,122,.7);border:none;border-radius:6px;padding:3px 8px;color:#f0e8f5;font-size:10px;cursor:pointer;font-family:var(--font-b);backdrop-filter:blur(4px)}
-.copy-btn:active{background:rgba(107,61,122,1)}
+.copy-btn{position:sticky;top:0;float:right;background:rgba(79,122,74,.7);border:none;border-radius:6px;padding:3px 8px;color:var(--ink);font-size:10px;cursor:pointer;font-family:var(--font-b);backdrop-filter:blur(4px)}
+.copy-btn:active{background:rgba(79,122,74,1)}
 .sb:disabled{opacity:.3;cursor:default}
 .sb.sonnet{background:linear-gradient(135deg,#2d4d3a,#1e3528);font-size:11px}
 
@@ -386,11 +399,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* ── Modals ── */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:18px}
 .mo.hidden{display:none}
-.md{background:#1c1528;border:1px solid rgba(190,220,170,.15);border-radius:16px;padding:20px;width:100%;max-width:390px;display:flex;flex-direction:column;gap:10px;max-height:88vh;overflow-y:auto}
+.md{background:#13241a;border:1px solid rgba(190,220,170,.15);border-radius:16px;padding:20px;width:100%;max-width:390px;display:flex;flex-direction:column;gap:10px;max-height:88vh;overflow-y:auto}
 .md h2{font-family:var(--font-h);font-weight:400;font-size:.95rem;color:var(--ink)}
 .pr{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end}
 .mf{display:flex;gap:7px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap}
-.msave{padding:7px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#6b3d7a,#4a2d5e);color:#f0e8f5;font-size:13px;font-weight:500;cursor:pointer}
+.msave{padding:7px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#4f7a4a,#365a3a);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer}
 .mcan{padding:7px 12px;border-radius:8px;border:1px solid rgba(190,220,170,.12);background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
 .mdel{padding:7px 12px;border-radius:8px;border:1px solid rgba(255,80,80,.2);background:rgba(130,20,20,.15);color:#f5c8c8;font-size:13px;cursor:pointer;margin-right:auto}
 .dp-btns{display:flex;flex-direction:column;gap:5px}
@@ -398,7 +411,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dp-btn:hover{background:rgba(190,220,170,.1)}
 
 /* ── Undo ── */
-.ub{position:fixed;bottom:70px;left:18px;background:rgba(18,13,26,.96);border:1px solid rgba(190,220,170,.12);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:9px;font-size:11px;color:var(--ink2);z-index:300;transition:opacity .3s;backdrop-filter:blur(8px)}
+.ub{position:fixed;bottom:70px;left:18px;background:rgba(14,28,18,.96);border:1px solid rgba(190,220,170,.12);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:9px;font-size:11px;color:var(--ink2);z-index:300;transition:opacity .3s;backdrop-filter:blur(8px)}
 .ub.hidden{opacity:0;pointer-events:none}
 .ubtn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;font-weight:500;padding:0}
 
@@ -416,6 +429,25 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    of breaking anything. Calendar access moved into the dock as an 8th
    plant-emoji icon instead of a separate text label. */
 .hdr{display:none}
+
+/* ── Build 31: one visual language — green, icons instead of emoji, minimal text ── */
+.em-pill iconify-icon{font-size:22px;color:var(--sage)}
+.em-pill.lit iconify-icon{color:#ff9a9a}
+.add-submit,.msave,.mcan,.mdel{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.add-submit iconify-icon,.msave iconify-icon,.mcan iconify-icon,.mdel iconify-icon{font-size:20px}
+.mf .msave,.mf .mcan,.mf .mdel{min-width:44px;height:38px;padding:0 14px}
+.tf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tf-btn{display:flex;align-items:center;justify-content:center;height:58px;border-radius:14px;border:1px solid rgba(190,220,170,.18);background:rgba(190,220,170,.05);color:var(--sage);font-size:26px;cursor:pointer;transition:background .15s,border-color .15s}
+.tf-btn:hover{background:rgba(190,220,170,.12);border-color:rgba(190,220,170,.35)}
+.tf-btn.warn{color:#e59a9a;border-color:rgba(229,154,154,.3);background:rgba(200,92,92,.06)}
+.tf-btn.warn:hover{background:rgba(200,92,92,.14)}
+.ico-head{font-size:18px;color:var(--sage);margin-bottom:8px;display:flex}
+.fl iconify-icon{font-size:15px;color:var(--ink3)}
+.ai-cut iconify-icon{font-size:17px}
+#ai-notes-save-btn iconify-icon{font-size:18px}
+.ubtn{font-size:17px;display:inline-flex}
+.sn-wait-btn iconify-icon,.sn-link-btn iconify-icon{font-size:12px;vertical-align:middle}
+.casu-pin-label iconify-icon,.casu-pin-zone iconify-icon{font-size:13px}
 </style>
 </head>
 <body>
@@ -458,19 +490,19 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       <div class="dock-pane" id="pane-add">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
           <input class="add-name" id="an" type="text" style="flex:1" placeholder="Task name">
-          <button class="add-submit" onclick="addManual()" style="flex-shrink:0">Add</button>
+          <button class="add-submit" onclick="addManual()" style="flex-shrink:0" title="Add"><iconify-icon icon="mdi:plus"></iconify-icon></button>
         </div>
         <!-- Single-row pill grid for add pane -->
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:4px"><div class="em-grid" style="grid-template-columns:repeat(9,40px);gap:6px;width:max-content">
-          <div class="em-pill ap-pill" id="ap-col" title="Time box" onclick="aemToggle('col')">📌</div>
-          <div class="em-pill ap-pill" id="ap-cat" title="Category" onclick="aemToggle('cat')">🏷️</div>
-          <div class="em-pill ap-pill" id="ap-date" title="Due date / time" onclick="aemToggle('date')">📅</div>
-          <div class="em-pill ap-pill" id="ap-wait" title="Wait" onclick="aemToggle('wait')">⏳</div>
-          <div class="em-pill ap-pill" id="ap-link" title="Link" onclick="aemToggle('link')">🔗</div>
-          <div class="em-pill ap-pill" id="ap-rep" title="Repeat" onclick="aemToggle('rep')">🔁</div>
-          <div class="em-pill ap-pill" id="ap-notes" title="Notes" onclick="aemToggle('notes')">📝</div>
-          <div class="em-pill ap-pill" id="ap-urgent" title="Urgent" onclick="aemToggleUrgent()">🚨</div>
-          <div class="em-pill ap-pill" id="ap-pin" title="Pin to watch list" onclick="aemTogglePin()">📍</div>
+          <div class="em-pill ap-pill" id="ap-col" title="Time box" onclick="aemToggle('col')"><iconify-icon icon="mdi:view-dashboard-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-cat" title="Category" onclick="aemToggle('cat')"><iconify-icon icon="mdi:tag-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-date" title="Due date / time" onclick="aemToggle('date')"><iconify-icon icon="mdi:calendar-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-wait" title="Wait" onclick="aemToggle('wait')"><iconify-icon icon="mdi:timer-sand"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-link" title="Link" onclick="aemToggle('link')"><iconify-icon icon="mdi:link-variant"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-rep" title="Repeat" onclick="aemToggle('rep')"><iconify-icon icon="mdi:repeat"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-notes" title="Notes" onclick="aemToggle('notes')"><iconify-icon icon="mdi:note-text-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-urgent" title="Urgent" onclick="aemToggleUrgent()"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-pin" title="Pin to watch list" onclick="aemTogglePin()"><iconify-icon icon="mdi:pin-outline"></iconify-icon></div>
         </div>
         </div><!-- /scroll-wrap -->
         <!-- Add sub-panels -->
@@ -479,7 +511,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <div class="em-sub" id="as-date">
           <input class="fi" id="ad" type="date" style="font-size:15px" onchange="aemUpdateDatePill()">
           <input class="fi" id="at" type="time" style="font-size:15px">
-          <button onclick="document.getElementById('ad').value='';document.getElementById('at').value='';aemUpdateDatePill()" style="background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;align-self:flex-start;padding:2px 0">✕ Clear</button>
+          <button onclick="document.getElementById('ad').value='';document.getElementById('at').value='';aemUpdateDatePill()" style="background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;align-self:flex-start;padding:2px 0"><iconify-icon icon="mdi:close-circle-outline" style="font-size:18px"></iconify-icon></button>
         </div>
         <div class="em-sub" id="as-time" style="display:none!important"></div>
         <div class="em-sub" id="as-wait">
@@ -490,6 +522,18 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             <input class="fi" id="awu-time" type="time" style="flex:1;font-size:13px" oninput="syncWaitUntil()">
           </div>
           <input type="hidden" id="awu">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">
+  <span style="font-size:12px;color:var(--ink2)">When wait ends:</span>
+  <select class="fi" id="aaw-mode" onchange="afterWaitUI('a')" style="flex:1;min-width:130px;font-size:13px">
+    <option value="">Leave where it is</option>
+    <option value="today">Move to Today</option>
+    <option value="casual">Move to Casual</option>
+    <option value="days">Due … days after</option>
+    <option value="date">Due on a date</option>
+  </select>
+  <input class="fi" id="aaw-n" type="number" min="0" value="1" style="display:none;width:64px;font-size:13px" title="days after the wait ends">
+  <input class="fi" id="aaw-date" type="date" style="display:none;font-size:13px">
+</div>
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px">
             <input type="checkbox" id="arwait"> Re-apply this wait time every time it repeats
           </label>
@@ -534,30 +578,30 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <input type="color" id="theme-repeat-color" value="#7fb8d9" onchange="setThemeColor('repeat-color',this.value)" style="width:32px;height:32px;padding:2px;cursor:pointer;border-radius:50%;border:none;background:none">
-            <span style="flex:1;font-size:12px;color:var(--ink2)">Repeating task color</span>
-            <button onclick="clearRepeatColor()" title="Reset to normal rules" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px">↺</button>
+            <span style="flex:1;font-size:18px;color:var(--sage);display:flex" title="Repeating task color"><iconify-icon icon="mdi:repeat"></iconify-icon></span>
+            <button onclick="clearRepeatColor()" title="Reset" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:17px;display:inline-flex"><iconify-icon icon="mdi:restore"></iconify-icon></button>
           </div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:12px"></div>
         <div class="cat-chip-row" id="cat-chips"></div>
         <div class="new-cat-row" style="gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fi" id="nca" type="text" style="flex:1;min-width:120px">
-          <input class="fi" id="ncc" type="color" value="#9db08d" title="🎨" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
+          <input class="fi" id="ncc" type="color" value="#9db08d" title="Color" style="width:36px;height:36px;padding:2px;cursor:pointer;border-radius:50%;flex-shrink:0">
           <div class="pill" title="Default date" onclick="document.getElementById('ncdate').showPicker?document.getElementById('ncdate').showPicker():document.getElementById('ncdate').click()">
-            📅<span class="pill-val" id="ncdate-val"></span>
+            <iconify-icon icon="mdi:calendar-outline"></iconify-icon><span class="pill-val" id="ncdate-val"></span>
             <input type="date" id="ncdate" onchange="document.getElementById('ncdate-val').textContent=fmtDate(this.value);this.closest('.pill').classList.toggle('on',!!this.value)" style="position:absolute;opacity:0;width:0">
           </div>
           <div class="pill" title="Default wait">
-            ⏳<input class="fi" id="ncwait" type="text" style="background:transparent;border:none;width:80px;font-size:12px;padding:0 4px">
+            <iconify-icon icon="mdi:timer-sand"></iconify-icon><input class="fi" id="ncwait" type="text" style="background:transparent;border:none;width:80px;font-size:12px;padding:0 4px">
           </div>
-          <button class="add-submit" onclick="addCat()">＋</button>
+          <button class="add-submit" onclick="addCat()" title="Add category"><iconify-icon icon="mdi:plus"></iconify-icon></button>
         </div>
       </div>
       <div class="dock-pane" id="pane-rep">
-        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Repeating tasks</div>
+        
         <div id="rep-task-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
-          <div style="font-size:10px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Add repeating task</div>
+          
           <div style="display:flex;gap:6px">
             <input class="fi" id="new-rep-name" type="text" placeholder="Task name…" style="flex:1">
           </div>
@@ -576,20 +620,36 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             </select>
             <select class="fi" id="new-rep-cat" style="flex:1;font-size:13px"><option value="">No category</option></select>
           </div>
-          <button class="add-submit" onclick="addRepTask()" style="margin-top:6px;width:100%">Add</button>
+          <button class="add-submit" onclick="addRepTask()" style="margin-top:6px;width:100%" title="Add"><iconify-icon icon="mdi:plus"></iconify-icon></button>
         </div>
       </div>
       <div class="dock-pane" id="pane-ai">
-        <div style="position:relative">
-          <textarea id="ai-notes" placeholder="…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 40px 8px 8px;color:var(--ink);font-size:13px;font-family:var(--font-b);resize:vertical;min-height:110px;line-height:1.5;outline:none"></textarea>
-          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save notes (⌘/Ctrl+S)" style="position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink)">💾</button>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Branche</div>
+            <textarea id="ai-notes-b" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('b')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Racine</div>
+            <textarea id="ai-notes-r" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('r')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="font-family:var(--font-h);font-size:.8rem;color:var(--ink2);text-align:center">Fleur</div>
+            <textarea id="ai-notes" class="ai-col" placeholder="…"></textarea>
+            <button class="ai-cut" onclick="cutNotes('f')" title="Copy all of this column, then clear it (Undo available)"><iconify-icon icon="mdi:content-cut"></iconify-icon></button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save all three columns (⌘/Ctrl+S)" style="height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:13px;cursor:pointer;color:var(--ink)"><iconify-icon icon="mdi:content-save-outline"></iconify-icon></button>
         </div>
       </div></div>
       <!-- Presets pane -->
       <div class="dock-pane" id="pane-pre">
-        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px">Dock icons</div>
+        <div class="ico-head" title="Dock icons"><iconify-icon icon="mdi:view-grid-outline"></iconify-icon></div>
         <div id="dock-icon-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
-        <div style="font-family:var(--font-h);font-size:.85rem;color:var(--ink2);margin-bottom:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">Preset tasks</div>
+        <div class="ico-head" title="Preset tasks" style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px"><iconify-icon icon="mdi:lightning-bolt-outline"></iconify-icon></div>
         <div id="pre-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px;display:flex;gap:6px;flex-wrap:wrap">
           <button class="add-submit" onclick="openPresetEditor(null)" style="flex:1">＋ New preset</button>
@@ -633,20 +693,16 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   </div>
   <!-- Transfer menu -->
   <div class="mo hidden" id="transfer-mo">
-    <div class="md" style="max-width:280px">
-      <h2 style="text-align:center">🌱</h2>
-      <div style="text-align:center;margin-bottom:10px">
-        <span id="sync-badge" style="display:none;font-size:11px;font-family:var(--font-b)"></span>
+    <div class="md" style="max-width:260px">
+      <div style="text-align:center;min-height:22px"><span id="sync-badge" style="display:none;font-size:22px"></span></div>
+      <div class="tf-grid">
+        <button class="tf-btn" title="Force sync to cloud" onclick="forceSyncPush()"><iconify-icon icon="mdi:cloud-upload-outline"></iconify-icon></button>
+        <button class="tf-btn" title="Pull latest from cloud" onclick="forceSyncPull()"><iconify-icon icon="mdi:cloud-download-outline"></iconify-icon></button>
+        <button class="tf-btn" title="Export tasks" onclick="exportData();closeM('transfer-mo')"><iconify-icon icon="mdi:file-export-outline"></iconify-icon></button>
+        <label class="tf-btn" title="Add tasks from a file (keeps what you have)" style="margin:0"><iconify-icon icon="mdi:file-plus-outline"></iconify-icon><input type="file" accept=".json" onchange="mergeImportData(event);closeM('transfer-mo')" style="display:none"></label>
+        <label class="tf-btn warn" title="Import a file and REPLACE everything" style="margin:0"><iconify-icon icon="mdi:file-import-outline"></iconify-icon><input type="file" accept=".json" onchange="importData(event);closeM('transfer-mo')" style="display:none"></label>
+        <button class="tf-btn" title="Close" onclick="closeM('transfer-mo')"><iconify-icon icon="mdi:close"></iconify-icon></button>
       </div>
-      <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="forceSyncPush()">Force sync to cloud</button>
-      <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="forceSyncPull()">Pull latest from cloud</button>
-      <div style="height:1px;background:rgba(255,255,255,.08);margin:4px 0 10px"></div>
-      <button class="add-submit" style="width:100%;margin-bottom:8px" onclick="exportData();closeM('transfer-mo')">Export tasks</button>
-      <label class="add-submit" style="width:100%;text-align:center;cursor:pointer;display:block;margin-bottom:2px">➕ Add tasks (merge)<input type="file" accept=".json" onchange="mergeImportData(event);closeM('transfer-mo')" style="display:none"></label>
-      <div style="font-size:10px;color:var(--ink3);text-align:center;margin-bottom:8px">Adds new tasks/categories to what you already have</div>
-      <label class="add-submit" style="width:100%;text-align:center;cursor:pointer;display:block;margin-bottom:2px">Import tasks (replace all)<input type="file" accept=".json" onchange="importData(event);closeM('transfer-mo')" style="display:none"></label>
-      <div style="font-size:10px;color:var(--ink3);text-align:center;margin-bottom:8px">⚠️ Wipes everything currently in Fleur first</div>
-      <button class="mcan" style="width:100%;margin-top:4px" onclick="closeM('transfer-mo')">Cancel</button>
     </div>
   </div>
 </div>
@@ -666,23 +722,23 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <!-- Emoji pill grid -->
     <div class="em-grid">
       <!-- 📌 Box -->
-      <div class="em-pill" id="ep-col" title="Time box" onclick="emToggle('col')">📌</div>
+      <div class="em-pill" id="ep-col" title="Time box" onclick="emToggle('col')"><iconify-icon icon="mdi:view-dashboard-outline"></iconify-icon></div>
       <!-- 🏷️ Category -->
-      <div class="em-pill" id="ep-cat" title="Category" onclick="emToggle('cat')">🏷️</div>
+      <div class="em-pill" id="ep-cat" title="Category" onclick="emToggle('cat')"><iconify-icon icon="mdi:tag-outline"></iconify-icon></div>
       <!-- 📅 Date & time (merged) -->
-      <div class="em-pill" id="ep-date" title="Due date / time" onclick="emToggle('date')">📅</div>
+      <div class="em-pill" id="ep-date" title="Due date / time" onclick="emToggle('date')"><iconify-icon icon="mdi:calendar-outline"></iconify-icon></div>
       <!-- ⏳ Wait -->
-      <div class="em-pill" id="ep-wait" title="Wait" onclick="emToggle('wait')">⏳</div>
+      <div class="em-pill" id="ep-wait" title="Wait" onclick="emToggle('wait')"><iconify-icon icon="mdi:timer-sand"></iconify-icon></div>
       <!-- 🔗 Link -->
-      <div class="em-pill" id="ep-link" title="Link" onclick="emToggle('link')">🔗</div>
+      <div class="em-pill" id="ep-link" title="Link" onclick="emToggle('link')"><iconify-icon icon="mdi:link-variant"></iconify-icon></div>
       <!-- 🔁 Repeat -->
-      <div class="em-pill" id="ep-rep" title="Repeat" onclick="emToggle('rep')">🔁</div>
+      <div class="em-pill" id="ep-rep" title="Repeat" onclick="emToggle('rep')"><iconify-icon icon="mdi:repeat"></iconify-icon></div>
       <!-- 📝 Notes -->
-      <div class="em-pill" id="ep-notes" title="Notes" onclick="emToggle('notes')">📝</div>
+      <div class="em-pill" id="ep-notes" title="Notes" onclick="emToggle('notes')"><iconify-icon icon="mdi:note-text-outline"></iconify-icon></div>
       <!-- 🚨 Urgent toggle -->
-      <div class="em-pill" id="ep-urgent" title="Urgent" onclick="emToggleUrgent()">🚨</div>
+      <div class="em-pill" id="ep-urgent" title="Urgent" onclick="emToggleUrgent()"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div>
       <!-- 📍 Pin to watch list -->
-      <div class="em-pill" id="ep-pin" title="Pin to watch list" onclick="emTogglePin()">📍</div>
+      <div class="em-pill" id="ep-pin" title="Pin to watch list" onclick="emTogglePin()"><iconify-icon icon="mdi:pin-outline"></iconify-icon></div>
     </div>
 
     <!-- Sub-panels (one open at a time) -->
@@ -701,7 +757,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <div class="em-sub" id="es-date">
       <input class="fi" id="ed" type="date" style="font-size:15px">
       <input class="fi" id="etime" type="time" style="font-size:15px">
-      <button onclick="emClearDate()" style="background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;align-self:flex-start;padding:2px 0">✕ Clear date & time</button>
+      <button onclick="emClearDate()" style="background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;align-self:flex-start;padding:2px 0"><iconify-icon icon="mdi:close-circle-outline" style="font-size:18px"></iconify-icon></button>
     </div>
 
     <!-- Time sub kept as hidden stub so saveTask() can still read #etime -->
@@ -716,6 +772,18 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
         <input class="fi" id="ewu-time" type="time" style="flex:1;font-size:13px" oninput="syncWaitUntilEdit()">
       </div>
       <input type="hidden" id="ewu">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">
+  <span style="font-size:12px;color:var(--ink2)">When wait ends:</span>
+  <select class="fi" id="eaw-mode" onchange="afterWaitUI('e')" style="flex:1;min-width:130px;font-size:13px">
+    <option value="">Leave where it is</option>
+    <option value="today">Move to Today</option>
+    <option value="casual">Move to Casual</option>
+    <option value="days">Due … days after</option>
+    <option value="date">Due on a date</option>
+  </select>
+  <input class="fi" id="eaw-n" type="number" min="0" value="1" style="display:none;width:64px;font-size:13px" title="days after the wait ends">
+  <input class="fi" id="eaw-date" type="date" style="display:none;font-size:13px">
+</div>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px">
         <input type="checkbox" id="erwait"> Re-apply this wait time every time it repeats
       </label>
@@ -769,26 +837,26 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <input type="checkbox" id="eurgent" style="display:none">
 
     <div class="mf" style="margin-top:8px">
-      <button class="mdel" onclick="delTask()">🗑</button>
-      <button class="mcan" onclick="closeM('tm')">✕</button>
-      <button class="msave" onclick="saveTask()">✓</button>
+      <button class="mdel" onclick="delTask()" title="Delete"><iconify-icon icon="mdi:trash-can-outline"></iconify-icon></button>
+      <button class="mcan" onclick="closeM('tm')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button>
+      <button class="msave" onclick="saveTask()" title="Save"><iconify-icon icon="mdi:check"></iconify-icon></button>
     </div>
   </div>
 </div>
 <!-- Cat edit modal -->
 <div class="mo hidden" id="cm">
   <div class="md">
-    <h2>Edit category</h2>
-    <div class="fg"><div class="fl">Name</div><input class="fi" id="ecn" type="text"></div>
-    <div class="fg"><div class="fl">Color</div><input class="fi" id="ecc" type="color"></div>
-    <div class="fg"><div class="fl">Default date</div><input class="fi" id="ecdate" type="date"></div>
-    <div class="fg"><div class="fl">Default wait</div><input class="fi" id="ecwait" type="text"></div>
-    <div class="fg"><div class="fl">Show category box</div><select class="fi" id="ec-show"><option value="1">Yes</option><option value="0">No</option></select></div>
-    <div class="fg"><div class="fl">Column group (same # = same row)</div><input class="fi" id="ec-group" type="number" min="1" max="99"></div>
+    <h2 style="text-align:center;font-size:1.3rem;color:var(--sage)"><iconify-icon icon="mdi:tag-outline"></iconify-icon></h2>
+    <div class="fg"><div class="fl" title="Name"><iconify-icon icon="mdi:format-text"></iconify-icon></div><input class="fi" id="ecn" type="text"></div>
+    <div class="fg"><div class="fl" title="Color"><iconify-icon icon="mdi:palette-outline"></iconify-icon></div><input class="fi" id="ecc" type="color"></div>
+    <div class="fg"><div class="fl" title="Default date"><iconify-icon icon="mdi:calendar-outline"></iconify-icon></div><input class="fi" id="ecdate" type="date"></div>
+    <div class="fg"><div class="fl" title="Default wait"><iconify-icon icon="mdi:timer-sand"></iconify-icon></div><input class="fi" id="ecwait" type="text"></div>
+    <div class="fg"><div class="fl" title="Show category box"><iconify-icon icon="mdi:eye-outline"></iconify-icon></div><select class="fi" id="ec-show"><option value="1">Yes</option><option value="0">No</option></select></div>
+    <div class="fg"><div class="fl" title="Column group (same # = same row)"><iconify-icon icon="mdi:view-column-outline"></iconify-icon></div><input class="fi" id="ec-group" type="number" min="1" max="99"></div>
     <div class="mf">
-      <button class="mdel" onclick="delCat()">Delete</button>
-      <button class="mcan" onclick="closeM('cm')">Cancel</button>
-      <button class="msave" onclick="saveCat()">Save</button>
+      <button class="mdel" onclick="delCat()" title="Delete"><iconify-icon icon="mdi:trash-can-outline"></iconify-icon></button>
+      <button class="mcan" onclick="closeM('cm')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button>
+      <button class="msave" onclick="saveCat()" title="Save"><iconify-icon icon="mdi:check"></iconify-icon></button>
     </div>
   </div>
 </div>
@@ -798,11 +866,11 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     <h2 id="dm-title">Move task</h2>
     <div class="fg" id="dm-dg" style="display:none"><div class="fl">Due date</div><input class="fi" id="dm-date" type="date"></div>
     <div class="fg" id="dm-wg" style="display:none"><div class="fl">Waiting for</div><input class="fi" id="dm-wait" type="text"></div>
-    <div class="mf"><button class="mcan" onclick="closeM('dm')">Cancel</button><button class="msave" onclick="confirmDrop()">Move</button></div>
+    <div class="mf"><button class="mcan" onclick="closeM('dm')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button><button class="msave" onclick="confirmDrop()" title="Move"><iconify-icon icon="mdi:check"></iconify-icon></button></div>
   </div>
 </div>
 
-<div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()">Undo</button></div>
+<div class="ub hidden" id="ub"><span id="ul">Done</span><button class="ubtn" onclick="undo()" title="Undo"><iconify-icon icon="mdi:undo"></iconify-icon></button></div>
 
 <script>
 const KEY='fleur_20_v1',KDAY='fleur_marigold_day';
@@ -837,12 +905,12 @@ const PASTELS=['#ede6db','#e4d9e4','#d8e3d9','#d8dde3','#e3dfd8','#e3d8d8','#d8e
 const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
 let _pi=0;function nxtP(){return PASTELS[_pi++%PASTELS.length];}
 
-let tasks=[],cats=[],colStyles={},colMin={},gTheme={},tid=100,cid=10,pid=1,presets=[],aiNotes='';
+let tasks=[],cats=[],colStyles={},colMin={},gTheme={},tid=100,cid=10,pid=1,presets=[],aiNotes='',aiNotesB='',aiNotesR='';
 let undos=[],uTimer=null,editTid=null,editCid=null,dragTid=null,catDragId=null,pendingDrop=null,pendingNewTask=null,_day='';
 let completedToday=[];  // {id,name,color} — tasks completed this session
 
 // ── Persist ──────────────────────────────────────────────────────
-function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,plantIcons,deletedIds,deletedCatIds}));}
+function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,aiNotesB,aiNotesR,plantIcons,deletedIds,deletedCatIds}));}
 function ap(s){
   tasks=s.tasks||[];
   deletedIds=s.deletedIds||[];deletedCatIds=s.deletedCatIds||[];
@@ -907,7 +975,7 @@ function ap(s){
   // Build 11: migrate any preset still carrying a raw unicode emoji (from
   // before the Iconify switch) to its matching Iconify id, once.
   presets.forEach(p=>{if(p.emoji&&!p.emoji.includes(':'))p.emoji=EMOJI_TO_ICON[p.emoji]||'mdi:checkbox-marked-circle-outline';});
-  aiNotes=s.aiNotes||aiNotes||'';
+  aiNotes=s.aiNotes||aiNotes||'';aiNotesB=s.aiNotesB||aiNotesB||'';aiNotesR=s.aiNotesR||aiNotesR||'';
   // If no presets in loaded state, try to recover from any other local key
   if(!presets.length){
     for(let i=0;i<localStorage.length;i++){
@@ -1000,7 +1068,7 @@ const PKEY=KEY+'_pending';
 const SYNC_URL='https://oldfleurplanner.netlify.app/api/sync';
 function setSyncStatus(state){
   const el=document.getElementById('sync-badge');if(!el)return;
-  if(state==='failed'){el.textContent='⚠ not synced';el.style.display='inline';el.style.color='#e0a05a';}
+  if(state==='failed'){el.innerHTML='<iconify-icon icon="mdi:cloud-alert-outline"></iconify-icon>';el.style.display='inline';el.style.color='#e0a05a';}
   else if(state==='ok'){el.style.display='none';}
 }
 // Build 29: one sync engine, one sync at a time. Every sync = fetch the
@@ -1328,7 +1396,7 @@ function showU(l){clearTimeout(uTimer);document.getElementById('ul').textContent
 function hideU(){document.getElementById('ub').classList.add('hidden');}
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){
-    if(document.activeElement.id==='ai-notes'){e.preventDefault();saveAiNotes();return;}
+    if((document.activeElement.id||'').startsWith('ai-notes')){e.preventDefault();saveAiNotes();return;}
   }
   if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;
@@ -1404,13 +1472,43 @@ function waitUntilLabel(t){
   return d===today()?'until '+timeStr:fmtDate(d)+' '+timeStr;
 }
 function getDepName(t){const d=tasks.find(x=>x.id==t.waitTaskId);return d?d.name:'';}
+// Where a task goes when its wait ends (set in the Wait panel: awMode/awN/awDate).
+function applyAfterWait(t){
+  if(!t.awMode||t.repeat)return false;
+  if(t.awMode==='today'){t.deadlineDate=today();t.col='today';}
+  else if(t.awMode==='casual'){t.deadlineDate=null;t.deadlineTime=null;t.col='casual';t.casuPin=true;}
+  else if(t.awMode==='days'){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+(parseInt(t.awN)||0));t.deadlineDate=fmt(d);t.col=d2col(t.deadlineDate,t.repeat);}
+  else if(t.awMode==='date'&&t.awDate){t.deadlineDate=t.awDate;t.col=d2col(t.awDate,t.repeat);}
+  else return false;
+  t.awMode='';
+  return true;
+}
+function releaseCol(t){
+  if(applyAfterWait(t))return;
+  t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';
+}
+function afterWaitUI(p){
+  const m=document.getElementById(p+'aw-mode').value;
+  document.getElementById(p+'aw-n').style.display=m==='days'?'':'none';
+  document.getElementById(p+'aw-date').style.display=m==='date'?'':'none';
+}
+function readAfterWait(p){
+  const m=document.getElementById(p+'aw-mode')?.value||'';
+  return{awMode:m,awN:parseInt(document.getElementById(p+'aw-n')?.value)||1,awDate:document.getElementById(p+'aw-date')?.value||''};
+}
+function loadAfterWait(p,t){
+  const set=(id,v)=>{const el=document.getElementById(p+id);if(el)el.value=v;};
+  set('aw-mode',(t&&t.awMode)||'');set('aw-n',(t&&t.awN)||1);set('aw-date',(t&&t.awDate)||'');
+  if(document.getElementById(p+'aw-mode'))afterWaitUI(p);
+}
 function liberateDeps(id){
   tasks.forEach(t=>{
     if(t.waitTaskId==id){
       t.waitTaskId=null;t.waitingFor='';
       // Only move out of wait col if no other block remains
-      if(!isBlocked(t)&&t.col==='wait'){
-        t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';
+      if(!isBlocked(t)){
+        if(t.awMode&&!t.repeat)applyAfterWait(t);
+        else if(t.col==='wait')t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';
       }
     }
   });
@@ -1603,21 +1701,22 @@ document.addEventListener('click',e=>{
 // Build 14 — explicit request: a manual way to force a push to (or pull
 // from) Supabase, for troubleshooting when something doesn't seem to have
 // synced, rather than only relying on the automatic background retries.
+function badgeIcon(name,color){
+  const b=document.getElementById('sync-badge');if(!b)return;
+  b.style.display='inline';b.style.color=color;
+  b.innerHTML='<iconify-icon icon="mdi:'+name+'"></iconify-icon>';
+}
 async function forceSyncPush(){
-  const badge=document.getElementById('sync-badge');
-  badge.style.display='inline';badge.style.color='var(--ink2)';badge.textContent='Syncing…';
+  badgeIcon('cloud-sync-outline','var(--ink2)');
   localStorage.setItem(PKEY,'1');
   const ok=await syncNow(true);
-  badge.style.color=ok?'#8fd9a0':'#e0a05a';
-  badge.textContent=ok?'✓ Synced to cloud':'⚠ Sync failed — check connection';
+  badgeIcon(ok?'cloud-check-outline':'cloud-alert-outline',ok?'#8fd9a0':'#e0a05a');
   return ok;
 }
 async function forceSyncPull(){
-  const badge=document.getElementById('sync-badge');
-  badge.style.display='inline';badge.style.color='var(--ink2)';badge.textContent='Pulling…';
+  badgeIcon('cloud-sync-outline','var(--ink2)');
   const ok=await syncNow(false);
-  badge.style.color=ok?'#8fd9a0':'#e0a05a';
-  badge.textContent=ok?'✓ Pulled latest from cloud':'⚠ Pull failed — check connection';
+  badgeIcon(ok?'cloud-check-outline':'cloud-alert-outline',ok?'#8fd9a0':'#e0a05a');
 }
 // Double-click (or double-tap) the Import/Export icon = force sync to cloud.
 // A single click still opens the menu, after a short wait to see if a second click follows.
@@ -1627,7 +1726,7 @@ function transferIconClick(){
     clearTimeout(_tfClick);_tfClick=null;
     const mo=document.getElementById('transfer-mo');if(mo)mo.classList.add('hidden');
     showU('Syncing…');
-    forceSyncPush().then(ok=>showU(ok?'Synced to cloud ✓':'Sync failed ⚠'));
+    forceSyncPush().then(ok=>showU(ok?'Synced':'Sync failed'));
     return;
   }
   _tfClick=setTimeout(()=>{_tfClick=null;showTransferMenu();},280);
@@ -1734,8 +1833,8 @@ function snHTML(task,ctx){
   // the icon+reveal is for when there's an actual reason worth reading.
   const wn=task.waitingFor||(task.waitTaskId?('until '+getDepName(task)+' done'):'');
   const blocked=isBlocked(task);
-  const waitIcon=wn?`<button class="sn-wait-btn" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${esc(wn)}">◷</button>`:'';
-  const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()" title="Open link">↗</a>`:'';
+  const waitIcon=wn?`<button class="sn-wait-btn" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${esc(wn)}"><iconify-icon icon="mdi:timer-sand"></iconify-icon></button>`:'';
+  const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()" title="Open link"><iconify-icon icon="mdi:open-in-new"></iconify-icon></a>`:'';
   const dateBadge=dateStr?`<span class="${dateCls}">${esc(dateStr)}</span>`:'';
   // Build 17 — explicit request: no repeat symbol badge on task rows.
   const timeStr=task.deadlineTime?fmtTime(task.deadlineTime):'';
@@ -1857,8 +1956,8 @@ function corkHTML(col){
       ondragover="event.preventDefault();this.classList.add('drag-over')"
       ondragleave="this.classList.remove('drag-over')"
       ondrop="casuPinDrop(event)"
-      >${hasPins?'★ pinned':'drag here to pin'}</div>`;
-    const pinnedGrid=hasPins?`<div class="casu-pin-label">★ pinned</div>${pinnedItems.join('')}`:'';
+      ><iconify-icon icon="mdi:pin-outline"></iconify-icon></div>`;
+    const pinnedGrid=hasPins?`<div class="casu-pin-label"><iconify-icon icon="mdi:pin-outline"></iconify-icon></div>${pinnedItems.join('')}`:'';
     const pinDiv=hasPins&&unpinnedItems.length?`<div class="casu-pin-divider"></div>`:'';
     const blockDiv=blockedItems2.length?`<div class="cork-blocked-divider"></div>`:'';
     // pinnedBlocked tasks (pinned but currently waiting): show after active pins, before divider
@@ -1945,7 +2044,7 @@ function casuQuickAdd(e){
   }else{
     const t=blankTask(raw);t.casuPin=true;
     tasks.push(t);
-    showU('Pinned ★');
+    showU('Pinned');
   }
   e.target.value='';
   save();ra();
@@ -2135,8 +2234,8 @@ function renderPresetPane(){
       <span style="color:var(--ink3);font-size:14px;cursor:grab">⠿</span>
       <span style="font-size:22px;display:flex;color:var(--ink2)"><iconify-icon icon="${p.emoji}"></iconify-icon></span>
       <span style="flex:1;font-size:13px;color:var(--ink)">${esc(p.label||p.tasks.map(t=>t.name).join(', '))}</span>
-      <button onclick="openPresetEditor(${realIdx})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px">✎</button>
-      <button onclick="removePreset(${realIdx})" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:14px">✕</button>
+      <button onclick="openPresetEditor(${realIdx})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:16px;display:inline-flex"><iconify-icon icon="mdi:pencil-outline"></iconify-icon></button>
+      <button onclick="removePreset(${realIdx})" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:16px;display:inline-flex"><iconify-icon icon="mdi:close"></iconify-icon></button>
     </div>`;
   }).join('');
 }
@@ -2177,7 +2276,7 @@ function renderPresetTaskRows(taskTmpls){
           <option value="tomorrow"${t.col==='tomorrow'?' selected':''}>Tomorrow</option>
           <option value="casual"${t.col==='casual'?' selected':''}>Casual</option>
         </select>
-        <button onclick="removePTRow(${i})" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:14px;padding:0 2px">✕</button>
+        <button onclick="removePTRow(${i})" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:16px;padding:0 2px;display:inline-flex"><iconify-icon icon="mdi:close"></iconify-icon></button>
       </div>
       <div style="display:flex;gap:5px;flex-wrap:wrap">
         <select onchange="updPTF(${i},'categoryId',this.value?parseInt(this.value):null)" style="flex:1">${catOpts.replace(`value="${t.categoryId||''}"`,`value="${t.categoryId||''}" selected`)}</select>
@@ -2226,7 +2325,7 @@ function savePreset(){
   const tasks2=_ptRows.filter(r=>r.name?.trim());
   if(!tasks2.length){showU('Add at least one task');return;}
   pu('pre');
-  const preset={id:pid++,emoji:emoji||'🎯',label,tasks:tasks2};
+  const preset={id:pid++,emoji:emoji||'mdi:target',label,tasks:tasks2};
   if(_editPresetIdx!=null)presets[_editPresetIdx]=preset;
   else presets.push(preset);
   save();renderPresetPane();renderPresetRow();
@@ -2286,7 +2385,7 @@ function renderDockIconPicker(){
       <button onclick="openEmojiPick({dock:'${key}'})" style="width:34px;height:34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;cursor:pointer;color:var(--ink2);font-size:18px;display:flex;align-items:center;justify-content:center">
         ${plantIcons[key]?`<iconify-icon icon="${plantIcons[key]}"></iconify-icon>`:`<span style="font-size:10px;font-weight:700">${initials}</span>`}
       </button>
-      ${plantIcons[key]?`<button onclick="event.stopPropagation();delete plantIcons['${key}'];save();renderDockIcons();renderDockIconPicker();" title="Reset to initials" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px">↺</button>`:'<span style="width:20px"></span>'}
+      ${plantIcons[key]?`<button onclick="event.stopPropagation();delete plantIcons['${key}'];save();renderDockIcons();renderDockIconPicker();" title="Reset to initials" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:16px;display:inline-flex"><iconify-icon icon="mdi:restore"></iconify-icon></button>`:'<span style="width:20px"></span>'}
     </div>`).join('');
 }
 
@@ -2325,7 +2424,7 @@ function renderRepPane(){
         wait until
         <input type="time" value="${t.repeatWaitTime||'21:00'}" ${!t.repeatWaitTime?'disabled':''} style="font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--ink2);padding:1px 3px;width:78px" onchange="updRepWaitTime(${t.id},this.value)">
       </label>
-      <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');markDeleted(${t.id});tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()">✕</button>
+      <button style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:14px;padding:0 2px" onclick="pu('del');markDeleted(${t.id});tasks=tasks.filter(x=>x.id!==${t.id});save();ra();renderRepPane()"><iconify-icon icon="mdi:close" style="font-size:16px"></iconify-icon></button>
     </div>`;
   }).join('');
 }
@@ -2604,6 +2703,10 @@ function toggleFade(id){
   const t=tasks.find(t=>t.id==id);if(!t)return;
   const isFaded=t.fadedUntil&&new Date(t.fadedUntil)>new Date();
   if(isFaded){t.fadedUntil=null;}
+  else if(t.casuPin||t.col==='casual'){
+    // Pinned/casual tasks stay faded every day until the fade is undone.
+    t.fadedUntil='9999-12-31T00:00:00';
+  }
   else if(t.deadlineDate&&t.deadlineDate>today()){
     // Build 17 — explicit request: fade until the actual due date, not
     // just end of today. Only meaningful for a future date; a task due
@@ -2799,6 +2902,7 @@ function aemReset(){
   document.getElementById('ac').value='';
   document.getElementById('arep').value='';
   if(document.getElementById('arwait'))document.getElementById('arwait').checked=false;
+  loadAfterWait('a',null);
   document.getElementById('arep-weekly').style.display='none';
   document.getElementById('arep-biweekly').style.display='none';
   document.getElementById('arep-monthly').style.display='none';
@@ -2853,7 +2957,7 @@ function addManual(){
   // automatically, same as the dedicated Casual quick-add already does.
   // Dragging it onto a day still auto-unpins it via dropDay(), unchanged.
   const finalCasuPin=casuPin||col==='casual';
-  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin:finalCasuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null});
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin:finalCasuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null,...readAfterWait('a')});
   // Reset
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';if(document.getElementById('anotes'))document.getElementById('anotes').value='';
   aemReset();aemClose();save();ra();showU('Added');
@@ -2915,7 +3019,7 @@ function chk(id){
         // occurrence's wait state correct the moment it's projected.
         if(t.repeatWaitTime){t.waitUntil=`${t.deadlineDate}T${t.repeatWaitTime}`;t.waitingFor='';}
       }
-      save();ra();showU('Done ✓');
+      save();ra();showU('Done');
     },430);
   }
 }
@@ -2926,12 +3030,12 @@ function casuPinDrop(e){
   const id=dragTid;dragTid=null;
   const task=tasks.find(t=>t.id==id);if(!task)return;
   pu('pin');task.casuPin=true; // col stays unchanged — watch list pin, not a move
-  save();ra();showU('Pinned ★');
+  save();ra();showU('Pinned');
 }
 function hlWait(ids){document.querySelectorAll('[data-tid]').forEach(el=>{el.classList.toggle('wait-highlight',ids.includes(parseInt(el.dataset.tid)));});}
 function unhlWait(){document.querySelectorAll('.wait-highlight').forEach(el=>el.classList.remove('wait-highlight'));}
-function clrWait(id){pu('clr');const t=tasks.find(t=>t.id==id);if(!t)return;t.waitingFor='';t.waitTaskId=null;t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';save();ra();showU('Freed');}
-function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.id==id);if(t){t.waitingFor='';t.waitTaskId=null;t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';}});save();ra();showU(`Freed ${ids.length}`);}
+function clrWait(id){pu('clr');const t=tasks.find(t=>t.id==id);if(!t)return;t.waitingFor='';t.waitTaskId=null;releaseCol(t);save();ra();showU('Freed');}
+function clrWaitGroup(ids){pu('clrG');ids.forEach(id=>{const t=tasks.find(t=>t.id==id);if(t){t.waitingFor='';t.waitTaskId=null;releaseCol(t);}});save();ra();showU(`Freed ${ids.length}`);}
 
 
 // ── Emoji pill modal logic ─────────────────────────────────────────
@@ -3077,6 +3181,7 @@ function openTask(id){
   document.getElementById('ed').value=t.deadlineDate||'';
   document.getElementById('etime').value=t.deadlineTime||'';
   document.getElementById('ew').value=t.waitingFor||'';
+  loadAfterWait('e',t);
   const erwaitEl=document.getElementById('erwait');if(erwaitEl)erwaitEl.checked=!!t.repeatWaitTime;
   syncSelects();
   const ewtEl=document.getElementById('ewt');if(ewtEl)ewtEl.value=t.waitTaskId||'';
@@ -3112,6 +3217,7 @@ function saveTask(){
   if(t.waitTaskId)t.waitingFor=''; // task-dep takes precedence over text
   const ewuVal=document.getElementById('ewu')?.value;
   t.waitUntil=ewuVal||null;
+  Object.assign(t,readAfterWait('e'));
   // Recurring wait: only meaningful for a real waitUntil datetime (not a
   // task-dependency or a plain-text waitingFor label) on a task that also
   // repeats. Stores only the TIME portion -- the date gets rebuilt fresh
@@ -3265,8 +3371,9 @@ function chkTimeWaits(){
     if(t.waitUntil&&new Date(t.waitUntil)<=now){
       t.waitUntil=null;changed=true;
       // If still in wait col (text-only wait resolved), route to date col
-      if(t.col==='wait'&&!t.waitingFor&&!t.waitTaskId){
-        t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';
+      if(!t.waitingFor&&!t.waitTaskId&&!isBlocked(t)){
+        if(t.awMode&&!t.repeat)applyAfterWait(t);
+        else if(t.col==='wait')t.col=t.deadlineDate?d2col(t.deadlineDate,t.repeat):'casual';
       }
     }
   });
@@ -3297,36 +3404,33 @@ function cboxDrop(e,targetId){
 // ── Export / Import ───────────────────────────────────────────────
 
 // dlContextDoc() removed in build 11 -- no longer needed. Project context now lives inline as code comments throughout this file (see the notes near TBOX, snColor, dayTrans, the repeat picker, etc.) rather than in a separately generated/downloaded doc.
+let _calY=null,_calM=null;
+function calShift(n){const d=new Date(_calY,_calM+n,1);_calY=d.getFullYear();_calM=d.getMonth();openCalendar(false);}
 function openCalendar(isToggleClick){
   isToggleClick=isToggleClick===undefined?true:isToggleClick;
   const mo=document.getElementById('cal-mo');
   if(isToggleClick&&mo&&!mo.classList.contains('hidden')){mo.classList.add('hidden');return;}
-  const dated=tasks.filter(t=>t.deadlineDate&&!t.done)
-    .sort((a,b)=>a.deadlineDate<b.deadlineDate?-1:a.deadlineDate>b.deadlineDate?1:0);
-  let html='';let lastDate='';
-  dated.forEach(t=>{
-    const d=new Date(t.deadlineDate+'T12:00:00');
-    const _calMo=d.toLocaleDateString('en-CA',{month:'long',day:'numeric'});
-    const _calWd=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
-    const _calDow=d.getDay();const _calClr=DOW_CLR[_calDow];
-    const dateStr=_calMo;
-    if(dateStr!==lastDate){
-      if(lastDate)html+=`</div>`;
-      html+=`<div style="display:flex;align-items:baseline;gap:.4em;padding:${lastDate?'10px':'2px'} 0 6px;${lastDate?'border-top:1px solid rgba(190,220,170,.1);margin-top:6px;':''}line-height:1"><span style="font-size:1.2rem;font-family:var(--font-h);font-weight:500;color:${_calClr}">${dateStr}</span><span style="font-size:.72rem;font-family:var(--font-h);color:${_calClr};opacity:.7">${_calWd}</span></div>`;
-      html+=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start">`;
-      lastDate=dateStr;
-    }
-    html+=snHTML(t,'day');
-  });
-  if(lastDate)html+=`</div>`;
-  if(!dated.length)html=`<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">No dated tasks</div>`;
+  const now=new Date();
+  if(_calY===null||isToggleClick){_calY=now.getFullYear();_calM=now.getMonth();}
+  const first=new Date(_calY,_calM,1);
+  const dim=new Date(_calY,_calM+1,0).getDate();
+  const title=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  let html=`<div class="cal-nav"><button onclick="calShift(-1)">‹</button><div class="cal-title">${title}</div><button onclick="calShift(1)">›</button></div>`;
+  html+=`<div class="cal-dow">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div>${d}</div>`).join('')}</div><div class="cal-grid">`;
+  for(let i=0;i<first.getDay();i++)html+=`<div class="cal-cell blank"></div>`;
+  for(let day=1;day<=dim;day++){
+    const dt=new Date(_calY,_calM,day);
+    const ds=fmtISO(dt);
+    html+=`<div class="cal-cell${ds===today()?' today':''}"><div class="cal-num" style="color:${DOW_CLR[dt.getDay()]}">${day}</div>${dayColHTML(ds)}</div>`;
+  }
+  html+=`</div>`;
   document.getElementById('cal-list').innerHTML=html;
   updateNameOverflowFades();
   document.getElementById('cal-mo').classList.remove('hidden');
 }
 
 function exportData(){const d={version:'20',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{
+function importData(e){const f=e.target.files[0];if(!f)return;if(!confirm('Replace everything in Fleur with this file?')){e.target.value='';return;}const r=new FileReader();r.onload=ev=>{try{
   const d=JSON.parse(ev.target.result);
   pu('import');
   // "Replace all" needs to actually record every task it's dropping as a
@@ -3432,23 +3536,41 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.
 // orphaned) — project context now lives as inline code comments
 // throughout this file instead of a separately generated/downloaded doc.
 const AI_NOTES_KEY='fleur_ai_notes';
+function readNotesBoxes(){
+  aiNotes=document.getElementById('ai-notes').value;
+  aiNotesB=document.getElementById('ai-notes-b').value;
+  aiNotesR=document.getElementById('ai-notes-r').value;
+}
 async function saveAiNotes(){
-  const v=document.getElementById('ai-notes').value;
-  aiNotes=v;
+  readNotesBoxes();
   const btn=document.getElementById('ai-notes-save-btn');
-  const orig=btn.textContent;btn.textContent='Saving…';
-  const d=sn();d.savedAt=Date.now();
-  // save() is fire-and-forget; for notes we do a targeted sync to confirm
-  localStorage.setItem(KEY,JSON.stringify(d));
-  try{
-    const r=await fetch('https://oldfleurplanner.netlify.app/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',state:d})});
-    btn.textContent=r.ok?'Saved ✓':'Saved locally';
-  }catch(e){btn.textContent='Saved locally';}
-  setTimeout(()=>btn.textContent=orig,2000);
+  const orig=btn.innerHTML;btn.innerHTML='<iconify-icon icon="mdi:content-save-cog-outline"></iconify-icon>';
+  save();
+  const ok=await syncNow(true);
+  btn.innerHTML=ok?'<iconify-icon icon="mdi:check"></iconify-icon>':'<iconify-icon icon="mdi:content-save-outline"></iconify-icon>';
+  setTimeout(()=>btn.innerHTML=orig,2000);
+}
+// "Cut all": copies everything in that column to the clipboard, and only if
+// the copy worked, clears the column (Undo brings it back).
+async function cutNotes(which){
+  const el=document.getElementById(which==='b'?'ai-notes-b':which==='r'?'ai-notes-r':'ai-notes');
+  if(!el||!el.value)return;
+  el.focus();el.select();
+  let copied=false;
+  try{await navigator.clipboard.writeText(el.value);copied=true;}catch(e){}
+  if(!copied){try{copied=document.execCommand('copy');}catch(e){}}
+  if(!copied){alert('Could not copy — nothing was cleared.');return;}
+  pu('cutNotes');
+  el.value='';
+  readNotesBoxes();
+  save();
+  showU('Cut to clipboard');
 }
 function loadAiNotes(){
   const el=document.getElementById('ai-notes');if(!el)return;
   el.value=aiNotes||localStorage.getItem(AI_NOTES_KEY)||'';
+  const b=document.getElementById('ai-notes-b'),r=document.getElementById('ai-notes-r');
+  if(b)b.value=aiNotesB||'';if(r)r.value=aiNotesR||'';
 }
 setInterval(()=>{if(!document.hidden&&!_pulling){chkDay();chkTimeWaits();}},60000);
 load().then(()=>{_appReady=true;ra();syncSelects();chkTimeWaits();});
@@ -3477,10 +3599,10 @@ setTimeout(reportFleurHeight,300); // catch late web-font reflow
 
 <!-- Calendar modal -->
 <div class="mo hidden" id="cal-mo">
-  <div class="md" style="max-width:92vw;width:860px">
-    <h2 style="text-align:center;font-size:1.4rem">📅</h2>
-    <div id="cal-list" style="display:flex;flex-direction:column;gap:12px;max-height:70vh;overflow-y:auto;padding-right:4px"></div>
-    <div class="mf"><button class="mcan" onclick="closeM('cal-mo')">Close</button></div>
+  <div class="md" style="max-width:96vw;width:1150px">
+    
+    <div id="cal-list" style="display:flex;flex-direction:column;gap:6px;max-height:74vh;overflow-y:auto;padding-right:4px"></div>
+    <div class="mf"><button class="mcan" onclick="closeM('cal-mo')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button></div>
   </div>
 </div>
 </body>
