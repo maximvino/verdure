@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 32</title>
+<title>Fleur · 33</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -267,10 +267,10 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 
 /* ── Control dock (Add/Cat/AI consolidated) ── */
 .dock{width:100%;margin-bottom:12px}
-.dock-top{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;padding:10px 0}
-.dock-sep{width:1px;height:28px;background:rgba(190,220,170,.18);flex-shrink:0}
+.dock-top{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0}
+.dock-sep{display:none}
 @media (max-width:480px){.dock-sep{display:none}}
-.dock-icons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.dock-icons{display:flex;justify-content:center;gap:28px;flex-wrap:nowrap}
 @media (max-width:600px){
   /* seven tools, flush edge to edge in seven equal columns (same rhythm as Branche) */
   .dock-top{gap:6px;padding:6px 0}
@@ -292,7 +292,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 /* Preset row — shares a line with dock-icons on desktop via .dock-top's
    flex-wrap; falls back to stacking below on narrow/mobile widths purely
    because it no longer fits, no separate media query needed. */
-.preset-row{display:grid;gap:8px;justify-content:center}
+.preset-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto}
 .preset-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,background .12s;flex-shrink:0;color:var(--sage)}
 .preset-btn:hover{transform:scale(1.1);background:rgba(255,255,255,.05)}
 .preset-btn:active{transform:scale(.94)}
@@ -624,7 +624,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:8px">
-          <button id="ai-notes-save-btn" onclick="saveAiNotes()" title="Save all three columns (⌘/Ctrl+S)" style="height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:13px;cursor:pointer;color:var(--ink)"><iconify-icon icon="mdi:content-save-outline"></iconify-icon></button>
+          <button id="ai-notes-save-btn" onclick="event.stopPropagation();saveAiNotes()" title="Save all three columns (⌘/Ctrl+S)" style="height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,20,.7);font-size:13px;cursor:pointer;color:var(--ink)"><iconify-icon icon="mdi:content-save-outline"></iconify-icon></button>
         </div>
       </div>
       <!-- Advanced pane (repeating + presets) -->
@@ -916,7 +916,7 @@ let undos=[],uTimer=null,editTid=null,editCid=null,dragTid=null,catDragId=null,p
 let completedToday=[];  // {id,name,color} — tasks completed this session
 
 // ── Persist ──────────────────────────────────────────────────────
-function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,aiNotesB,aiNotesR,plantIcons,deletedIds,deletedCatIds}));}
+function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,aiNotesB,aiNotesR,plantIcons,deletedIds,deletedCatIds,fieldTs}));}
 function ap(s){
   tasks=s.tasks||[];
   deletedIds=s.deletedIds||[];deletedCatIds=s.deletedCatIds||[];
@@ -981,7 +981,8 @@ function ap(s){
   // Build 11: migrate any preset still carrying a raw unicode emoji (from
   // before the Iconify switch) to its matching Iconify id, once.
   presets.forEach(p=>{if(p.emoji&&!p.emoji.includes(':'))p.emoji=EMOJI_TO_ICON[p.emoji]||'mdi:checkbox-marked-circle-outline';});
-  aiNotes=s.aiNotes||aiNotes||'';aiNotesB=s.aiNotesB||aiNotesB||'';aiNotesR=s.aiNotesR||aiNotesR||'';
+  fieldTs=s.fieldTs||{};
+  aiNotes=(s.aiNotes!==undefined)?s.aiNotes:(aiNotes||'');aiNotesB=(s.aiNotesB!==undefined)?s.aiNotesB:(aiNotesB||'');aiNotesR=(s.aiNotesR!==undefined)?s.aiNotesR:(aiNotesR||'');
   // If no presets in loaded state, try to recover from any other local key
   if(!presets.length){
     for(let i=0;i<localStorage.length;i++){
@@ -1025,7 +1026,37 @@ function taskSig(t){
   // keys so two logically-identical tasks can't compare unequal purely
   // because of object key order (JSON.stringify alone doesn't normalize
   // that).
-  return JSON.stringify(t,Object.keys(t).sort());
+  return stable(t);
+}
+function stable(v){ // order-independent signature, nested objects included
+  if(v===undefined)return'u';
+  if(v&&typeof v==='object'){
+    if(Array.isArray(v))return'['+v.map(stable).join(',')+']';
+    return'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}';
+  }
+  return JSON.stringify(v);
+}
+// Build 33: field-level merge. Every task/category carries a time for EACH
+// field (ft). When two browsers changed the same task, each field is taken
+// from whichever browser changed THAT field most recently -- so completing a
+// repeating task on one browser can no longer wipe out a repeat-day edit made
+// on another (it used to take the whole task from the newest save).
+function stampOf(x,k){ // tasks with per-field times: a field never changed since tracking began counts as oldest; older (pre-tracking) tasks fall back to the task's own time
+  if(x.ft)return x.ft[k]||0;
+  return x.updatedAt||0;
+}
+function mergeFields(o,t,preferOurs){
+  const out={},ft={};
+  const keys=new Set([...Object.keys(o),...Object.keys(t)]);
+  keys.delete('ft');keys.delete('updatedAt');
+  keys.forEach(k=>{
+    const so=stampOf(o,k),st=stampOf(t,k);
+    const pick=so>st?o:(st>so?t:(preferOurs?o:t));
+    if(k in pick)out[k]=pick[k];
+    ft[k]=Math.max(so,st);
+  });
+  out.ft=ft;out.updatedAt=Math.max(o.updatedAt||0,t.updatedAt||0);
+  return out;
 }
 function deadSet(a,b){
   // newest tombstone per id; a "revived" entry (undo / un-complete) cancels a deletion
@@ -1049,8 +1080,7 @@ function mergeTaskArrays(ours,theirs,ourDeleted,theirDeleted,preferOurs){
     const o=oMap.get(id),t=tMap.get(id);
     if(o&&t){
       if(taskSig(o)===taskSig(t)){result.push(o);return;}
-      const ou=o.updatedAt||0,tu=t.updatedAt||0;
-      result.push(ou!==tu?(ou>tu?o:t):(preferOurs?o:t));
+      result.push(mergeFields(o,t,preferOurs));
     }else result.push(o||t);
   });
   return result;
@@ -1086,13 +1116,34 @@ function setSyncStatus(state){
 let _hlc=0;
 function nextStamp(){_hlc=Math.max(Date.now(),_hlc+1);return _hlc;}
 function noteStamps(arr){(arr||[]).forEach(x=>{if(x&&x.updatedAt>_hlc)_hlc=x.updatedAt;});}
-let taskSigs=new Map(),catSigs=new Map();
-function sigNoTs(t){const {updatedAt,...rest}=t;return taskSig(rest);}
-function snapSigs(){taskSigs=new Map(tasks.map(t=>[t.id,sigNoTs(t)]));catSigs=new Map(cats.map(c=>[c.id,sigNoTs(c)]));}
+// Settings-type data (notes, presets, theme, dock icons, ...) is merged per
+// field too, each with its own change time (fieldTs) -- so a save of something
+// unrelated on a stale browser can't drag old notes/presets over newer ones.
+const SETTINGS=['colStyles','colMin','gTheme','presets','completedToday','aiNotes','aiNotesB','aiNotesR','plantIcons'];
+let fieldTs={};
+let taskSnap=new Map(),catSnap=new Map(),setSnap={};
+function fieldMap(o){const m={};for(const k in o){if(k==='updatedAt'||k==='ft')continue;m[k]=JSON.stringify(o[k]);}return m;}
+function snapSigs(cur){
+  taskSnap=new Map(tasks.map(t=>[t.id,fieldMap(t)]));
+  catSnap=new Map(cats.map(c=>[c.id,fieldMap(c)]));
+  cur=cur||sn();setSnap={};SETTINGS.forEach(f=>{setSnap[f]=JSON.stringify(cur[f]);});
+}
+function stampObj(o,snap,now){
+  const prev=snap.get(o.id),cur=fieldMap(o);
+  const ch=[];
+  for(const k in cur){if(!prev||prev[k]!==cur[k])ch.push(k);}
+  if(prev){for(const k in prev){if(!(k in cur))ch.push(k);}}
+  if(!ch.length)return;
+  if(!o.ft)o.ft={};
+  ch.forEach(k=>{o.ft[k]=now;});
+  o.updatedAt=now;
+}
 function stampChanges(){
   const now=nextStamp();
-  tasks.forEach(t=>{if(taskSigs.get(t.id)!==sigNoTs(t))t.updatedAt=now;});
-  cats.forEach(c=>{if(catSigs.get(c.id)!==sigNoTs(c))c.updatedAt=now;});
+  tasks.forEach(t=>stampObj(t,taskSnap,now));
+  cats.forEach(c=>stampObj(c,catSnap,now));
+  const cur=sn();
+  SETTINGS.forEach(f=>{if(setSnap[f]!==undefined&&setSnap[f]!==JSON.stringify(cur[f]))fieldTs[f]=now;});
   snapSigs();
 }
 function listKey(arr){return JSON.stringify([...(arr||[])].sort((a,b)=>a.id-b.id).map(x=>taskSig(x)));}
@@ -1122,12 +1173,24 @@ async function syncOnce(force,depth){
     const mDel=mergeDeletedIds(deletedIds,remote.deletedIds||[]);
     const mCats=mergeTaskArrays(cats,rCats,deletedCatIds,remote.deletedCatIds||[],false);
     const mCatDel=mergeDeletedIds(deletedCatIds,remote.deletedCatIds||[]);
-    const changed=listKey(mTasks)!==listKey(tasks)||listKey(mCats)!==listKey(cats)||remoteTs>lastSavedAt;
+    const cur=sn();
+    const baseS=remoteTs>lastSavedAt?remote:cur;
+    const out={...baseS,tasks:mTasks,cats:mCats,deletedIds:mDel,deletedCatIds:mCatDel};
+    const ts={...(remote.fieldTs||{})};
+    SETTINGS.forEach(f=>{
+      const lt=fieldTs[f]||0,rt=(remote.fieldTs&&remote.fieldTs[f])||0;
+      if(rt>lt){out[f]=remote[f];ts[f]=rt;}
+      else if(lt>rt){out[f]=cur[f];ts[f]=lt;}
+      else{out[f]=baseS[f];ts[f]=lt;}
+    });
+    out.fieldTs=ts;
+    out.tid=Math.max(cur.tid||0,remote.tid||0);out.cid=Math.max(cur.cid||0,remote.cid||0);out.pid=Math.max(cur.pid||0,remote.pid||0);
+    const setChanged=SETTINGS.some(f=>JSON.stringify(out[f])!==JSON.stringify(cur[f]));
+    const changed=listKey(mTasks)!==listKey(tasks)||listKey(mCats)!==listKey(cats)||setChanged;
     if(changed){
-      const base=remoteTs>lastSavedAt?remote:sn(); // other settings: whichever side saved most recently
-      ap({...base,tasks:mTasks,cats:mCats,deletedIds:mDel,deletedCatIds:mCatDel});
-      snapSigs();if(_appReady)ra();
-    }else{deletedIds=mDel;deletedCatIds=mCatDel;}
+      ap(out);
+      snapSigs();if(_appReady){ra();refreshNotes();}
+    }else{deletedIds=mDel;deletedCatIds=mCatDel;fieldTs=ts;}
   }
   const d=sn();
   d.savedAt=Math.max(Date.now(),remoteTs+1,lastSavedAt+1);lastSavedAt=d.savedAt;
@@ -1135,7 +1198,8 @@ async function syncOnce(force,depth){
   const rc=remote?(remote.cats||remote.categories||[]):[];
   const needPush=force||localStorage.getItem(PKEY)==='1'||!remote
     ||listKey(d.tasks)!==listKey(remote.tasks||[])||listKey(d.cats)!==listKey(rc)
-    ||listKey(d.deletedIds)!==listKey(remote.deletedIds||[])||listKey(d.deletedCatIds)!==listKey(remote.deletedCatIds||[]);
+    ||listKey(d.deletedIds)!==listKey(remote.deletedIds||[])||listKey(d.deletedCatIds)!==listKey(remote.deletedCatIds||[])
+    ||SETTINGS.some(f=>JSON.stringify(d[f])!==JSON.stringify(remote[f]))||JSON.stringify(d.fieldTs||{})!==JSON.stringify(remote.fieldTs||{});
   if(!needPush){setSyncStatus('ok');return true;}
   for(let a=0;a<3;a++){
     try{
@@ -1189,6 +1253,8 @@ document.addEventListener('visibilitychange',()=>{
   else if(localStorage.getItem(PKEY)==='1')syncNow(false);
 });
 window.addEventListener('focus',pullFresh);
+window.addEventListener('pageshow',pullFresh);
+window.addEventListener('online',()=>syncNow(false));
 setInterval(()=>{if(!document.hidden)pullFresh();},120000);
 async function load(){
   let ok=false;
@@ -1699,6 +1765,7 @@ function showTransferMenu(){
 document.addEventListener('click',e=>{
   const panel=document.getElementById('dock-panel');
   if(!panel||!panel.classList.contains('open')||!_activePane)return;
+  if(!e.target.isConnected)return; // the clicked element was replaced during its own handler (e.g. a button swapping its icon)
   if(panel.contains(e.target))return;
   if(e.target.closest('.dock-icon'))return; // the icon's own onclick already toggles
   switchPane(_activePane);
@@ -2155,7 +2222,7 @@ function dayColDblClick(e,dateStr){
 function renderPresetRow(){
   const row=document.getElementById('preset-row');if(!row)return;
   const vis=presets.filter(p=>!p.groupBreak);
-  if(!vis.length){row.innerHTML='';row.style.gridTemplateColumns='';return;}
+  if(!vis.length){row.innerHTML='';row.style.maxWidth='';return;}
   const n=vis.length;
   // Smart grid: find most square-ish column count that divides evenly or near-evenly
   // Up to 6: one row. 7+: find best cols so rows are as uniform as possible
@@ -2168,7 +2235,7 @@ function renderPresetRow(){
   else if(n<=16){cols=4;}     // 4x4
   else if(n<=18){cols=6;}     // 3x6
   else{cols=6;}               // 6 per row for anything larger
-  row.style.gridTemplateColumns=`repeat(${cols},44px)`;
+  row.style.maxWidth=(cols*44+(cols-1)*8)+'px'; // wraps into rows of `cols`, every row centered (incl. a shorter last row)
   row.innerHTML=vis.map(p=>`<div class="preset-btn" onclick="firePreset(${p.id})" title="${esc(p.label||p.tasks.map(t=>t.name).join(', '))}"><iconify-icon icon="${p.emoji}"></iconify-icon></div>`).join('');
 }
 
@@ -3543,11 +3610,20 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.
 // orphaned) — project context now lives as inline code comments
 // throughout this file instead of a separately generated/downloaded doc.
 const AI_NOTES_KEY='fleur_ai_notes';
-function readNotesBoxes(){
-  aiNotes=document.getElementById('ai-notes').value;
-  aiNotesB=document.getElementById('ai-notes-b').value;
-  aiNotesR=document.getElementById('ai-notes-r').value;
+const notesDirty={};
+function readNotesBoxes(){ // only boxes actually edited here -- an untouched (possibly stale) box must never overwrite newer notes
+  const set={'ai-notes':v=>{aiNotes=v;},'ai-notes-b':v=>{aiNotesB=v;},'ai-notes-r':v=>{aiNotesR=v;}};
+  for(const id in set){if(notesDirty[id]){set[id](document.getElementById(id).value);notesDirty[id]=false;}}
 }
+function refreshNotes(){
+  const put=(id,v)=>{const el=document.getElementById(id);if(el&&!notesDirty[id]&&el.value!==(v||''))el.value=v||'';};
+  put('ai-notes',aiNotes);put('ai-notes-b',aiNotesB);put('ai-notes-r',aiNotesR);
+}
+['ai-notes','ai-notes-b','ai-notes-r'].forEach(id=>{
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',()=>{notesDirty[id]=true;});
+  el.addEventListener('change',()=>{readNotesBoxes();save();}); // autosave when you click away
+});
 async function saveAiNotes(){
   readNotesBoxes();
   const btn=document.getElementById('ai-notes-save-btn');
@@ -3569,15 +3645,15 @@ async function cutNotes(which){
   if(!copied){alert('Could not copy — nothing was cleared.');return;}
   pu('cutNotes');
   el.value='';
+  notesDirty[el.id]=true;
   readNotesBoxes();
   save();
   showU('Cut to clipboard');
 }
 function loadAiNotes(){
   const el=document.getElementById('ai-notes');if(!el)return;
-  el.value=aiNotes||localStorage.getItem(AI_NOTES_KEY)||'';
-  const b=document.getElementById('ai-notes-b'),r=document.getElementById('ai-notes-r');
-  if(b)b.value=aiNotesB||'';if(r)r.value=aiNotesR||'';
+  if(!notesDirty['ai-notes'])el.value=aiNotes||localStorage.getItem(AI_NOTES_KEY)||'';
+  refreshNotes();
 }
 setInterval(()=>{if(!document.hidden&&!_pulling){chkDay();chkTimeWaits();}},60000);
 load().then(()=>{_appReady=true;ra();syncSelects();chkTimeWaits();});
