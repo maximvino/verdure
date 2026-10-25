@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 35</title>
+<title>Fleur · 36</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -1150,17 +1150,24 @@ function stampObj(o,snap,now){
   const ch=[];
   for(const k in cur){if(!prev||prev[k]!==cur[k])ch.push(k);}
   if(prev){for(const k in prev){if(!(k in cur))ch.push(k);}}
-  if(!ch.length)return;
+  if(!ch.length)return false;
   if(!o.ft)o.ft={};
   ch.forEach(k=>{o.ft[k]=now;});
   o.updatedAt=now;
+  return true;
 }
+let lastTouched={tasks:[],cats:[],settings:[]};
 function stampChanges(){
   const now=nextStamp();
-  tasks.forEach(t=>stampObj(t,taskSnap,now));
-  cats.forEach(c=>stampObj(c,catSnap,now));
+  const touched={tasks:[],cats:[],settings:[]};
+  tasks.forEach(t=>{if(stampObj(t,taskSnap,now))touched.tasks.push(t.id);});
+  cats.forEach(c=>{if(stampObj(c,catSnap,now))touched.cats.push(c.id);});
+  const tIds=new Set(tasks.map(t=>t.id)),cIds=new Set(cats.map(c=>c.id));
+  taskSnap.forEach((_,id)=>{if(!tIds.has(id))touched.tasks.push(id);});   // removed since the last snapshot
+  catSnap.forEach((_,id)=>{if(!cIds.has(id))touched.cats.push(id);});
   const cur=sn();
-  SETTINGS.forEach(f=>{if(setSnap[f]!==undefined&&setSnap[f]!==JSON.stringify(cur[f]))fieldTs[f]=now;});
+  SETTINGS.forEach(f=>{if(setSnap[f]!==undefined&&setSnap[f]!==JSON.stringify(cur[f])){fieldTs[f]=now;touched.settings.push(f);}});
+  lastTouched=touched;
   snapSigs();
 }
 function listKey(arr){return JSON.stringify([...(arr||[])].sort((a,b)=>a.id-b.id).map(x=>taskSig(x)));}
@@ -1250,6 +1257,7 @@ function syncNow(force){
 function syncPush(){return syncNow(true);} // legacy name
 function save(){
   stampChanges();
+  {const top=undos[undos.length-1];if(top&&top.touched===undefined)top.touched=lastTouched;} // remember exactly what this action changed, so Undo restores only that
   const d=sn();
   d.savedAt=Date.now();lastSavedAt=Math.max(lastSavedAt,d.savedAt);
   localStorage.setItem(KEY,JSON.stringify(d));
@@ -1470,15 +1478,45 @@ function nextOccurrenceDate(rep,repeatDays,repeatMonthDay,repeatStart){
 function chkDay(){if(today()!==_day){dayTrans(true);ra();}}
 
 // ── Undo ─────────────────────────────────────────────────────────
-function pu(l){undos.push({l,s:sn()});if(undos.length>50)undos.shift();}
+function pu(l){undos.push({l,s:sn(),touched:undefined});if(undos.length>50)undos.shift();}
+function reviveCatId(id){
+  const maxAt=Math.max(0,...deletedCatIds.filter(d=>d.id===id).map(d=>d.at));
+  deletedCatIds=deletedCatIds.filter(d=>d.id!==id);
+  deletedCatIds.push({id,at:Math.max(Date.now(),maxAt+1),revived:true});
+}
+// Build 36: Undo now puts back ONLY what the action changed. It used to restore
+// a snapshot of everything, which -- after a sync -- could quietly revert
+// another browser's edits to unrelated tasks and push that back to the cloud.
 function undo(){
   if(!undos.length)return;const e=undos.pop();
-  const prevT=deletedIds,prevC=deletedCatIds;
-  ap(e.s);
-  const tIds=new Set(tasks.map(t=>t.id)),cIds=new Set(cats.map(c=>c.id));
-  const rv=(prev,ids)=>prev.filter(d=>ids.has(d.id)).map(d=>({id:d.id,at:Math.max(Date.now(),d.at+1),revived:true}));
-  deletedIds=mergeDeletedIds(mergeDeletedIds(deletedIds,prevT),rv(prevT,tIds));
-  deletedCatIds=mergeDeletedIds(mergeDeletedIds(deletedCatIds,prevC),rv(prevC,cIds));
+  const tch=e.touched,S=e.s;
+  if(!tch){
+    // the action hadn't saved anything yet -- nothing to put back
+  }else{
+    const sT=new Map((S.tasks||[]).map(t=>[t.id,t])),sC=new Map((S.cats||[]).map(c=>[c.id,c]));
+    const tIds=new Set(tch.tasks),cIds=new Set(tch.cats);
+    const addedT=tasks.filter(t=>tIds.has(t.id)&&!sT.has(t.id)).map(t=>t.id);       // created by the action -> remove again
+    if(addedT.length){markDeleted(addedT);tasks=tasks.filter(t=>!addedT.includes(t.id));}
+    tIds.forEach(id=>{                                                                // changed or removed by the action -> earlier version back
+      const old=sT.get(id);if(!old)return;
+      const copy=JSON.parse(JSON.stringify(old)),i=tasks.findIndex(t=>t.id===id);
+      if(i>=0)tasks[i]=copy;else tasks.push(copy);
+      if(deletedIds.some(d=>d.id===id))reviveId(id);
+    });
+    const addedC=cats.filter(c=>cIds.has(c.id)&&!sC.has(c.id)).map(c=>c.id);
+    if(addedC.length){addedC.forEach(id=>{deletedCatIds=deletedCatIds.filter(d=>d.id!==id);deletedCatIds.push({id,at:Date.now()});});cats=cats.filter(c=>!addedC.includes(c.id));}
+    cIds.forEach(id=>{
+      const old=sC.get(id);if(!old)return;
+      const copy=JSON.parse(JSON.stringify(old)),i=cats.findIndex(c=>c.id===id);
+      if(i>=0)cats[i]=copy;else cats.push(copy);
+      if(deletedCatIds.some(d=>d.id===id))reviveCatId(id);
+    });
+    if(tch.settings.length){
+      const cur=sn();
+      tch.settings.forEach(f=>{cur[f]=JSON.parse(JSON.stringify(S[f]===undefined?null:S[f]));});
+      ap(cur);
+    }
+  }
   save();ra();hideU();showU('Undone');
 }
 function showU(l){clearTimeout(uTimer);document.getElementById('ul').textContent=l;document.getElementById('ub').classList.remove('hidden');uTimer=setTimeout(hideU,5000);}
