@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 34</title>
+<title>Fleur · 35</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -451,6 +451,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .ubtn{font-size:17px;display:inline-flex}
 .sn-wait-btn iconify-icon,.sn-link-btn iconify-icon{font-size:12px;vertical-align:middle}
 .casu-pin-label iconify-icon,.casu-pin-zone iconify-icon{font-size:13px}
+
+/* Sub-tasks */
+.sub-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(190,220,170,.18);border-radius:12px;cursor:pointer;color:var(--ink);user-select:none;-webkit-user-select:none;font-size:14px}
+.sub-row iconify-icon{font-size:22px;color:var(--sage);flex-shrink:0}
+.sub-row.done{opacity:.45;text-decoration:line-through}
+.sn-subs{font-size:9px;color:var(--ink3);display:inline-flex;align-items:center;gap:2px}
+.sn-subs iconify-icon{font-size:11px}
 </style>
 </head>
 <body>
@@ -503,6 +510,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
           <div class="em-pill ap-pill" id="ap-link" title="Link" onclick="aemToggle('link')"><iconify-icon icon="mdi:link-variant"></iconify-icon></div>
           <div class="em-pill ap-pill" id="ap-rep" title="Repeat" onclick="aemToggle('rep')"><iconify-icon icon="mdi:repeat"></iconify-icon></div>
           <div class="em-pill ap-pill" id="ap-notes" title="Notes" onclick="aemToggle('notes')"><iconify-icon icon="mdi:note-text-outline"></iconify-icon></div>
+          <div class="em-pill ap-pill" id="ap-subs" title="Sub-tasks" onclick="aemToggle('subs')"><iconify-icon icon="mdi:format-list-checks"></iconify-icon></div>
           <div class="em-pill ap-pill" id="ap-urgent" title="Urgent" onclick="aemToggleUrgent()"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div>
           <div class="em-pill ap-pill" id="ap-pin" title="Pin to watch list" onclick="aemTogglePin()"><iconify-icon icon="mdi:pin-outline"></iconify-icon></div>
         </div>
@@ -564,6 +572,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
             <option value="monthly-end">Monthly (last day)</option>
           </select>
         </div>
+        <div class="em-sub" id="as-subs"><textarea class="fi" id="asubs" placeholder="One per line" oninput="document.getElementById('ap-subs').classList.toggle('has-val',!!this.value.trim())" style="min-height:70px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea></div>
         <div class="em-sub" id="as-notes"><textarea class="fi" id="anotes" placeholder="Add a note…" maxlength="500" style="min-height:70px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea></div>
         <!-- hidden compat -->
         <select id="ac" style="display:none"></select>
@@ -739,6 +748,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       <div class="em-pill" id="ep-rep" title="Repeat" onclick="emToggle('rep')"><iconify-icon icon="mdi:repeat"></iconify-icon></div>
       <!-- 📝 Notes -->
       <div class="em-pill" id="ep-notes" title="Notes" onclick="emToggle('notes')"><iconify-icon icon="mdi:note-text-outline"></iconify-icon></div>
+      <div class="em-pill" id="ep-subs" title="Sub-tasks" onclick="emToggle('subs')"><iconify-icon icon="mdi:format-list-checks"></iconify-icon></div>
       <!-- 🚨 Urgent toggle -->
       <div class="em-pill" id="ep-urgent" title="Urgent" onclick="emToggleUrgent()"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div>
       <!-- 📍 Pin to watch list -->
@@ -830,6 +840,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
     </div>
 
     <!-- Notes sub -->
+    <div class="em-sub" id="es-subs"><textarea class="fi" id="esubs" placeholder="One per line" oninput="document.getElementById('ep-subs').classList.toggle('has-val',!!this.value.trim())" style="min-height:80px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea></div>
     <div class="em-sub" id="es-notes">
       <textarea class="fi" id="enotes" placeholder="Add a note…" maxlength="500" style="min-height:80px;resize:none;font-family:var(--font-b);line-height:1.5"></textarea>
     </div>
@@ -865,6 +876,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   </div>
 </div>
 <!-- Drop modal -->
+<div class="mo hidden" id="subs-mo" onclick="if(event.target===this)closeM('subs-mo')">
+  <div class="md" style="max-width:360px">
+    <div id="subs-title" style="font-family:var(--font-h);font-size:1.1rem;color:var(--ink);text-align:center"></div>
+    <div id="subs-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="mf"><button class="mcan" onclick="closeM('subs-mo')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button></div>
+  </div>
+</div>
 <div class="mo hidden" id="dm">
   <div class="md">
     <h2 id="dm-title">Move task</h2>
@@ -1049,6 +1067,7 @@ function mergeFields(o,t,preferOurs){
   keys.delete('ft');keys.delete('updatedAt');
   keys.forEach(k=>{
     const so=stampOf(o,k),st=stampOf(t,k);
+    if(k==='subs'&&Array.isArray(o.subs)&&Array.isArray(t.subs)){out.subs=mergeSubs(o.subs,t.subs,preferOurs);ft[k]=Math.max(so,st);return;}
     const pick=so>st?o:(st>so?t:(preferOurs?o:t));
     if(k in pick)out[k]=pick[k];
     ft[k]=Math.max(so,st);
@@ -1906,6 +1925,8 @@ function snHTML(task,ctx){
   const waitIcon=wn?`<button class="sn-wait-btn" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();this.closest('.sn').classList.toggle('wait-open')" title="${esc(wn)}"><iconify-icon icon="mdi:timer-sand"></iconify-icon></button>`:'';
   const linkIcon=task.link?`<a class="sn-link-btn" href="${esc(task.link)}" target="_blank" rel="noopener" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()" title="Open link"><iconify-icon icon="mdi:open-in-new"></iconify-icon></a>`:'';
   const dateBadge=dateStr?`<span class="${dateCls}">${esc(dateStr)}</span>`:'';
+  const _ls=liveSubs(task);
+  const subBadge=_ls.length?`<span class="sn-subs"><iconify-icon icon="mdi:format-list-checks"></iconify-icon>${_ls.filter(x=>x.done).length}/${_ls.length}</span>`:'';
   // Build 17 — explicit request: no repeat symbol badge on task rows.
   const timeStr=task.deadlineTime?fmtTime(task.deadlineTime):'';
   const isFaded=task.fadedUntil&&new Date(task.fadedUntil)>new Date();
@@ -1918,7 +1939,7 @@ function snHTML(task,ctx){
     <div class="sn-actions">${waitIcon}${linkIcon}</div>
     ${timeStr?`<span class="sn-time">${esc(timeStr)}</span>`:''}
     <span class="sn-name">${esc(task.name)}</span>
-    ${dateBadge?`<div class="sn-badges">${dateBadge}</div>`:''}
+    ${(dateBadge||subBadge)?`<div class="sn-badges">${dateBadge}${subBadge}</div>`:''}
     ${wn?`<div class="sn-wait-reveal">${esc(wn)}</div>`:''}
   </div>`;
 }
@@ -2765,7 +2786,7 @@ function uncomplete(id){
   const t=tasks.find(t=>t.id==id);
   if(t){t.done=false;}else{// Re-add
     reviveId(entry.id);
-    tasks.push({id:entry.id,name:entry.name,col:'today',deadlineDate:today(),deadlineTime:null,waitingFor:'',waitTaskId:null,repeatWaitTime:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:entry.categoryId||null,stickyColor:entry.color,paletteColor:''});
+    tasks.push({subs:entry.subs||[],id:entry.id,name:entry.name,col:'today',deadlineDate:today(),deadlineTime:null,waitingFor:'',waitTaskId:null,repeatWaitTime:null,done:false,repeat:'',repeatDays:[],repeatStart:null,categoryId:entry.categoryId||null,stickyColor:entry.color,paletteColor:''});
   }
   save();ra();
 }
@@ -2962,9 +2983,10 @@ function aemUpdateDatePill(){
 }
 function aemReset(){
   _aurgent=false;_aemOpen=null;
-  ['ap-col','ap-cat','ap-date','ap-wait','ap-link','ap-rep','ap-notes'].forEach(id=>{
+  ['ap-col','ap-cat','ap-date','ap-wait','ap-link','ap-rep','ap-notes','ap-subs'].forEach(id=>{
     const el=document.getElementById(id);if(el){el.style.background='';el.style.borderColor='';el.style.color='';el.classList.remove('has-val','active');}
   });
+  const sbx=document.getElementById('asubs');if(sbx)sbx.value='';
   document.getElementById('ap-urgent').classList.remove('lit');
   document.getElementById('ap-pin').classList.remove('lit');
   document.getElementById('apin').checked=false;
@@ -3029,7 +3051,7 @@ function addManual(){
   // automatically, same as the dedicated Casual quick-add already does.
   // Dragging it onto a day still auto-unpins it via dropDay(), unchanged.
   const finalCasuPin=casuPin||col==='casual';
-  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin:finalCasuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null,...readAfterWait('a')});
+  tasks.push({id:tid++,name,col,deadlineDate:effDate,deadlineTime:time,waitingFor:(col==='wait'&&!waitTaskId&&!waitUntil)?wait:'',waitTaskId:waitTaskId||null,waitUntil:waitUntil||null,repeatWaitTime:(arwaitChecked&&waitUntil&&!waitTaskId)?waitUntil.slice(11,16):null,done:false,urgent,casuPin:finalCasuPin,repeat:rep,repeatDays:repDays,repeatStart:repStart,repeatMonthDay:repMonthDay,categoryId:catId?parseInt(catId):null,stickyColor:'',link,paletteColor:'',notes,sortOrder:null,fadedUntil:null,...readAfterWait('a'),subs:parseSubs(document.getElementById('asubs')?.value||'',[])});
   // Reset
   document.getElementById('an').value='';document.getElementById('ad').value='';document.getElementById('at').value='';document.getElementById('aw').value='';if(document.getElementById('awt'))document.getElementById('awt').value='';if(document.getElementById('awu'))document.getElementById('awu').value='';if(document.getElementById('awu-date'))document.getElementById('awu-date').value='';if(document.getElementById('awu-time'))document.getElementById('awu-time').value='';if(document.getElementById('alink'))document.getElementById('alink').value='';if(document.getElementById('anotes'))document.getElementById('anotes').value='';
   aemReset();aemClose();save();ra();showU('Added');
@@ -3061,18 +3083,68 @@ function saveCat(){const c=cats.find(c=>c.id==editCid);if(!c)return;pu('editCat'
 function delCat(){pu('delCat');deletedCatIds=deletedCatIds.filter(d=>d.id!==editCid);deletedCatIds.push({id:editCid,at:Date.now()});cats=cats.filter(c=>c.id!==editCid);tasks.forEach(t=>{if(t.categoryId===editCid)t.categoryId=null;});closeM('cm');save();ra();}
 
 // ── Task actions ──────────────────────────────────────────────────
+// ── Sub-tasks ─────────────────────────────────────────────────────
+// A task with sub-tasks can't be completed directly: double-tapping it opens
+// its sub-tasks instead. Each sub-task is double-tapped to complete; when the
+// last one is done the task itself completes. For repeating tasks, finishing
+// the task OR a new occurrence arriving (e.g. the next day for a daily task)
+// resets every sub-task, so progress never carries over into a new cycle.
+let _subsTid=null;const _subTap={};
+function liveSubs(t){return(t.subs||[]).filter(x=>!x.del);}
+function subsOpen(t){return liveSubs(t).some(x=>!x.done);}
+function resetSubs(t){const n=nextStamp();(t.subs||[]).forEach(x=>{if(x.done){x.done=false;x.ts=n;}});}
+function parseSubs(text,existing){
+  const lines=String(text||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  const pool=(existing||[]).filter(x=>!x.del);
+  const n=nextStamp();const out=[];
+  lines.forEach(name=>{
+    const i=pool.findIndex(x=>x.name===name);
+    if(i>=0)out.push(pool.splice(i,1)[0]);
+    else out.push({id:'s'+n.toString(36)+Math.random().toString(36).slice(2,6),name,done:false,ts:n});
+  });
+  pool.forEach(x=>out.push({...x,del:true,ts:n})); // removed -> kept as a soft-delete so other browsers drop it too
+  (existing||[]).filter(x=>x.del&&n-(x.ts||0)<30*864e5).forEach(x=>out.push(x));
+  return out;
+}
+function mergeSubs(a,b,preferA){
+  const bm=new Map(b.map(x=>[x.id,x]));const seen=new Set();const out=[];
+  a.forEach(x=>{seen.add(x.id);const y=bm.get(x.id);
+    if(!y){out.push(x);return;}
+    const xt=x.ts||0,yt=y.ts||0;out.push(xt>yt?x:(yt>xt?y:(preferA?x:y)));});
+  b.forEach(y=>{if(!seen.has(y.id))out.push(y);});
+  return out;
+}
+function openSubs(id){const t=tasks.find(x=>x.id==id);if(!t)return;_subsTid=id;renderSubs();document.getElementById('subs-mo').classList.remove('hidden');}
+function renderSubs(){
+  const t=tasks.find(x=>x.id==_subsTid);if(!t)return;
+  document.getElementById('subs-title').textContent=t.name;
+  document.getElementById('subs-list').innerHTML=liveSubs(t).map(x=>`<div class="sub-row${x.done?' done':''}" onclick="subTap(${t.id},'${x.id}')"><iconify-icon icon="mdi:${x.done?'check-circle':'circle-outline'}"></iconify-icon><span>${esc(x.name)}</span></div>`).join('');
+}
+function subTap(tid,sid){
+  const k=tid+':'+sid,now=Date.now();
+  if(_subTap[k]&&now-_subTap[k]<400){_subTap[k]=0;toggleSub(tid,sid);}else _subTap[k]=now;
+}
+function toggleSub(tid,sid){
+  const t=tasks.find(x=>x.id==tid);if(!t)return;
+  const x=(t.subs||[]).find(y=>y.id===sid);if(!x)return;
+  pu('sub');x.done=!x.done;x.ts=nextStamp();
+  save();
+  if(!subsOpen(t)){closeM('subs-mo');ra();chk(tid);return;} // last sub-task done -> the task is complete
+  renderSubs();ra();
+}
 function chk(id){
+  {const t0=tasks.find(t=>t.id==id);if(t0&&!t0.done&&subsOpen(t0)){openSubs(id);return;}}
   pu('chk');const t=tasks.find(t=>t.id==id);if(!t)return;
   if(!t.done){
     // Animate the sticky note out, then commit state
     document.querySelectorAll(`[data-tid="${id}"]`).forEach(el=>el.classList.add('completing'));
     setTimeout(()=>{
       t.done=true;liberateDeps(id);
-      completedToday.push({id:t.id,name:t.name,color:snColor(t,'day'),categoryId:t.categoryId});
+      completedToday.push({id:t.id,name:t.name,color:snColor(t,'day'),categoryId:t.categoryId,subs:liveSubs(t).map(x=>({...x,done:false}))});
       if(!t.repeat){markDeleted(id);tasks=tasks.filter(x=>x.id!==id);}
       else{
         // Repeating: advance to the next real occurrence of the pattern
-        t.done=false;
+        t.done=false;resetSubs(t);
         const t0=today();
         const after=(t.deadlineDate&&t.deadlineDate>t0)?t.deadlineDate:t0;
         if((t.repeat==='weekly'||t.repeat==='biweekly')&&!t.repeatStart)t.repeatStart=t.deadlineDate||t0;
@@ -3231,6 +3303,8 @@ function emSyncPills(t){
   const np=document.getElementById('ep-notes');
   np.classList.toggle('has-val',!!t.notes);
   if(!t.notes){np.style.background='';np.style.borderColor='';}
+  const sp=document.getElementById('ep-subs');const hasSubs=liveSubs(t).length>0;
+  sp.classList.toggle('has-val',hasSubs);if(!hasSubs){sp.style.background='';sp.style.borderColor='';}
   // Urgent pill
   document.getElementById('ep-urgent').classList.toggle('lit',!!t.urgent);
   document.getElementById('eurgent').checked=!!t.urgent;
@@ -3268,9 +3342,10 @@ function openTask(id){
   if(document.getElementById('emonthday'))document.getElementById('emonthday').value=t.repeatMonthDay||'';
   syncSelects();document.getElementById('ec').value=t.categoryId||'';
   document.getElementById('enotes').value=t.notes||'';
+  document.getElementById('esubs').value=liveSubs(t).map(x=>x.name).join('\n');
   emClose();
   // Reset pill styles before sync
-  ['ep-col','ep-cat','ep-date','ep-wait','ep-link','ep-rep','ep-notes'].forEach(id=>{
+  ['ep-col','ep-cat','ep-date','ep-wait','ep-link','ep-rep','ep-notes','ep-subs'].forEach(id=>{
     const el=document.getElementById(id);if(el){el.style.background='';el.style.borderColor='';el.style.color='';}
   });
   emSyncPills(t);
@@ -3307,6 +3382,7 @@ function saveTask(){
   t.repeatDays=t.repeat==='custom'?getDays('edit-days'):[];
   t.repeatMonthDay=t.repeat==='monthly-day'?parseInt(document.getElementById('emonthday')?.value||1):null;
   const cv=document.getElementById('ec').value;t.categoryId=cv?parseInt(cv):null;
+  t.subs=parseSubs(document.getElementById('esubs').value,t.subs||[]);
   t.notes=document.getElementById('enotes').value;t.urgent=document.getElementById('eurgent').checked;t.casuPin=document.getElementById('epin').checked;
   const chosenCol=document.getElementById('eco').value;
   // Today/Tomorrow imply a concrete date even if the task was originally
@@ -3426,6 +3502,7 @@ function armRepeatWaits(){
       if(tk.deadlineDate&&tk.col!=='wait'&&tk.col!=='casual')tk.col=d2col(tk.deadlineDate,tk.repeat);
       changed=true;
     }else if(tk.deadlineDate<t&&shouldRep(tk)){
+      resetSubs(tk); // a new occurrence has arrived and the old one wasn't finished: start its sub-tasks fresh
       tk.deadlineDate=t;
       if(tk.col!=='wait'&&tk.col!=='casual')tk.col=d2col(t,tk.repeat);
       changed=true;
