@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 37</title>
+<title>Fleur · 38</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -459,6 +459,12 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .sub-row.done{opacity:.45;text-decoration:line-through}
 .sn-subs{font-size:9px;color:var(--ink3);display:inline-flex;align-items:center;gap:2px}
 .sn-subs iconify-icon{font-size:11px}
+
+.cal-head{display:flex;align-items:center;justify-content:center;position:relative;min-height:30px}
+.cal-today{position:absolute;right:0;top:50%;transform:translateY(-50%);background:none;border:1px solid rgba(255,255,255,.2);color:var(--sage);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:18px;display:inline-flex}
+.cal-mtitle{font-family:var(--font-h);font-size:.95rem;color:var(--ink2);text-align:center;padding:12px 0 4px}
+.cal-ev{font-size:9.5px;line-height:1.25;padding:1px 4px;border-radius:4px;margin-bottom:2px;word-break:break-word}
+.cal-evt{opacity:.8;font-weight:600}
 </style>
 </head>
 <body>
@@ -3586,30 +3592,331 @@ function cboxDrop(e,targetId){
 // ── Export / Import ───────────────────────────────────────────────
 
 // dlContextDoc() removed in build 11 -- no longer needed. Project context now lives inline as code comments throughout this file (see the notes near TBOX, snColor, dayTrans, the repeat picker, etc.) rather than in a separately generated/downloaded doc.
-let _calY=null,_calM=null;
-function calShift(n){const d=new Date(_calY,_calM+n,1);_calY=d.getFullYear();_calM=d.getMonth();openCalendar(false);}
+// ── Racine events inside Fleur's calendar ─────────────────────────
+// Fleur and Racine are served from the same site, so Fleur reads Racine's
+// saved calendar list (racine_calendars) and its downloaded feeds
+// (racine_cache) directly -- nothing new to sync. If a feed isn't cached
+// (or is stale) Fleur fetches it itself through the same ICS proxy. The
+// reader below is Racine's own (recurrence + timezone safe), wrapped so
+// none of its helper names can collide with Fleur's.
+const RAC=(function(){
+// ── ICS core (recurrence/timezone-safe expansion) ───────────────────
+function tzOffsetMinutesAt(tzid,utcMillis){
+  const dtf=new Intl.DateTimeFormat('en-US',{timeZone:tzid,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const parts={};dtf.formatToParts(new Date(utcMillis)).forEach(p=>{parts[p.type]=p.value;});
+  const asIfUTC=Date.UTC(+parts.year,+parts.month-1,+parts.day,+parts.hour,+parts.minute,+parts.second);
+  return (asIfUTC-utcMillis)/60000;
+}
+function tzWallTimeToUTC(y,mo,d,h,mi,s,tzid){
+  if(!tzid||tzid==='UTC'||tzid==='GMT')return Date.UTC(y,mo-1,d,h,mi,s);
+  const guess=Date.UTC(y,mo-1,d,h,mi,s);
+  const off1=tzOffsetMinutesAt(tzid,guess);
+  let utc=guess-off1*60000;
+  const off2=tzOffsetMinutesAt(tzid,utc);
+  if(off2!==off1)utc=guess-off2*60000;
+  return utc;
+}
+function parseIcsDateParts(value,tzid){
+  value=value.trim();
+  const isUTC=/Z$/.test(value);
+  const m=value.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2}))?Z?$/);
+  if(!m)return null;
+  const [,y,mo,d,h,mi,s]=m;
+  if(h===undefined)return {y:+y,mo:+mo,d:+d,h:0,mi:0,s:0,allDay:true,tzid:null};
+  return {y:+y,mo:+mo,d:+d,h:+h,mi:+mi,s:+s,allDay:false,tzid:isUTC?'UTC':(tzid||null)};
+}
+function partsToUTC(p){
+  if(p.allDay)return Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s);
+  return tzWallTimeToUTC(p.y,p.mo,p.d,p.h,p.mi,p.s,p.tzid);
+}
+function dayNum(y,mo,d){return Math.floor(Date.UTC(y,mo-1,d)/86400000);}
+function fromDayNum(n){const dt=new Date(n*86400000);return {y:dt.getUTCFullYear(),mo:dt.getUTCMonth()+1,d:dt.getUTCDate()};}
+function daysInMonth(y,mo){return new Date(Date.UTC(y,mo,0)).getUTCDate();}
+function dowOfDayNum(n){return new Date(n*86400000).getUTCDay();}
+function unfoldLines(text){
+  const rawLines=text.split(/\r\n|\n|\r/);const lines=[];
+  for(const line of rawLines){
+    if((line.startsWith(' ')||line.startsWith('\t'))&&lines.length)lines[lines.length-1]+=line.slice(1);
+    else lines.push(line);
+  }
+  return lines;
+}
+function parseLine(line){
+  const colonIdx=line.indexOf(':');if(colonIdx===-1)return null;
+  const head=line.slice(0,colonIdx),value=line.slice(colonIdx+1);
+  const parts=head.split(';');const name=parts[0].toUpperCase();const params={};
+  for(let i=1;i<parts.length;i++){const eq=parts[i].indexOf('=');if(eq===-1)continue;params[parts[i].slice(0,eq).toUpperCase()]=parts[i].slice(eq+1);}
+  return {name,params,value};
+}
+function unescapeText(v){return v.replace(/\\n/gi,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');}
+function extractVEvents(icsText){
+  const lines=unfoldLines(icsText);const events=[];let cur=null;
+  for(const raw of lines){
+    if(raw==='BEGIN:VEVENT'){cur=[];continue;}
+    if(raw==='END:VEVENT'){if(cur)events.push(cur);cur=null;continue;}
+    if(cur){const p=parseLine(raw);if(p)cur.push(p);}
+  }
+  return events;
+}
+function parseRRule(value){
+  const rule={};value.split(';').forEach(pair=>{const [k,v]=pair.split('=');if(!k||v===undefined)return;rule[k.toUpperCase()]=v;});
+  return rule;
+}
+const DAY_NUM_MAP={SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+function parseIcsDuration(v){
+  const m=v.match(/^([+-])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/);if(!m)return 0;
+  const sign=m[1]==='-'?-1:1;const days=+(m[2]||0),h=+(m[3]||0),mi=+(m[4]||0),s=+(m[5]||0);
+  return sign*((days*86400)+(h*3600)+(mi*60)+s)*1000;
+}
+function nthWeekdayDayNum(y,mo,spec){
+  const m=spec.match(/^(-?\d+)?(MO|TU|WE|TH|FR|SA|SU)$/);if(!m)return null;
+  const n=m[1]?parseInt(m[1],10):1;const targetDow=DAY_NUM_MAP[m[2]];
+  const dim=daysInMonth(y,mo);const matches=[];
+  for(let day=1;day<=dim;day++)if(dowOfDayNum(dayNum(y,mo,day))===targetDow)matches.push(day);
+  const day=n>0?matches[n-1]:matches[matches.length+n];
+  if(!day)return null;
+  return dayNum(y,mo,day);
+}
+function expandEvent(evt,rangeStart,rangeEnd){
+  const props={};evt.forEach(p=>{(props[p.name]=props[p.name]||[]).push(p);});
+  const dtstartProp=(props.DTSTART||[])[0];if(!dtstartProp)return [];
+  const tzid=dtstartProp.params.TZID;
+  const startParts=parseIcsDateParts(dtstartProp.value,tzid);if(!startParts)return [];
+  const startUTC=partsToUTC(startParts);
+  const dtendProp=(props.DTEND||[])[0];const durationProp=(props.DURATION||[])[0];
+  let durationMs;
+  if(dtendProp){const endParts=parseIcsDateParts(dtendProp.value,dtendProp.params.TZID||tzid);durationMs=partsToUTC(endParts)-startUTC;}
+  else if(durationProp)durationMs=parseIcsDuration(durationProp.value);
+  else durationMs=startParts.allDay?24*3600000:0;
+  const exdateSet=new Set();
+  (props.EXDATE||[]).forEach(p=>{p.value.split(',').forEach(v=>{const parts=parseIcsDateParts(v,p.params.TZID||tzid);if(parts)exdateSet.add(dayNum(parts.y,parts.mo,parts.d));});});
+  const occurrences=[];
+  function considerUTC(occUTC){
+    if(exdateSet.size){const d=new Date(occUTC);const dn=dayNum(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());if(exdateSet.has(dn))return;}
+    if(occUTC<rangeEnd&&occUTC+durationMs>rangeStart)occurrences.push({startMs:occUTC,endMs:occUTC+durationMs,allDay:startParts.allDay});
+  }
+  const rruleProp=(props.RRULE||[])[0];
+  if(!rruleProp){
+    considerUTC(startUTC);
+    (props.RDATE||[]).forEach(p=>{p.value.split(',').forEach(v=>{const parts=parseIcsDateParts(v,p.params.TZID||tzid);if(parts)considerUTC(partsToUTC(parts));});});
+    return occurrences;
+  }
+  const rule=parseRRule(rruleProp.value);const freq=rule.FREQ;const interval=parseInt(rule.INTERVAL||'1',10)||1;
+  const untilParts=rule.UNTIL?parseIcsDateParts(rule.UNTIL,null):null;
+  const untilDayNum=untilParts?dayNum(untilParts.y,untilParts.mo,untilParts.d):null;
+  const count=rule.COUNT?parseInt(rule.COUNT,10):null;
+  const byday=rule.BYDAY?rule.BYDAY.split(','):null;
+  const bymonthday=rule.BYMONTHDAY?rule.BYMONTHDAY.split(',').map(Number):null;
+  const startDN=dayNum(startParts.y,startParts.mo,startParts.d);
+  const rangeEndDN=Math.ceil(rangeEnd/86400000)+1;
+  const hardStopDN=rangeEndDN+370;
+  let occCount=0;
+  function emitAtDayNum(dn){
+    if(dn<startDN)return true;
+    occCount++;
+    if(count&&occCount>count)return false;
+    if(untilDayNum!==null&&dn>untilDayNum)return false;
+    const {y,mo,d}=fromDayNum(dn);
+    const occUTC=startParts.allDay?Date.UTC(y,mo-1,d,startParts.h,startParts.mi,startParts.s):tzWallTimeToUTC(y,mo,d,startParts.h,startParts.mi,startParts.s,tzid);
+    considerUTC(occUTC);
+    return true;
+  }
+  if(freq==='DAILY'){
+    for(let dn=startDN;dn<=hardStopDN;dn+=interval){
+      if(!emitAtDayNum(dn))break;
+      if(!count&&untilDayNum===null&&dn>rangeEndDN)break;
+    }
+  }else if(freq==='WEEKLY'){
+    const days=(byday&&byday.length?byday.map(d=>DAY_NUM_MAP[d.slice(-2)]):[dowOfDayNum(startDN)]).sort((a,b)=>a-b);
+    const startSunday=startDN-dowOfDayNum(startDN);
+    outer:
+    for(let wk=startSunday;wk<=hardStopDN;wk+=7*interval){
+      for(const dow of days){const dn=wk+dow;if(!emitAtDayNum(dn))break outer;}
+      if(!count&&untilDayNum===null&&wk>rangeEndDN)break;
+    }
+  }else if(freq==='MONTHLY'){
+    let y=startParts.y,mo=startParts.mo;
+    outer2:
+    for(let iter=0;iter<600;iter++,mo+=interval){
+      while(mo>12){mo-=12;y++;}
+      while(mo<1){mo+=12;y--;}
+      let candidateDNs=[];
+      if(bymonthday){
+        candidateDNs=bymonthday.map(md=>{const dim=daysInMonth(y,mo);const day=md>0?md:dim+md+1;if(day<1||day>dim)return null;return dayNum(y,mo,day);}).filter(x=>x!==null);
+      }else if(byday){
+        candidateDNs=byday.map(spec=>nthWeekdayDayNum(y,mo,spec)).filter(x=>x!==null);
+      }else{
+        const dim=daysInMonth(y,mo);if(startParts.d<=dim)candidateDNs=[dayNum(y,mo,startParts.d)];
+      }
+      candidateDNs.sort((a,b)=>a-b);
+      for(const dn of candidateDNs)if(!emitAtDayNum(dn))break outer2;
+      const monthStartDN=dayNum(y,mo,1);
+      if(!count&&untilDayNum===null&&monthStartDN>rangeEndDN+31)break;
+      if(monthStartDN>hardStopDN)break;
+    }
+  }else if(freq==='YEARLY'){
+    let y=startParts.y;
+    for(let iter=0;iter<60;iter++,y+=interval){
+      const dim=daysInMonth(y,startParts.mo);if(startParts.d>dim)continue;
+      const dn=dayNum(y,startParts.mo,startParts.d);
+      if(!emitAtDayNum(dn))break;
+      if(!count&&untilDayNum===null&&dayNum(y,1,1)>rangeEndDN+366)break;
+    }
+  }
+  return occurrences;
+}
+
+function pad2(n){return String(n).padStart(2,'0');}
+function localDateKey(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate());}
+function formatTime(ms){return new Date(ms).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).replace(/\s?([AP])M/i,(m,x)=>x.toLowerCase());}
+function luminance(hex){
+  const c=hex.replace('#','');
+  const r=parseInt(c.substr(0,2),16)/255,g=parseInt(c.substr(2,2),16)/255,b=parseInt(c.substr(4,2),16)/255;
+  const f=x=>x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);
+  return .2126*f(r)+.7152*f(g)+.0722*f(b);
+}
+function textColorFor(bgHex){return luminance(bgHex)>0.42?'#1a1408':'#f3ead6';}
+
+  const CAL_KEY='racine_calendars',CACHE_KEY='racine_cache',PROXY_KEY='racine_proxy_endpoint';
+  const DEFAULT_PROXY='https://oldfleurplanner.netlify.app/api/ics-proxy';
+  const mem={},parsed={};
+  function cals(){try{return JSON.parse(localStorage.getItem(CAL_KEY))||[];}catch(e){return[];}}
+  function cache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY))||{};}catch(e){return{};}}
+  function pick(id,c){
+    const a=c[id],b=mem[id];
+    const fa=a&&a.ics?(a.fetchedAt||0):-1,fb=b?b.fetchedAt:-1;
+    if(fa<0&&fb<0)return null;
+    return fb>fa?b:a;
+  }
+  async function fetchIcs(cal){
+    const proxy=localStorage.getItem(PROXY_KEY)||DEFAULT_PROXY;
+    const ep=proxy+(proxy.includes('?')?'&':'?')+'url='+encodeURIComponent(cal.url);
+    const resp=await fetch(ep);if(!resp.ok)throw new Error('HTTP '+resp.status);
+    return await resp.text();
+  }
+  async function ensure(){
+    const c=cache();let changed=false;
+    await Promise.all(cals().map(async cal=>{
+      const e=pick(cal.id,c);
+      if(e&&Date.now()-(e.fetchedAt||0)<2*3600e3)return;
+      try{mem[cal.id]={ics:await fetchIcs(cal),fetchedAt:Date.now()};changed=true;}catch(err){}
+    }));
+    return changed;
+  }
+  function bucketsFor(days){
+    const rangeStart=days[0].getTime(),rangeEnd=days[days.length-1].getTime()+86400000;
+    const buckets={};days.forEach(d=>{buckets[localDateKey(d)]=[];});
+    const c=cache();
+    cals().forEach(cal=>{
+      const entry=pick(cal.id,c);if(!entry||!entry.ics)return;
+      const pk=entry.fetchedAt+':'+entry.ics.length;
+      if(!parsed[cal.id]||parsed[cal.id].k!==pk){try{parsed[cal.id]={k:pk,events:extractVEvents(entry.ics)};}catch(e){return;}}
+      parsed[cal.id].events.forEach(evt=>{
+        let occs;try{occs=expandEvent(evt,rangeStart,rangeEnd);}catch(e){return;}
+        const sp=evt.find(p=>p.name==='SUMMARY');
+        const title=sp?unescapeText(sp.value):'(untitled)';
+        occs.forEach(occ=>{
+          if(occ.allDay){
+            const dn0=Math.floor(occ.startMs/86400000),dn1=Math.floor((occ.endMs-1)/86400000);
+            for(let dn=dn0;dn<=dn1;dn++){
+              const dt=new Date(dn*86400000);
+              const key=dt.getUTCFullYear()+'-'+pad2(dt.getUTCMonth()+1)+'-'+pad2(dt.getUTCDate());
+              if(buckets[key])buckets[key].push({title,color:cal.color||'#7f9767',allDay:true,startMs:occ.startMs});
+            }
+          }else{
+            const key=localDateKey(new Date(occ.startMs));
+            if(buckets[key])buckets[key].push({title,color:cal.color||'#7f9767',allDay:false,startMs:occ.startMs});
+          }
+        });
+      });
+    });
+    return buckets;
+  }
+  return{ensure,bucketsFor,key:localDateKey,textColorFor,formatTime};
+})();
+
+// ── Calendar: one continuous vertical scroll through the months ───────
+let _calLo=null,_calHi=null,_calAnchor=null,_calBusy=false;
+function calAbs(y,m){return y*12+m;}
+function calYM(a){return{y:Math.floor(a/12),m:((a%12)+12)%12};}
+function calEventsHTML(items){
+  if(!items||!items.length)return'';
+  items=items.slice().sort((a,b)=>a.allDay===b.allDay?a.startMs-b.startMs:(a.allDay?-1:1));
+  return items.map(it=>`<div class="cal-ev" style="background:${it.color};color:${RAC.textColorFor(it.color)}">${it.allDay?'':`<span class="cal-evt">${RAC.formatTime(it.startMs)}</span> `}${esc(it.title)}</div>`).join('');
+}
+function calMonthHTML(a){
+  const {y,m}=calYM(a);
+  const first=new Date(y,m,1),dim=new Date(y,m+1,0).getDate();
+  const days=[];for(let d=1;d<=dim;d++)days.push(new Date(y,m,d));
+  const ev=RAC.bucketsFor(days);
+  const t=today();
+  let h=`<div class="cal-month" data-a="${a}"><div class="cal-mtitle">${first.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</div><div class="cal-grid">`;
+  for(let i=0;i<first.getDay();i++)h+=`<div class="cal-cell blank"></div>`;
+  days.forEach(dt=>{
+    const ds=fmt(dt);
+    h+=`<div class="cal-cell${ds===t?' today':''}"><div class="cal-num" style="color:${DOW_CLR[dt.getDay()]}">${dt.getDate()}</div>${calEventsHTML(ev[RAC.key(dt)])}${dayColHTML(ds)}</div>`;
+  });
+  return h+`</div></div>`;
+}
+function calBuild(){
+  const list=document.getElementById('cal-list');
+  let h='';for(let a=_calLo;a<=_calHi;a++)h+=calMonthHTML(a);
+  list.innerHTML=h;
+  updateNameOverflowFades();
+}
+function calRestoreScroll(){
+  const list=document.getElementById('cal-list');
+  let block=null,off=0;
+  if(_calAnchor){block=list.querySelector(`.cal-month[data-a="${_calAnchor.a}"]`);off=_calAnchor.off;}
+  if(!block){const n=new Date();block=list.querySelector(`.cal-month[data-a="${calAbs(n.getFullYear(),n.getMonth())}"]`);off=0;}
+  _calBusy=true;
+  list.scrollTop=block?block.offsetTop+off:0;
+  _calBusy=false;
+  calUpdateHead();
+}
+function calUpdateHead(){
+  const list=document.getElementById('cal-list');
+  const blocks=list.querySelectorAll('.cal-month');if(!blocks.length)return;
+  const probe=list.scrollTop+30;let cur=blocks[0];
+  blocks.forEach(b=>{if(b.offsetTop<=probe)cur=b;});
+  document.getElementById('cal-title').textContent=cur.querySelector('.cal-mtitle').textContent;
+  _calAnchor={a:+cur.dataset.a,off:list.scrollTop-cur.offsetTop};
+}
+function calOnScroll(){
+  if(_calBusy)return;
+  const list=document.getElementById('cal-list');
+  if(list.scrollTop<300){        // near the top: add earlier months, keeping what you're looking at in place
+    _calBusy=true;
+    const prevH=list.scrollHeight;let h='';
+    for(let i=0;i<3;i++){_calLo--;h=calMonthHTML(_calLo)+h;}
+    list.insertAdjacentHTML('afterbegin',h);
+    list.scrollTop+=list.scrollHeight-prevH;
+    _calBusy=false;
+  }else if(list.scrollHeight-list.scrollTop-list.clientHeight<500){   // near the bottom: add later months
+    let h='';for(let i=0;i<4;i++){_calHi++;h+=calMonthHTML(_calHi);}
+    list.insertAdjacentHTML('beforeend',h);
+  }
+  calUpdateHead();
+}
+function calToToday(){_calLo=_calHi=null;_calAnchor=null;calReset();calBuild();document.getElementById('cal-mo').classList.remove('hidden');calRestoreScroll();}
+function calReset(){const n=new Date(),a=calAbs(n.getFullYear(),n.getMonth());_calLo=a-2;_calHi=a+6;}
 function openCalendar(isToggleClick){
   isToggleClick=isToggleClick===undefined?true:isToggleClick;
   const mo=document.getElementById('cal-mo');
   if(isToggleClick&&mo&&!mo.classList.contains('hidden')){mo.classList.add('hidden');return;}
-  const now=new Date();
-  if(_calY===null||isToggleClick){_calY=now.getFullYear();_calM=now.getMonth();}
-  const first=new Date(_calY,_calM,1);
-  const dim=new Date(_calY,_calM+1,0).getDate();
-  const title=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  let html=`<div class="cal-nav"><button onclick="calShift(-1)">‹</button><div class="cal-title">${title}</div><button onclick="calShift(1)">›</button></div>`;
-  html+=`<div class="cal-dow">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div>${d}</div>`).join('')}</div><div class="cal-grid">`;
-  for(let i=0;i<first.getDay();i++)html+=`<div class="cal-cell blank"></div>`;
-  for(let day=1;day<=dim;day++){
-    const dt=new Date(_calY,_calM,day);
-    const ds=fmtISO(dt);
-    html+=`<div class="cal-cell${ds===today()?' today':''}"><div class="cal-num" style="color:${DOW_CLR[dt.getDay()]}">${day}</div>${dayColHTML(ds)}</div>`;
-  }
-  html+=`</div>`;
-  document.getElementById('cal-list').innerHTML=html;
-  updateNameOverflowFades();
-  document.getElementById('cal-mo').classList.remove('hidden');
+  if(isToggleClick||_calLo===null){_calAnchor=null;calReset();}
+  calBuild();
+  mo.classList.remove('hidden');
+  calRestoreScroll();
+  RAC.ensure().then(changed=>{
+    if(changed&&!mo.classList.contains('hidden')){calBuild();calRestoreScroll();}
+  });
 }
+window.addEventListener('storage',e=>{
+  if(e.key!=='racine_cache'&&e.key!=='racine_calendars')return;
+  const mo=document.getElementById('cal-mo');
+  if(mo&&!mo.classList.contains('hidden')){clearTimeout(window._calRefT);window._calRefT=setTimeout(()=>{calBuild();calRestoreScroll();},400);}
+});
 
 function exportData(){const d={version:'20',exported:new Date().toISOString(),...sn()};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fleur-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;if(!confirm('Replace everything in Fleur with this file?')){e.target.value='';return;}const r=new FileReader();r.onload=ev=>{try{
@@ -3792,7 +4099,9 @@ setTimeout(reportFleurHeight,300); // catch late web-font reflow
 <div class="mo hidden" id="cal-mo">
   <div class="md" style="max-width:96vw;width:1150px">
     
-    <div id="cal-list" style="display:flex;flex-direction:column;gap:6px;max-height:74vh;overflow-y:auto;padding-right:4px"></div>
+    <div class="cal-head"><div class="cal-title" id="cal-title"></div><button class="cal-today" onclick="calToToday()" title="Today"><iconify-icon icon="mdi:calendar-today"></iconify-icon></button></div>
+    <div class="cal-dow"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+    <div id="cal-list" onscroll="calOnScroll()" style="position:relative;max-height:70vh;overflow-y:auto;overscroll-behavior:contain;padding-right:4px"></div>
     <div class="mf"><button class="mcan" onclick="closeM('cal-mo')" title="Close"><iconify-icon icon="mdi:close"></iconify-icon></button></div>
   </div>
 </div>
