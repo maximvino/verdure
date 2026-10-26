@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 36</title>
+<title>Fleur · 37</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -291,6 +291,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    flex-wrap; falls back to stacking below on narrow/mobile widths purely
    because it no longer fits, no separate media query needed. */
 .preset-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto}
+@media(max-width:600px){.preset-row{max-width:calc(var(--pcols,7)*44px + (var(--pcols,7) - 1)*8px)}}
 .preset-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .12s,background .12s;flex-shrink:0;color:var(--sage)}
 .preset-btn:hover{transform:scale(1.1);background:rgba(255,255,255,.05)}
 .preset-btn:active{transform:scale(.94)}
@@ -2279,20 +2280,14 @@ function dayColDblClick(e,dateStr){
 function renderPresetRow(){
   const row=document.getElementById('preset-row');if(!row)return;
   const vis=presets.filter(p=>!p.groupBreak);
-  if(!vis.length){row.innerHTML='';row.style.maxWidth='';return;}
+  if(!vis.length){row.innerHTML='';row.style.removeProperty('--pcols');return;}
   const n=vis.length;
-  // Smart grid: find most square-ish column count that divides evenly or near-evenly
-  // Up to 6: one row. 7+: find best cols so rows are as uniform as possible
-  let cols;
-  if(n<=6){cols=n;}
-  else if(n<=8){cols=4;}      // 2x4
-  else if(n<=10){cols=5;}     // 2x5
-  else if(n<=12){cols=4;}     // 3x4
-  else if(n<=15){cols=5;}     // 3x5
-  else if(n<=16){cols=4;}     // 4x4
-  else if(n<=18){cols=6;}     // 3x6
-  else{cols=6;}               // 6 per row for anything larger
-  row.style.maxWidth=(cols*44+(cols-1)*8)+'px'; // wraps into rows of `cols`, every row centered (incl. a shorter last row)
+  // Mobile: up to 7 in one row; beyond that, split as evenly as possible into
+  // rows of at most 7 (8 -> 4+4, 9 -> 5+4 ... 14 -> 7+7). Desktop ignores this
+  // and stays on one horizontal line (see .preset-row in the CSS).
+  const rows=Math.ceil(n/7);
+  const cols=Math.ceil(n/rows);
+  row.style.setProperty('--pcols',cols);
   row.innerHTML=vis.map(p=>`<div class="preset-btn" onclick="firePreset(${p.id})" title="${esc(p.label||p.tasks.map(t=>t.name).join(', '))}"><iconify-icon icon="${p.emoji}"></iconify-icon></div>`).join('');
 }
 
