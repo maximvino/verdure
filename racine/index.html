@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build 9 -->
+<!-- Racine — build 10 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -137,6 +137,13 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 .btn-done{background:none;border:1px solid var(--border2);color:var(--ink2);border-radius:20px;
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
+
+/* Mobile (build 10): 3 day-columns at a time, swipe sideways; Fleur's week moves with it (relayed by Verdure) */
+@media(max-width:600px){
+  .week{grid-template-columns:repeat(7,calc(100% / 3));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
+  .week::-webkit-scrollbar{display:none}
+  .week>.day{scroll-snap-align:start}
+}
 </style>
 </head>
 <body>
@@ -594,6 +601,7 @@ function render(){
   const buckets=computeBuckets(days);
 
   const FR_DOW=['dim','lun','mar','mer','jeu','ven','sam'];
+  const _sl=weekEl.scrollLeft; // keep the sideways scroll position across re-renders (mobile)
   weekEl.innerHTML=days.map(d=>{
     const key=localDateKey(d);
     const isToday=key===todayKey;
@@ -614,6 +622,7 @@ function render(){
       <div class="day-events">${chips}</div>
     </div>`;
   }).join('');
+  if(_sl)weekEl.scrollLeft=_sl;
 
   // Let content settle, then measure real (unclipped) height and tell Verdure.
   requestAnimationFrame(measureAndReport);
@@ -894,7 +903,33 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // the same discipline Fleur already follows for its own context doc.
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 7 — project-wide convention change).
-const RACINE_VERSION='9';
+
+// Build 10: on phones the week shows 3 day-columns at a time and swipes sideways;
+// Racine's and Fleur's weeks move together. Each app reports its sideways scroll
+// position (as a 0-1 fraction) to Verdure, which relays it to the other app(s).
+(function(){
+  const APP='racine',ID='week';
+  const el=()=>document.getElementById(ID);
+  let applying=false,queued=false,t=null;
+  const e0=el();
+  if(e0)e0.addEventListener('scroll',()=>{
+    if(applying||queued)return;queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;const e=el();if(!e||applying)return;
+      const m=e.scrollWidth-e.clientWidth;
+      try{window.parent.postMessage({type:'week-scroll',id:APP,pos:m>0?e.scrollLeft/m:0},window.location.origin);}catch(_){}
+    });
+  },{passive:true});
+  window.addEventListener('message',ev=>{
+    if(ev.origin!==window.location.origin)return;
+    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;
+    const e=el();if(!e)return;
+    applying=true;e.scrollLeft=d.pos*(e.scrollWidth-e.clientWidth);
+    clearTimeout(t);t=setTimeout(()=>{applying=false;},160);
+  });
+})();
+
+const RACINE_VERSION='10';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -924,6 +959,9 @@ Clamped between \`MIN_H=48\` and \`MAX_H=420\` pixels. **\`MIN_H\` was 90 throug
 Two robustness additions in build 7, both calling \`measureAndReport()\` again rather than duplicating its logic:
 - **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
 - **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
+
+## Mobile week (build 10)
+At 600px and below the week grid shows 3 day-columns at a time (each column is one third of the width) and swipes sideways; the other days are scrolled to. Racine's and Fleur's weeks scroll together: each reports its sideways position to Verdure as a 0-1 fraction ({type:'week-scroll'}) and Verdure relays it to the others ({type:'week-scroll-set'}). Re-renders preserve the scroll position. Height reporting still measures all seven days, so a busy off-screen day can make Racine a little taller than the visible three need.
 
 ## Height-measurement bug: the "gap before Fleur" (build 9)
 
