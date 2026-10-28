@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build 10 -->
+<!-- Racine — build 11 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -138,9 +138,9 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
   padding:6px 16px;font-family:var(--font-b);font-size:.78rem;cursor:pointer}
 .btn-done:hover{background:rgba(255,255,255,.05)}
 
-/* Mobile (build 10): 3 day-columns at a time, swipe sideways; Fleur's week moves with it (relayed by Verdure) */
+/* Mobile (build 11): 4 day-columns at a time, swipe sideways; Fleur's week moves with it */
 @media(max-width:600px){
-  .week{grid-template-columns:repeat(7,calc(100% / 3));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
+  .week{grid-template-columns:repeat(7,calc(100% / 4));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
   .week::-webkit-scrollbar{display:none}
   .week>.day{scroll-snap-align:start}
 }
@@ -904,32 +904,43 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
 // Version bumps to the next plain number on every version of this file sent
 // (switched from Roman numerals as of build 7 — project-wide convention change).
 
-// Build 10: on phones the week shows 3 day-columns at a time and swipes sideways;
-// Racine's and Fleur's weeks move together. Each app reports its sideways scroll
-// position (as a 0-1 fraction) to Verdure, which relays it to the other app(s).
+// Build 11: on phones the week shows 4 day-columns at a time and swipes sideways.
+// Racine's week and Fleur's week move together. Positions are shared as a 0-1 fraction straight between the
+// apps over a BroadcastChannel (fast, no hop through Verdure); if a browser lacks it,
+// Verdure relays instead. While following, scroll-snapping is switched off briefly --
+// the snap animation was what made the other app lag behind.
 (function(){
-  const APP='racine',ID='week';
-  const el=()=>document.getElementById(ID);
-  let applying=false,queued=false,t=null;
-  const e0=el();
-  if(e0)e0.addEventListener('scroll',()=>{
-    if(applying||queued)return;queued=true;
-    requestAnimationFrame(()=>{
-      queued=false;const e=el();if(!e||applying)return;
-      const m=e.scrollWidth-e.clientWidth;
-      try{window.parent.postMessage({type:'week-scroll',id:APP,pos:m>0?e.scrollLeft/m:0},window.location.origin);}catch(_){}
-    });
-  },{passive:true});
+  const APP='racine',IDS=['week'];
+  const els=()=>IDS.map(i=>document.getElementById(i)).filter(Boolean);
+  const skip=new Map();let snapT=null;
+  const bc=(typeof BroadcastChannel!=='undefined')?new BroadcastChannel('verdure-week'):null;
+  const frac=e=>{const m=e.scrollWidth-e.clientWidth;return m>0?e.scrollLeft/m:0;};
+  function setPos(e,pos){
+    skip.set(e,performance.now()+150);
+    e.style.scrollSnapType='none';
+    e.scrollLeft=pos*(e.scrollWidth-e.clientWidth);
+  }
+  function restoreSnap(){clearTimeout(snapT);snapT=setTimeout(()=>els().forEach(e=>{e.style.scrollSnapType='';}),250);}
+  function post(p){
+    if(bc)bc.postMessage({app:APP,pos:p});
+    else{try{window.parent.postMessage({type:'week-scroll',id:APP,pos:p},window.location.origin);}catch(_){}}
+  }
+  function follow(p){els().forEach(e=>setPos(e,p));restoreSnap();}
+  els().forEach(src=>src.addEventListener('scroll',()=>{
+    if((skip.get(src)||0)>performance.now())return;
+    const p=frac(src);
+    els().forEach(o=>{if(o!==src)setPos(o,p);});
+    if(IDS.length>1)restoreSnap();
+    post(p);
+  },{passive:true}));
+  if(bc)bc.onmessage=ev=>{const d=ev.data;if(d&&d.app!==APP)follow(d.pos);};
   window.addEventListener('message',ev=>{
     if(ev.origin!==window.location.origin)return;
-    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;
-    const e=el();if(!e)return;
-    applying=true;e.scrollLeft=d.pos*(e.scrollWidth-e.clientWidth);
-    clearTimeout(t);t=setTimeout(()=>{applying=false;},160);
+    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;follow(d.pos);
   });
 })();
 
-const RACINE_VERSION='10';
+const RACINE_VERSION='11';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -960,8 +971,8 @@ Two robustness additions in build 7, both calling \`measureAndReport()\` again r
 - **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
 - **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
 
-## Mobile week (build 10)
-At 600px and below the week grid shows 3 day-columns at a time (each column is one third of the width) and swipes sideways; the other days are scrolled to. Racine's and Fleur's weeks scroll together: each reports its sideways position to Verdure as a 0-1 fraction ({type:'week-scroll'}) and Verdure relays it to the others ({type:'week-scroll-set'}). Re-renders preserve the scroll position. Height reporting still measures all seven days, so a busy off-screen day can make Racine a little taller than the visible three need.
+## Mobile week (builds 10-11)
+At 600px and below the week grid shows 4 day-columns at a time (each column is a quarter of the width) and swipes sideways; the other days are scrolled to. Racine's and Fleur's weeks (and Fleur's Casual/daily/Wait row) scroll together: positions are shared as a 0-1 fraction over a BroadcastChannel ('verdure-week'); if the browser lacks BroadcastChannel, apps post {type:'week-scroll'} to Verdure, which relays {type:'week-scroll-set'}. While following, scroll-snapping is switched off briefly so the follower doesn't lag. Re-renders preserve the scroll position. Height reporting still measures all seven days, so a busy off-screen day can make Racine a little taller than the visible three need.
 
 ## Height-measurement bug: the "gap before Fleur" (build 9)
 
