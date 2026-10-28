@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build 30 -->
+<!-- Verdure — build 31 -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -104,6 +104,14 @@ function showLoadError(id){
 window.addEventListener('message', (e)=>{
   if(e.origin!==window.location.origin)return;
   const d=e.data;
+  // Build 31: relay sideways week-scroll between apps (Racine <-> Fleur) so their
+  // 3-day mobile weeks move together. Nothing is stored; it just forwards the position.
+  if(d&&d.type==='week-scroll'){
+    document.querySelectorAll('#stack iframe').forEach(f=>{
+      if(f.contentWindow&&f.contentWindow!==e.source){try{f.contentWindow.postMessage({type:'week-scroll-set',pos:d.pos},window.location.origin);}catch(_){}}
+    });
+    return;
+  }
   const el=d&&d.id&&document.getElementById('app-'+d.id);
   if(!el)return;
   if(d.type==='app-resize'){
@@ -123,7 +131,7 @@ window.addEventListener('message', (e)=>{
 // NOT in the <title> tag, which stays plain "Verdure". Switched from Roman
 // numerals to plain numbers as of build 13 (project-wide convention change,
 // alongside Branche and Racine; Fleur keeps its own flower-name convention).
-const VERDURE_VERSION='30';
+const VERDURE_VERSION='31';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
@@ -147,6 +155,9 @@ Three builds got this wrong before landing on the actually-correct, much simpler
 **Build VIII removes the pinning idea entirely.** Racine and Fleur are both completely normal, non-positioned blocks (\`position\` is not set at all — default \`static\`) stacked in a plain \`display:flex;flex-direction:column\` column, on a page with no \`overflow\`, no \`position:fixed\`, nothing pinned to the viewport anywhere. The whole page scrolls as one ordinary unit, the same way any two divs on any webpage would. Racine simply appears above Fleur and scrolls away with it when you scroll past it — there is no mechanism keeping it on screen, because none was ever actually wanted.
 
 The \`postMessage\` height-reporting from Racine and Fleur is unchanged and still needed — that part was never the bug. It exists purely so each iframe's height matches its real content (so neither has its own internal scrollbar), which is a completely separate concern from viewport-pinning.
+
+## Week-scroll relay (build 31)
+On phones Racine and Fleur each show 3 day-columns and swipe sideways. Each posts {type:'week-scroll', id, pos} (pos = 0-1 fraction of its sideways scroll) to Verdure, which forwards {type:'week-scroll-set', pos} to every other iframe so the two weeks move together. Branche ignores it. No data is stored.
 
 ## Modal full-height requests (build XI)
 
