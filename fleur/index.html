@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 40</title>
+<title>Fleur · 41</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -67,7 +67,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
    outlined-box treatment (border, minimize, add, casual's pin zone),
    just side by side now instead of stacked full-width. */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:11px}
-.daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-width:0;min-height:40px}
+.daycol{display:flex;flex-direction:column;gap:3px;padding:2px 3px 48px;min-width:0;min-height:40px} /* always room for one more task below the last one */
 .day-inline-add{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);border-radius:0;padding:3px 1px;font-size:.68rem;font-family:var(--font-h);color:var(--ink);outline:none}
 .cw-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;margin-bottom:11px}
 .cw-row>div:nth-child(1){grid-column:1/4}   /* casual: 3 columns */
@@ -85,7 +85,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cal-cell.blank{border:none}
 .cal-num{font-size:11px;font-family:var(--font-h);padding:0 3px 2px}
 .ai-cut:hover{background:rgba(255,255,255,.12);color:var(--ink)}
-@media(max-width:660px){.daycol{padding:1px 2px 3px}}
+@media(max-width:660px){.daycol{padding:1px 2px 48px}}
 
 /* ── Time box (Wait/Casual only, build 10) ──
    Scrapped the steel-frame/paper-texture cork look entirely. Each time box
@@ -468,19 +468,23 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 
 /* Daily checklist icon (sits in the gap between Casual and Wait) */
 #daily-slot{grid-column:4;grid-row:1;display:flex;justify-content:center;align-items:flex-start;padding-top:2px}
-.daily-btn{position:relative;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.04);border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;padding:0;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .2s}
+.daily-btn{position:relative;width:42px;height:42px;background:none;border:none;display:inline-flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;padding:0;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .2s}
 .daily-btn.faded{opacity:.3}
 .daily-n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#13241a;border:1px solid currentColor;font-size:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-h)}
 .dl-btn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);color:var(--sage);font-size:22px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .dl-btn.on{background:rgba(190,220,170,.18);border-color:rgba(190,220,170,.6)}
 input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);cursor:pointer}
 
-/* Mobile: the week shows 3 days at a time and swipes sideways (kept in step with Racine via Verdure) */
+/* Mobile: the week shows 4 days at a time and swipes sideways. The Casual | daily | Wait row uses the same
+   seven columns, so before scrolling you see Casual + the daily icon, and Wait comes in as you scroll. */
 @media(max-width:600px){
-  .week-grid{grid-template-columns:repeat(7,calc(100% / 3));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
-  .week-grid::-webkit-scrollbar{display:none}
+  .week-grid,.cw-row{grid-template-columns:repeat(7,calc(100% / 4));overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .week-grid{scroll-snap-type:x proximity}
+  .week-grid::-webkit-scrollbar,.cw-row::-webkit-scrollbar{display:none}
   .week-grid>.daycol{scroll-snap-align:start}
 }
+.sub-row.plain{justify-content:center;text-align:center;border-color:transparent;background:none;font-size:16px}
+.sub-row.plain.done{opacity:.3}
 </style>
 </head>
 <body>
@@ -499,7 +503,7 @@ input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px so
   </div>
 
   <div class="week-grid" id="board"></div>
-  <div class="cw-row">
+  <div class="cw-row" id="cw-row">
     <div id="casu-row"></div>
     <div id="wait-row"></div>
     <div id="daily-slot"></div>
@@ -3195,9 +3199,11 @@ function openSubs(id){const t=subHost(id);if(!t)return;_subsTid=id;renderSubs();
 function renderSubs(){
   const t=subHost(_subsTid);if(!t)return;
   document.getElementById('subs-title').innerHTML=_subsTid==='daily'?`<iconify-icon icon="${esc(t.icon)}" style="font-size:28px;color:${t.color}"></iconify-icon>`:esc(t.name);
-  document.getElementById('subs-list').innerHTML=liveSubs(t).map(x=>`<div class="sub-row${x.done?' done':''}" onclick="subTap('${t.id}','${x.id}')"><iconify-icon icon="mdi:${x.done?'check-circle':'circle-outline'}"></iconify-icon><span>${esc(x.name)}</span></div>`).join('');
+  const plain=_subsTid==='daily'; // the daily checklist: just the words -- tap one to erase it
+  document.getElementById('subs-list').innerHTML=liveSubs(t).map(x=>`<div class="sub-row${x.done?' done':''}${plain?' plain':''}" onclick="subTap('${t.id}','${x.id}')">${plain?'':`<iconify-icon icon="mdi:${x.done?'check-circle':'circle-outline'}"></iconify-icon>`}<span>${esc(x.name)}</span></div>`).join('');
 }
 function subTap(tid,sid){
+  if(tid==='daily'){toggleSub(tid,sid);return;} // one tap is enough for the daily checklist
   const k=tid+':'+sid,now=Date.now();
   if(_subTap[k]&&now-_subTap[k]<400){_subTap[k]=0;toggleSub(tid,sid);}else _subTap[k]=now;
 }
@@ -3226,7 +3232,7 @@ function renderDaily(){
   const subs=liveSubs(daily),allDone=subs.length>0&&!subsOpen(daily);
   const faded=daily.fadedUntil&&new Date(daily.fadedUntil)>new Date();
   const left=subs.filter(x=>!x.done).length;
-  el.innerHTML=`<button class="daily-btn${faded?' faded':''}" style="color:${allDone?daily.doneColor:daily.color}" onpointerdown="dailyDown()" onpointerup="dailyUp()" onpointerleave="dailyUp()" onpointercancel="dailyUp()" oncontextmenu="return false" onclick="dailyClick()"><iconify-icon icon="${esc(daily.icon)}"></iconify-icon>${subs.length&&!allDone?`<span class="daily-n">${left}</span>`:''}</button>`;
+  el.innerHTML=`<button class="daily-btn${faded?' faded':''}" style="color:${allDone?daily.doneColor:daily.color}" onpointerdown="dailyDown()" onpointerup="dailyUp()" onpointerleave="dailyUp()" onpointercancel="dailyUp()" oncontextmenu="return false" onclick="dailyClick()"><iconify-icon icon="${esc(daily.icon)}"></iconify-icon></button>`;
 }
 let _dailyHold=null,_dailyHeld=false;
 function dailyDown(){_dailyHeld=false;clearTimeout(_dailyHold);_dailyHold=setTimeout(()=>{_dailyHeld=true;dailyToggleFade();},550);}
@@ -4094,7 +4100,7 @@ function closeM(id){
   mo.querySelector('.dp-btns')?.remove();
   if(id==='tm'&&_returnToCalendar){_returnToCalendar=false;openCalendar(false);}
 }
-document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeM(o.id);}));
+// (backdrop-click closing now lives in one document-level handler further down, so it also covers popups created later, like the calendar)
 
 // ── AI ────────────────────────────────────────────────────────────
 
@@ -4155,30 +4161,51 @@ function loadAiNotes(){
 }
 setInterval(()=>{if(!document.hidden&&!_pulling){chkDay();chkTimeWaits();}},60000);
 
-// Build 40: on phones the week shows 3 day-columns at a time and swipes sideways;
-// Racine's and Fleur's weeks move together. Each app reports its sideways scroll
-// position (as a 0-1 fraction) to Verdure, which relays it to the other app(s).
+// Build 41: on phones the week shows 4 day-columns at a time and swipes sideways.
+// Racine's week, Fleur's week and Fleur's Casual / daily / Wait row move together. Positions are shared as a 0-1 fraction straight between the
+// apps over a BroadcastChannel (fast, no hop through Verdure); if a browser lacks it,
+// Verdure relays instead. While following, scroll-snapping is switched off briefly --
+// the snap animation was what made the other app lag behind.
 (function(){
-  const APP='fleur',ID='board';
-  const el=()=>document.getElementById(ID);
-  let applying=false,queued=false,t=null;
-  const e0=el();
-  if(e0)e0.addEventListener('scroll',()=>{
-    if(applying||queued)return;queued=true;
-    requestAnimationFrame(()=>{
-      queued=false;const e=el();if(!e||applying)return;
-      const m=e.scrollWidth-e.clientWidth;
-      try{window.parent.postMessage({type:'week-scroll',id:APP,pos:m>0?e.scrollLeft/m:0},window.location.origin);}catch(_){}
-    });
-  },{passive:true});
+  const APP='fleur',IDS=['board','cw-row'];
+  const els=()=>IDS.map(i=>document.getElementById(i)).filter(Boolean);
+  const skip=new Map();let snapT=null;
+  const bc=(typeof BroadcastChannel!=='undefined')?new BroadcastChannel('verdure-week'):null;
+  const frac=e=>{const m=e.scrollWidth-e.clientWidth;return m>0?e.scrollLeft/m:0;};
+  function setPos(e,pos){
+    skip.set(e,performance.now()+150);
+    e.style.scrollSnapType='none';
+    e.scrollLeft=pos*(e.scrollWidth-e.clientWidth);
+  }
+  function restoreSnap(){clearTimeout(snapT);snapT=setTimeout(()=>els().forEach(e=>{e.style.scrollSnapType='';}),250);}
+  function post(p){
+    if(bc)bc.postMessage({app:APP,pos:p});
+    else{try{window.parent.postMessage({type:'week-scroll',id:APP,pos:p},window.location.origin);}catch(_){}}
+  }
+  function follow(p){els().forEach(e=>setPos(e,p));restoreSnap();}
+  els().forEach(src=>src.addEventListener('scroll',()=>{
+    if((skip.get(src)||0)>performance.now())return;
+    const p=frac(src);
+    els().forEach(o=>{if(o!==src)setPos(o,p);});
+    if(IDS.length>1)restoreSnap();
+    post(p);
+  },{passive:true}));
+  if(bc)bc.onmessage=ev=>{const d=ev.data;if(d&&d.app!==APP)follow(d.pos);};
   window.addEventListener('message',ev=>{
     if(ev.origin!==window.location.origin)return;
-    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;
-    const e=el();if(!e)return;
-    applying=true;e.scrollLeft=d.pos*(e.scrollWidth-e.clientWidth);
-    clearTimeout(t);t=setTimeout(()=>{applying=false;},160);
+    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;follow(d.pos);
   });
 })();
+
+// Tap or click outside any popup (on the dimmed area around it) to close it. Only counts if the press
+// STARTED on the dimmed area too, so dragging a text selection out of a box doesn't close it.
+let _moDown=null;
+document.addEventListener('mousedown',e=>{_moDown=e.target;},true);
+document.addEventListener('touchstart',e=>{_moDown=e.target;},{capture:true,passive:true});
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t&&t.classList&&t.classList.contains('mo')&&t.id&&_moDown===t&&!t.classList.contains('hidden'))closeM(t.id);
+});
 load().then(()=>{_appReady=true;ra();syncSelects();chkTimeWaits();});
 
 // ── Report content height to Verdure (same-origin parent) ──────────
