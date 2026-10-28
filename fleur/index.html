@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 39</title>
+<title>Fleur · 40</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -474,6 +474,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .dl-btn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);color:var(--sage);font-size:22px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .dl-btn.on{background:rgba(190,220,170,.18);border-color:rgba(190,220,170,.6)}
 input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);cursor:pointer}
+
+/* Mobile: the week shows 3 days at a time and swipes sideways (kept in step with Racine via Verdure) */
+@media(max-width:600px){
+  .week-grid{grid-template-columns:repeat(7,calc(100% / 3));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .week-grid::-webkit-scrollbar{display:none}
+  .week-grid>.daycol{scroll-snap-align:start}
+}
 </style>
 </head>
 <body>
@@ -2262,7 +2269,9 @@ function dayColHTML(dateStr){
     >${html}</div>`;
 }
 function renderBoard(){
-  document.getElementById('board').innerHTML=weekDates().map(dayColHTML).join('');
+  const b=document.getElementById('board');const sl=b.scrollLeft; // keep the sideways scroll position across re-renders (mobile)
+  b.innerHTML=weekDates().map(dayColHTML).join('');
+  if(sl)b.scrollLeft=sl;
 }
 function dropDay(e,dateStr){
   e.preventDefault();e.stopPropagation();e.currentTarget.classList.remove('drag-over');
@@ -4145,6 +4154,31 @@ function loadAiNotes(){
   refreshNotes();
 }
 setInterval(()=>{if(!document.hidden&&!_pulling){chkDay();chkTimeWaits();}},60000);
+
+// Build 40: on phones the week shows 3 day-columns at a time and swipes sideways;
+// Racine's and Fleur's weeks move together. Each app reports its sideways scroll
+// position (as a 0-1 fraction) to Verdure, which relays it to the other app(s).
+(function(){
+  const APP='fleur',ID='board';
+  const el=()=>document.getElementById(ID);
+  let applying=false,queued=false,t=null;
+  const e0=el();
+  if(e0)e0.addEventListener('scroll',()=>{
+    if(applying||queued)return;queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;const e=el();if(!e||applying)return;
+      const m=e.scrollWidth-e.clientWidth;
+      try{window.parent.postMessage({type:'week-scroll',id:APP,pos:m>0?e.scrollLeft/m:0},window.location.origin);}catch(_){}
+    });
+  },{passive:true});
+  window.addEventListener('message',ev=>{
+    if(ev.origin!==window.location.origin)return;
+    const d=ev.data;if(!d||d.type!=='week-scroll-set')return;
+    const e=el();if(!e)return;
+    applying=true;e.scrollLeft=d.pos*(e.scrollWidth-e.clientWidth);
+    clearTimeout(t);t=setTimeout(()=>{applying=false;},160);
+  });
+})();
 load().then(()=>{_appReady=true;ra();syncSelects();chkTimeWaits();});
 
 // ── Report content height to Verdure (same-origin parent) ──────────
