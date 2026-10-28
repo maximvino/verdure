@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 38</title>
+<title>Fleur · 39</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -465,6 +465,15 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
 .cal-mtitle{font-family:var(--font-h);font-size:.95rem;color:var(--ink2);text-align:center;padding:12px 0 4px}
 .cal-ev{font-size:9.5px;line-height:1.25;padding:1px 4px;border-radius:4px;margin-bottom:2px;word-break:break-word}
 .cal-evt{opacity:.8;font-weight:600}
+
+/* Daily checklist icon (sits in the gap between Casual and Wait) */
+#daily-slot{grid-column:4;grid-row:1;display:flex;justify-content:center;align-items:flex-start;padding-top:2px}
+.daily-btn{position:relative;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.04);border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;padding:0;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .2s}
+.daily-btn.faded{opacity:.3}
+.daily-n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#13241a;border:1px solid currentColor;font-size:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-h)}
+.dl-btn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);color:var(--sage);font-size:22px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.dl-btn.on{background:rgba(190,220,170,.18);border-color:rgba(190,220,170,.6)}
+input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px solid rgba(190,220,170,.25);background:rgba(190,220,170,.05);cursor:pointer}
 </style>
 </head>
 <body>
@@ -486,6 +495,7 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
   <div class="cw-row">
     <div id="casu-row"></div>
     <div id="wait-row"></div>
+    <div id="daily-slot"></div>
   </div>
   <!-- Control dock (between time boxes and categories) -->
   <div class="dock" id="dock-static">
@@ -643,6 +653,13 @@ body{background:var(--page);color:var(--ink);font-family:var(--font-b);font-weig
       </div>
       <!-- Advanced pane (repeating + presets) -->
       <div class="dock-pane" id="pane-adv">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <button class="dl-btn" id="dl-on" onclick="dailyToggleEnabled()" title="Daily checklist on/off"><iconify-icon icon="mdi:power"></iconify-icon></button>
+          <button class="dl-btn" id="dl-icon" onclick="openEmojiPick({daily:true})" title="Icon"></button>
+          <input class="dl-col" type="color" id="dl-color" oninput="dailyEdit()" title="Color">
+          <input class="dl-col" type="color" id="dl-done" oninput="dailyEdit()" title="Completed color">
+        </div>
+        <textarea class="fi" id="dl-subs" placeholder="Daily checklist — one per line" onchange="dailyEdit()" style="min-height:70px;resize:none;font-family:var(--font-b);line-height:1.5;margin-bottom:12px"></textarea>
         
         <div id="rep-task-list" style="display:flex;flex-direction:column;gap:6px"></div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
@@ -939,7 +956,7 @@ let undos=[],uTimer=null,editTid=null,editCid=null,dragTid=null,catDragId=null,p
 let completedToday=[];  // {id,name,color} — tasks completed this session
 
 // ── Persist ──────────────────────────────────────────────────────
-function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,aiNotesB,aiNotesR,plantIcons,deletedIds,deletedCatIds,fieldTs}));}
+function sn(){return JSON.parse(JSON.stringify({tasks,cats,colStyles,colMin,gTheme,tid,cid,pid,presets,completedToday,aiNotes,aiNotesB,aiNotesR,plantIcons,deletedIds,deletedCatIds,fieldTs,daily}));}
 function ap(s){
   tasks=s.tasks||[];
   deletedIds=s.deletedIds||[];deletedCatIds=s.deletedCatIds||[];
@@ -1004,7 +1021,7 @@ function ap(s){
   // Build 11: migrate any preset still carrying a raw unicode emoji (from
   // before the Iconify switch) to its matching Iconify id, once.
   presets.forEach(p=>{if(p.emoji&&!p.emoji.includes(':'))p.emoji=EMOJI_TO_ICON[p.emoji]||'mdi:checkbox-marked-circle-outline';});
-  fieldTs=s.fieldTs||{};
+  fieldTs=s.fieldTs||{};daily=s.daily||null;
   aiNotes=(s.aiNotes!==undefined)?s.aiNotes:(aiNotes||'');aiNotesB=(s.aiNotesB!==undefined)?s.aiNotesB:(aiNotesB||'');aiNotesR=(s.aiNotesR!==undefined)?s.aiNotesR:(aiNotesR||'');
   // If no presets in loaded state, try to recover from any other local key
   if(!presets.length){
@@ -1143,6 +1160,11 @@ function noteStamps(arr){(arr||[]).forEach(x=>{if(x&&x.updatedAt>_hlc)_hlc=x.upd
 // Settings-type data (notes, presets, theme, dock icons, ...) is merged per
 // field too, each with its own change time (fieldTs) -- so a save of something
 // unrelated on a stale browser can't drag old notes/presets over newer ones.
+// The daily checklist (the small icon between Casual and Wait): one object with
+// its own sub-tasks, merged per field like a task (so two browsers ticking
+// different items both keep their ticks).
+let daily=null,dailySnap=new Map();
+function mergeDaily(a,b){if(!a)return b||null;if(!b)return a;if(stable(a)===stable(b))return a;return mergeFields(a,b,false);}
 const SETTINGS=['colStyles','colMin','gTheme','presets','completedToday','aiNotes','aiNotesB','aiNotesR','plantIcons'];
 let fieldTs={};
 let taskSnap=new Map(),catSnap=new Map(),setSnap={};
@@ -1150,6 +1172,7 @@ function fieldMap(o){const m={};for(const k in o){if(k==='updatedAt'||k==='ft')c
 function snapSigs(cur){
   taskSnap=new Map(tasks.map(t=>[t.id,fieldMap(t)]));
   catSnap=new Map(cats.map(c=>[c.id,fieldMap(c)]));
+  dailySnap=daily?new Map([['daily',fieldMap(daily)]]):new Map();
   cur=cur||sn();setSnap={};SETTINGS.forEach(f=>{setSnap[f]=JSON.stringify(cur[f]);});
 }
 function stampObj(o,snap,now){
@@ -1169,6 +1192,7 @@ function stampChanges(){
   const touched={tasks:[],cats:[],settings:[]};
   tasks.forEach(t=>{if(stampObj(t,taskSnap,now))touched.tasks.push(t.id);});
   cats.forEach(c=>{if(stampObj(c,catSnap,now))touched.cats.push(c.id);});
+  if(daily)stampObj(daily,dailySnap,now);
   const tIds=new Set(tasks.map(t=>t.id)),cIds=new Set(cats.map(c=>c.id));
   taskSnap.forEach((_,id)=>{if(!tIds.has(id))touched.tasks.push(id);});   // removed since the last snapshot
   catSnap.forEach((_,id)=>{if(!cIds.has(id))touched.cats.push(id);});
@@ -1204,9 +1228,10 @@ async function syncOnce(force,depth){
     const mDel=mergeDeletedIds(deletedIds,remote.deletedIds||[]);
     const mCats=mergeTaskArrays(cats,rCats,deletedCatIds,remote.deletedCatIds||[],false);
     const mCatDel=mergeDeletedIds(deletedCatIds,remote.deletedCatIds||[]);
+    const mDaily=mergeDaily(daily,remote.daily);
     const cur=sn();
     const baseS=remoteTs>lastSavedAt?remote:cur;
-    const out={...baseS,tasks:mTasks,cats:mCats,deletedIds:mDel,deletedCatIds:mCatDel};
+    const out={...baseS,tasks:mTasks,cats:mCats,deletedIds:mDel,deletedCatIds:mCatDel,daily:mDaily};
     const ts={...(remote.fieldTs||{})};
     SETTINGS.forEach(f=>{
       const lt=fieldTs[f]||0,rt=(remote.fieldTs&&remote.fieldTs[f])||0;
@@ -1217,7 +1242,7 @@ async function syncOnce(force,depth){
     out.fieldTs=ts;
     out.tid=Math.max(cur.tid||0,remote.tid||0);out.cid=Math.max(cur.cid||0,remote.cid||0);out.pid=Math.max(cur.pid||0,remote.pid||0);
     const setChanged=SETTINGS.some(f=>JSON.stringify(out[f])!==JSON.stringify(cur[f]));
-    const changed=listKey(mTasks)!==listKey(tasks)||listKey(mCats)!==listKey(cats)||setChanged;
+    const changed=listKey(mTasks)!==listKey(tasks)||listKey(mCats)!==listKey(cats)||setChanged||stable(mDaily)!==stable(daily);
     if(changed){
       ap(out);
       snapSigs();if(_appReady){ra();refreshNotes();}
@@ -1230,6 +1255,7 @@ async function syncOnce(force,depth){
   const needPush=force||localStorage.getItem(PKEY)==='1'||!remote
     ||listKey(d.tasks)!==listKey(remote.tasks||[])||listKey(d.cats)!==listKey(rc)
     ||listKey(d.deletedIds)!==listKey(remote.deletedIds||[])||listKey(d.deletedCatIds)!==listKey(remote.deletedCatIds||[])
+    ||stable(d.daily||null)!==stable(remote?remote.daily||null:null)
     ||SETTINGS.some(f=>JSON.stringify(d[f])!==JSON.stringify(remote[f]))||JSON.stringify(d.fieldTs||{})!==JSON.stringify(remote.fieldTs||{});
   if(!needPush){setSyncStatus('ok');return true;}
   for(let a=0;a<3;a++){
@@ -1812,7 +1838,7 @@ function switchPane(name){
   if(name==='pile')renderPilePane();
   if(name==='ai')loadAiNotes();
   if(name==='cat'){renderThemeColorControls();renderDockIconPicker();}
-  if(name==='adv'){renderRepPane();renderPresetPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
+  if(name==='adv'){renderDailyEditor();renderRepPane();renderPresetPane();syncSelects();document.getElementById('new-rep-cat').innerHTML='<option value="">No category</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
 }
 function showTransferMenu(){
   const mo=document.getElementById('transfer-mo');
@@ -1920,7 +1946,7 @@ function ra(){
   });
   const _daynumEl=document.getElementById('hdr-daynum');
   if(_daynumEl)_daynumEl.textContent=_dn; // fill stays fixed dark ink — always sits on the cream flower disk, never on the day's color
-  renderBoard();renderFull('wait');renderFull('casual');renderCatSection();renderCatChips();syncSelects();renderPile();renderPresetRow();renderDockIcons();
+  renderBoard();renderFull('wait');renderFull('casual');renderCatSection();renderCatChips();syncSelects();renderPile();renderPresetRow();renderDockIcons();renderDaily();
   updateNameOverflowFades();
 }
 // Build 17 — explicit request: the right-edge fade should only appear
@@ -2487,7 +2513,9 @@ function buildEmojiGrid(list){
 }
 function filterEmoji(q){buildEmojiGrid(q?ICONIFY_ICONS.filter(e=>e.includes(q.toLowerCase())):ICONIFY_ICONS);}
 function pickEmoji(ic){
-  if(_iconPickTarget&&_iconPickTarget.dock){
+  if(_iconPickTarget&&_iconPickTarget.daily){
+    dailyEnsure().icon=ic;save();renderDaily();renderDailyEditor();
+  }else if(_iconPickTarget&&_iconPickTarget.dock){
     plantIcons[_iconPickTarget.dock]=ic;save();renderDockIcons();
   }else{
     document.getElementById('pre-emoji-icon').setAttribute('icon',ic);
@@ -3153,23 +3181,69 @@ function mergeSubs(a,b,preferA){
   b.forEach(y=>{if(!seen.has(y.id))out.push(y);});
   return out;
 }
-function openSubs(id){const t=tasks.find(x=>x.id==id);if(!t)return;_subsTid=id;renderSubs();document.getElementById('subs-mo').classList.remove('hidden');}
+function subHost(id){return id==='daily'?daily:tasks.find(x=>x.id==id);}
+function openSubs(id){const t=subHost(id);if(!t)return;_subsTid=id;renderSubs();document.getElementById('subs-mo').classList.remove('hidden');}
 function renderSubs(){
-  const t=tasks.find(x=>x.id==_subsTid);if(!t)return;
-  document.getElementById('subs-title').textContent=t.name;
-  document.getElementById('subs-list').innerHTML=liveSubs(t).map(x=>`<div class="sub-row${x.done?' done':''}" onclick="subTap(${t.id},'${x.id}')"><iconify-icon icon="mdi:${x.done?'check-circle':'circle-outline'}"></iconify-icon><span>${esc(x.name)}</span></div>`).join('');
+  const t=subHost(_subsTid);if(!t)return;
+  document.getElementById('subs-title').innerHTML=_subsTid==='daily'?`<iconify-icon icon="${esc(t.icon)}" style="font-size:28px;color:${t.color}"></iconify-icon>`:esc(t.name);
+  document.getElementById('subs-list').innerHTML=liveSubs(t).map(x=>`<div class="sub-row${x.done?' done':''}" onclick="subTap('${t.id}','${x.id}')"><iconify-icon icon="mdi:${x.done?'check-circle':'circle-outline'}"></iconify-icon><span>${esc(x.name)}</span></div>`).join('');
 }
 function subTap(tid,sid){
   const k=tid+':'+sid,now=Date.now();
   if(_subTap[k]&&now-_subTap[k]<400){_subTap[k]=0;toggleSub(tid,sid);}else _subTap[k]=now;
 }
 function toggleSub(tid,sid){
-  const t=tasks.find(x=>x.id==tid);if(!t)return;
+  const t=subHost(tid);if(!t)return;
   const x=(t.subs||[]).find(y=>y.id===sid);if(!x)return;
-  pu('sub');x.done=!x.done;x.ts=nextStamp();
+  if(tid!=='daily')pu('sub');
+  x.done=!x.done;x.ts=nextStamp();
   save();
-  if(!subsOpen(t)){closeM('subs-mo');ra();chk(tid);return;} // last sub-task done -> the task is complete
+  if(!subsOpen(t)){closeM('subs-mo');ra();if(tid!=='daily')chk(tid);return;} // last sub-task done -> the task is complete (the daily checklist just turns its done color)
   renderSubs();ra();
+}
+// ── Daily checklist ───────────────────────────────────────────────
+function dailyEnsure(){
+  if(!daily)daily={id:'daily',enabled:false,icon:'mdi:checkbox-marked-circle-outline',color:'#a8c98f',doneColor:'#6fd08c',subs:[],day:today(),fadedUntil:null};
+  return daily;
+}
+function dailyRollover(){ // a new day: whatever wasn't finished does not carry over
+  if(!daily||daily.day===today())return false;
+  resetSubs(daily);daily.day=today();daily.fadedUntil=null;
+  return true;
+}
+function renderDaily(){
+  const el=document.getElementById('daily-slot');if(!el)return;
+  if(!daily||!daily.enabled){el.innerHTML='';return;}
+  const subs=liveSubs(daily),allDone=subs.length>0&&!subsOpen(daily);
+  const faded=daily.fadedUntil&&new Date(daily.fadedUntil)>new Date();
+  const left=subs.filter(x=>!x.done).length;
+  el.innerHTML=`<button class="daily-btn${faded?' faded':''}" style="color:${allDone?daily.doneColor:daily.color}" onpointerdown="dailyDown()" onpointerup="dailyUp()" onpointerleave="dailyUp()" onpointercancel="dailyUp()" oncontextmenu="return false" onclick="dailyClick()"><iconify-icon icon="${esc(daily.icon)}"></iconify-icon>${subs.length&&!allDone?`<span class="daily-n">${left}</span>`:''}</button>`;
+}
+let _dailyHold=null,_dailyHeld=false;
+function dailyDown(){_dailyHeld=false;clearTimeout(_dailyHold);_dailyHold=setTimeout(()=>{_dailyHeld=true;dailyToggleFade();},550);}
+function dailyUp(){clearTimeout(_dailyHold);}
+function dailyClick(){if(_dailyHeld){_dailyHeld=false;return;}openSubs('daily');}
+function dailyToggleFade(){
+  if(!daily)return;
+  if(daily.fadedUntil&&new Date(daily.fadedUntil)>new Date())daily.fadedUntil=null;
+  else{const d=new Date();d.setHours(23,59,59,999);daily.fadedUntil=d.toISOString();}
+  save();renderDaily();
+}
+function renderDailyEditor(){
+  const d=daily||{enabled:false,icon:'mdi:checkbox-marked-circle-outline',color:'#a8c98f',doneColor:'#6fd08c',subs:[]};
+  const on=document.getElementById('dl-on');if(!on)return;
+  on.classList.toggle('on',!!d.enabled);
+  document.getElementById('dl-icon').innerHTML='<iconify-icon icon="'+esc(d.icon)+'" style="color:'+d.color+'"></iconify-icon>';
+  document.getElementById('dl-color').value=d.color;document.getElementById('dl-done').value=d.doneColor;
+  const ta=document.getElementById('dl-subs');
+  if(document.activeElement!==ta)ta.value=liveSubs(d).map(x=>x.name).join('\n');
+}
+function dailyToggleEnabled(){const d=dailyEnsure();d.enabled=!d.enabled;save();renderDaily();renderDailyEditor();}
+function dailyEdit(){
+  const d=dailyEnsure();
+  d.color=document.getElementById('dl-color').value;d.doneColor=document.getElementById('dl-done').value;
+  d.subs=parseSubs(document.getElementById('dl-subs').value,d.subs||[]);
+  save();renderDaily();renderDailyEditor();
 }
 function chk(id){
   {const t0=tasks.find(t=>t.id==id);if(t0&&!t0.done&&subsOpen(t0)){openSubs(id);return;}}
@@ -3532,7 +3606,7 @@ function armRepeatWaits(){
   // occurrence up to today when the pattern comes due again. It never pulls a
   // future due date backwards (that was what made repeating tasks jump to
   // random days, and let a stale browser un-complete a task).
-  const t=today();let changed=false;
+  const t=today();let changed=dailyRollover();
   tasks.forEach(tk=>{
     if(!tk.repeat||tk.done)return;
     if((tk.repeat==='weekly'||tk.repeat==='biweekly')&&!tk.repeatStart&&tk.deadlineDate){tk.repeatStart=tk.deadlineDate;changed=true;}
