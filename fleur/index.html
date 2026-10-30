@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 42</title>
+<title>Fleur · 43</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -4211,6 +4211,31 @@ document.addEventListener('click',e=>{
   const t=e.target;
   if(t&&t.classList&&t.classList.contains('mo')&&t.id&&_moDown===t&&!t.classList.contains('hidden'))closeM(t.id);
 });
+// ── Double-tap on touch screens ───────────────────────────────────
+// Turning off iPhone's double-tap-to-zoom (touch-action: manipulation) also stops the browser from sending
+// its own "dblclick" on a double-tap, which broke double-tap-to-complete and double-tap-a-day-to-add. So on
+// touch screens we spot two quick taps ourselves and send the same dblclick the handlers already listen
+// for. If a browser still sends a native dblclick too, only one of the two is allowed through.
+let _lastTouchEnd=0,_lc={t:0,x:0,y:0},_synthT=0,_nativeT=0;
+document.addEventListener('touchend',()=>{_lastTouchEnd=Date.now();},{capture:true,passive:true});
+document.addEventListener('click',e=>{
+  if(Date.now()-_lastTouchEnd>700)return;                         // not from a finger
+  const now=Date.now();
+  if(now-_lc.t<350&&Math.abs(e.clientX-_lc.x)<35&&Math.abs(e.clientY-_lc.y)<35){
+    _lc.t=0;
+    const tgt=e.target,x=e.clientX,y=e.clientY;
+    setTimeout(()=>{
+      if(Date.now()-_nativeT<300)return;                           // the browser already sent one
+      _synthT=Date.now();
+      tgt.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,cancelable:true,view:window,clientX:x,clientY:y}));
+    },0);
+  }else _lc={t:now,x:e.clientX,y:e.clientY};
+},true);
+document.addEventListener('dblclick',e=>{
+  if(!e.isTrusted)return;                                          // ours -- let it through
+  _nativeT=Date.now();
+  if(Date.now()-_synthT<800)e.stopImmediatePropagation();          // ours already ran
+},true);
 load().then(()=>{_appReady=true;ra();syncSelects();chkTimeWaits();});
 
 // ── Report content height to Verdure (same-origin parent) ──────────
