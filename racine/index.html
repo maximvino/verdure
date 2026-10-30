@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build 11 -->
+<!-- Racine — build 12 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -144,20 +144,18 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
   .week::-webkit-scrollbar{display:none}
   .week>.day{scroll-snap-align:start}
 }
+.day.is-today .day-hdr{cursor:pointer}
+
+/* iPhone: a text box under 16px makes Safari zoom the whole page when you tap into it (and then you have to zoom back out).
+   Keep them at 16px on iOS, and turn off double-tap-to-zoom (pinch-zoom still works). */
+@supports(-webkit-touch-callout:none){input,textarea,select{font-size:16px!important}}
+*{touch-action:manipulation}
 </style>
 </head>
 <body>
 
 <div id="app">
   <div class="racine-inner">
-    <div class="topbar">
-      <div class="controls">
-        <button class="icon-btn" id="fullcal-btn" title="Full calendar">🗓</button>
-        <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
-        <button class="icon-btn" id="settings-btn" title="Manage calendars">⚙</button>
-      </div>
-    </div>
-
     <div class="week" id="week"></div>
     <div class="empty-state hidden" id="empty-state">
       <p>No calendars yet. Add one to see your week.</p>
@@ -168,6 +166,7 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 
 <div class="modal hidden" id="settings-modal">
   <div class="modal-card">
+    <button class="icon-btn" id="refresh-btn" title="Refresh now" style="float:right;width:28px;height:28px;font-size:18px;opacity:.8">⟳</button>
     <h2>Calendars</h2>
     <div class="modal-sub">Subscribed .ics feeds shown in your 7-day view</div>
     <div class="modal-sub" id="sync-status" style="margin-top:-10px"></div>
@@ -631,8 +630,7 @@ function measureAndReport(){
   const weekEl=document.getElementById('week');
   if(weekEl.classList.contains('hidden'))return; // empty state already reported its own height
   const topbarEl=document.querySelector('.topbar');
-  if(!topbarEl)return;
-  const topbarH=topbarEl.offsetHeight;
+  const topbarH=topbarEl?topbarEl.offsetHeight:0;
   let maxDay=0;
   document.querySelectorAll('.day').forEach(dayEl=>{
     const hdrEl=dayEl.querySelector('.day-hdr');
@@ -674,7 +672,7 @@ function measureAndReport(){
 // week -- one event, or none -- to look like it held several, leaving an
 // awkward gap above Fleur. 48px is just enough for the topbar + a day
 // header row with zero events; real content still grows it from there.
-const MIN_H=48, MAX_H=420;
+const MIN_H=30, MAX_H=420; // build 12: 48 -> 30, the top bar that floor made room for is gone
 let lastReportedHeight=0;
 function reportHeight(px){
   const clamped=Math.max(MIN_H,Math.min(MAX_H,Math.round(px)));
@@ -798,7 +796,7 @@ function renderFullCalDayPanel(){
   }).join('');
 }
 
-document.getElementById('fullcal-btn').addEventListener('click',openFullCal);
+document.getElementById('fullcal-btn')?.addEventListener('click',openFullCal);
 document.getElementById('close-fullcal').addEventListener('click',closeFullCal);
 document.getElementById('fullcal-modal').addEventListener('click',e=>{if(e.target.id==='fullcal-modal')closeFullCal();});
 document.getElementById('fullcal-prev').addEventListener('click',()=>{
@@ -822,7 +820,9 @@ document.getElementById('fullcal-grid').addEventListener('click',e=>{
   renderFullCal();
 });
 
-document.getElementById('settings-btn').addEventListener('click',openSettings);
+document.getElementById('settings-btn')?.addEventListener('click',openSettings);
+// Build 12: tap today's date to open settings (there are no icons in the top bar any more)
+document.getElementById('week').addEventListener('click',e=>{if(e.target.closest('.day.is-today .day-hdr'))openSettings();});
 document.getElementById('empty-add-btn').addEventListener('click',openSettings);
 document.getElementById('close-settings').addEventListener('click',closeSettings);
 document.getElementById('settings-modal').addEventListener('click',e=>{if(e.target.id==='settings-modal')closeSettings();});
@@ -940,7 +940,7 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
   });
 })();
 
-const RACINE_VERSION='11';
+const RACINE_VERSION='12';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -970,6 +970,9 @@ Clamped between \`MIN_H=48\` and \`MAX_H=420\` pixels. **\`MIN_H\` was 90 throug
 Two robustness additions in build 7, both calling \`measureAndReport()\` again rather than duplicating its logic:
 - **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
 - **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
+
+## Top bar removed (build 12)
+There are no icons above the week any more. Tapping today's date (the highlighted day header) opens the Calendars settings. The refresh button (⟳) now lives at the top of the settings window (same id, so the existing wiring is unchanged). The month-view popup (🗓) is no longer reachable from the UI -- Fleur's calendar now shows Racine's events -- but its code is still in the file. iPhone: inputs are forced to 16px and double-tap-zoom is disabled (touch-action: manipulation).
 
 ## Mobile week (builds 10-11)
 At 600px and below the week grid shows 4 day-columns at a time (each column is a quarter of the width) and swipes sideways; the other days are scrolled to. Racine's and Fleur's weeks (and Fleur's Casual/daily/Wait row) scroll together: positions are shared as a 0-1 fraction over a BroadcastChannel ('verdure-week'); if the browser lacks BroadcastChannel, apps post {type:'week-scroll'} to Verdure, which relays {type:'week-scroll-set'}. While following, scroll-snapping is switched off briefly so the follower doesn't lag. Re-renders preserve the scroll position. Height reporting still measures all seven days, so a busy off-screen day can make Racine a little taller than the visible three need.
