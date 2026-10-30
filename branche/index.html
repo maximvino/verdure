@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Branche — build 19 -->
+<!-- Branche — build 20 -->
 <title>Branche</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -167,6 +167,11 @@ html,body{background:var(--page);color:var(--ink);font-family:var(--font-b);over
 #doc-btn{position:fixed;bottom:0;right:0;width:14px;height:14px;border:none;background:transparent;
   cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
 #doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
+
+/* iPhone: a text box under 16px makes Safari zoom the whole page when you tap into it (and then you have to zoom back out).
+   Keep them at 16px on iOS, and turn off double-tap-to-zoom (pinch-zoom still works). */
+@supports(-webkit-touch-callout:none){input,textarea,select{font-size:16px!important}}
+*{touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -906,7 +911,7 @@ if(window.ResizeObserver){new ResizeObserver(reportHeight).observe(document.getE
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reportHeight);
 
 // ── Context doc ──────────────────────────────────────────────────
-const BRANCHE_VERSION='19';
+const BRANCHE_VERSION='20';
 function downloadContextDoc(){
   const doc=`# Branche — Project Context (build ${BRANCHE_VERSION})
 
