@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 41</title>
+<title>Fleur · 42</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -485,6 +485,11 @@ input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px so
 }
 .sub-row.plain{justify-content:center;text-align:center;border-color:transparent;background:none;font-size:16px}
 .sub-row.plain.done{opacity:.3}
+
+/* iPhone: a text box under 16px makes Safari zoom the whole page when you tap into it (and then you have to zoom back out).
+   Keep them at 16px on iOS, and turn off double-tap-to-zoom (pinch-zoom still works). */
+@supports(-webkit-touch-callout:none){input,textarea,select{font-size:16px!important}}
+*{touch-action:manipulation}
 </style>
 </head>
 <body>
