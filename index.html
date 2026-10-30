@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Verdure — build 31 -->
+<!-- Verdure — build 32 -->
 <title>Verdure</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -30,6 +30,7 @@ html,body{background:#000}
 #doc-btn{position:fixed;top:0;left:0;width:14px;height:14px;border:none;background:transparent;
   cursor:pointer;z-index:9999;padding:0;opacity:0;transition:opacity .2s}
 #doc-btn:hover{opacity:.3;background:radial-gradient(circle,#fff 0%,transparent 70%)}
+*{touch-action:manipulation} /* no double-tap-to-zoom on iPhone (pinch still works) */
 </style>
 </head>
 <body>
@@ -131,7 +132,7 @@ window.addEventListener('message', (e)=>{
 // NOT in the <title> tag, which stays plain "Verdure". Switched from Roman
 // numerals to plain numbers as of build 13 (project-wide convention change,
 // alongside Branche and Racine; Fleur keeps its own flower-name convention).
-const VERDURE_VERSION='31';
+const VERDURE_VERSION='32';
 document.getElementById('doc-btn').addEventListener('click',()=>{
   const doc=`# Verdure — Project Context (build ${VERDURE_VERSION})
 
