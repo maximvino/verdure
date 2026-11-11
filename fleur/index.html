@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fleur · 43</title>
+<title>Fleur · 44</title>
 <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -490,6 +490,8 @@ input.dl-col{width:44px;height:44px;padding:2px;border-radius:12px;border:1px so
    Keep them at 16px on iOS, and turn off double-tap-to-zoom (pinch-zoom still works). */
 @supports(-webkit-touch-callout:none){input,textarea,select{font-size:16px!important}}
 *{touch-action:manipulation}
+/* a task with a note: a tiny, very faint dot in the corner */
+.sn.has-note::after{content:'';position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.28;pointer-events:none}
 </style>
 </head>
 <body>
@@ -2017,7 +2019,7 @@ function snHTML(task,ctx){
   // Build 17 — explicit request: no repeat symbol badge on task rows.
   const timeStr=task.deadlineTime?fmtTime(task.deadlineTime):'';
   const isFaded=task.fadedUntil&&new Date(task.fadedUntil)>new Date();
-  return`<div class="sn${ctx==='cat'?' cat-sn':''}${blocked?' sn-blocked':''}${isFaded?' sn-faded':''}" draggable="true"
+  return`<div class="sn${ctx==='cat'?' cat-sn':''}${blocked?' sn-blocked':''}${isFaded?' sn-faded':''}${(task.notes&&String(task.notes).trim())?' has-note':''}" draggable="true"
     style="border-color:${outline}" data-tid="${task.id}" ${wn?'data-haswait':''} ${blocked?'data-blocked':''}
     onmousedown="snDown(event,${task.id})" onmouseup="snUp(${task.id})" onmouseleave="snUp(${task.id})"
     ontouchstart="snDown(event,${task.id})" ontouchend="snUp(${task.id})" ontouchmove="snUp(${task.id})"
@@ -2081,7 +2083,8 @@ function corkHTML(col){
   // Build 11: only uncategorized tasks show here — a categorized task
   // lives in its category box instead (shown there with a due-date
   // outline color), not duplicated into Wait/Casual too.
-  const ct=tasks.filter(t=>t.col===col&&!t.categoryId);const done=ct.filter(t=>t.done).length;
+  // build 44: a non-repeating task that has a wait also shows in the Wait box even if it has an upcoming date (it still shows, faded, on its day)
+  const ct=tasks.filter(t=>!t.categoryId&&(t.col===col||(col==='wait'&&!t.done&&!t.repeat&&t.col!=='casual'&&(isBlocked(t)||t.waitingFor))));const done=ct.filter(t=>t.done).length;
   function sortTasks(arr){return arr.slice().sort((a,b)=>{
   // Manual order takes precedence when both tasks have sortOrder set
   const ao=a.sortOrder,bo=b.sortOrder;
