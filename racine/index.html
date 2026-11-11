@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Racine — build 12 -->
+<!-- Racine — build 13 -->
 <title>Racine</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -41,13 +41,18 @@ html,body{height:100%;background:var(--page);color:var(--ink);font-family:var(--
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Week grid: one continuous surface, no lines/shading between days ── */
-.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);background:var(--page)}
-.day{display:flex;flex-direction:column;min-width:0;min-height:0}
+.week{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto auto minmax(0,1fr);background:var(--page)}
+/* build 13: .day no longer draws a box -- its header and events are grid items of .week, so multi-day events can
+   span several days in a band between the date row and the events row */
+.day{display:contents}
+.day-hdr{grid-row:1;min-width:0}
+.span-band{grid-row:2;grid-column:1/-1;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:3px 0;padding:2px 0 1px}
+.span-bar{margin:0 3px;border-radius:5px;padding:2px 6px;font-family:var(--font-h);font-weight:500;font-size:.68rem;line-height:1.28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .day-hdr{padding:1px 3px;text-align:center;flex-shrink:0;white-space:nowrap}
 .day-dow,.day-num{font-family:var(--font-h);font-size:.68rem;color:var(--ink2)}
 .day-dow{margin-right:3px}
 .day.is-today .day-dow,.day.is-today .day-num{color:var(--today);font-weight:600}
-.day-events{flex:1;min-height:0;overflow-y:auto;padding:2px 3px 4px;display:flex;flex-direction:column;gap:3px}
+.day-events{grid-row:3;min-width:0;min-height:0;overflow-y:auto;padding:2px 3px 4px;display:flex;flex-direction:column;gap:3px}
 .day-events::-webkit-scrollbar{width:4px}
 .day-events::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
 
@@ -142,7 +147,7 @@ details.advanced summary{font-size:.7rem;color:var(--ink3);cursor:pointer;letter
 @media(max-width:600px){
   .week{grid-template-columns:repeat(7,calc(100% / 4));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
   .week::-webkit-scrollbar{display:none}
-  .week>.day{scroll-snap-align:start}
+  .week .day-hdr{scroll-snap-align:start}
 }
 .day.is-today .day-hdr{cursor:pointer}
 
@@ -549,10 +554,11 @@ function updatePastEvents(){
 // already-cached .ics data (no network call). Shared by the 7-day strip
 // and the full-calendar month view so recurrence/all-day bucketing logic
 // only lives in one place.
-function computeBuckets(days){
+function computeBuckets(days,withSpans){
   const rangeStart=days[0].getTime();
   const rangeEnd=days[days.length-1].getTime()+86400000;
   const buckets={};
+  const spans=withSpans?[]:null; // multi-day all-day events, drawn as one bar instead of one chip per day
   days.forEach(d=>{buckets[localDateKey(d)]=[];});
   const cache=loadCache();
   calendars.forEach(cal=>{
@@ -568,6 +574,7 @@ function computeBuckets(days){
       occs.forEach(occ=>{
         if(occ.allDay){
           let dn0=Math.floor(occ.startMs/86400000), dn1=Math.floor((occ.endMs-1)/86400000);
+          if(spans&&dn1>dn0){spans.push({title,color:cal.color,dn0,dn1});return;}
           for(let dn=dn0;dn<=dn1;dn++){
             const dt=new Date(dn*86400000);
             const key=dt.getUTCFullYear()+'-'+pad2(dt.getUTCMonth()+1)+'-'+pad2(dt.getUTCDate());
@@ -580,9 +587,30 @@ function computeBuckets(days){
       });
     });
   });
+  if(spans)Object.defineProperty(buckets,'_spans',{value:spans});
   return buckets;
 }
 
+// Multi-day all-day events: one bar across the days it covers (several bars stack in lanes).
+function spanBandHTML(days,spans){
+  if(!spans.length)return'';
+  const dns=days.map(d=>Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000));
+  const placed=[];
+  spans.forEach(s=>{
+    let i0=-1,i1=-1;
+    dns.forEach((dn,i)=>{if(dn>=s.dn0&&dn<=s.dn1){if(i0<0)i0=i;i1=i;}});
+    if(i0>=0)placed.push({...s,i0,i1});
+  });
+  placed.sort((a,b)=>a.i0-b.i0||(b.i1-b.i0)-(a.i1-a.i0));
+  const laneEnd=[];
+  const bars=placed.map(p=>{
+    let lane=laneEnd.findIndex(end=>end<p.i0);
+    if(lane<0){lane=laneEnd.length;laneEnd.push(-1);}
+    laneEnd[lane]=p.i1;
+    return `<div class="span-bar" title="${escapeHtml(p.title)}" style="grid-column:${p.i0+1}/${p.i1+2};grid-row:${lane+1};background:${p.color};color:${textColorFor(p.color)}">${escapeHtml(p.title)}</div>`;
+  }).join('');
+  return bars?`<div class="span-band">${bars}</div>`:'';
+}
 function render(){
   const weekEl=document.getElementById('week');
   const emptyEl=document.getElementById('empty-state');
@@ -597,7 +625,7 @@ function render(){
 
   const days=buildWeekDays();
   const todayKey=localDateKey(new Date());
-  const buckets=computeBuckets(days);
+  const buckets=computeBuckets(days,true);
 
   const FR_DOW=['dim','lun','mar','mer','jeu','ven','sam'];
   const _sl=weekEl.scrollLeft; // keep the sideways scroll position across re-renders (mobile)
@@ -616,11 +644,12 @@ function render(){
       const isPast=isToday&&!it.allDay&&it.startMs<Date.now();
       return `<div class="chip${it.allDay?' allday':''}${isPast?' past':''}" data-start-ms="${it.startMs}" style="background:${it.color};color:${tc}">${timeHtml}<span class="chip-title">${escapeHtml(it.title)}</span></div>`;
     }).join(''):'';
+    const col=days.indexOf(d)+1;
     return `<div class="day${isToday?' is-today':''}" data-datekey="${key}">
-      <div class="day-hdr"><span class="day-dow">${dow}</span><span class="day-num">${d.getDate()}</span></div>
-      <div class="day-events">${chips}</div>
+      <div class="day-hdr" style="grid-column:${col}"><span class="day-dow">${dow}</span><span class="day-num">${d.getDate()}</span></div>
+      <div class="day-events" style="grid-column:${col}">${chips}</div>
     </div>`;
-  }).join('');
+  }).join('')+spanBandHTML(days,buckets._spans||[]);
   if(_sl)weekEl.scrollLeft=_sl;
 
   // Let content settle, then measure real (unclipped) height and tell Verdure.
@@ -659,7 +688,8 @@ function measureAndReport(){
     if(chips.length)contentH+=6; // day-events padding: 2px top + 4px bottom
     maxDay=Math.max(maxDay,hdrEl.offsetHeight+contentH);
   });
-  reportHeight(topbarH+maxDay+6);
+  const bandEl=document.querySelector('.span-band');
+  reportHeight(topbarH+maxDay+(bandEl?bandEl.offsetHeight:0)+6);
 }
 // Tell Verdure (same-origin parent) how tall Racine actually needs to be,
 // so day columns with a few events don't require internal scrolling.
@@ -940,7 +970,7 @@ document.getElementById('download-doc-btn').addEventListener('click',downloadCon
   });
 })();
 
-const RACINE_VERSION='12';
+const RACINE_VERSION='13';
 function downloadContextDoc(){
   const doc = `# Racine — Project Context (build ${RACINE_VERSION})
 
@@ -970,6 +1000,9 @@ Clamped between \`MIN_H=48\` and \`MAX_H=420\` pixels. **\`MIN_H\` was 90 throug
 Two robustness additions in build 7, both calling \`measureAndReport()\` again rather than duplicating its logic:
 - **\`document.fonts.ready\`**: re-measures once webfonts actually finish loading. Text metrics (and so each chip's real height) can shift once the real font swaps in for the fallback — if the very first measurement landed before that, Racine could report and lock in a height that was slightly wrong for its actual content.
 - **\`ResizeObserver\` on \`#week\`**: watches the week grid for size changes that don't happen to go through \`render()\` again (e.g. a wrapped chip title changing line count), debounced to one \`requestAnimationFrame\` at a time, so "always as short as it can be" holds continuously rather than only right after a manual re-render.
+
+## Multi-day events (build 13)
+An all-day event that covers more than one day is drawn as ONE bar spanning those days (\`.span-bar\` inside \`.span-band\`, between the date row and the events row; overlapping bars stack in lanes) instead of one chip per day. To make that possible \`.day\` is now \`display:contents\`: its \`.day-hdr\` and \`.day-events\` are grid items of \`.week\` with explicit columns. \`computeBuckets(days,true)\` returns the multi-day events in a hidden \`_spans\` list. Timed events that run past midnight are still shown on their start day only.
 
 ## Top bar removed (build 12)
 There are no icons above the week any more. Tapping today's date (the highlighted day header) opens the Calendars settings. The refresh button (⟳) now lives at the top of the settings window (same id, so the existing wiring is unchanged). The month-view popup (🗓) is no longer reachable from the UI -- Fleur's calendar now shows Racine's events -- but its code is still in the file. iPhone: inputs are forced to 16px and double-tap-zoom is disabled (touch-action: manipulation).
